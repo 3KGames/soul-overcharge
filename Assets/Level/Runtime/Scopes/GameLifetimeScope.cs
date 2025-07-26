@@ -2,6 +2,7 @@ using Level.Runtime.States;
 using VContainer;
 using VContainer.Unity;
 using Common.Runtime.StateMachine;
+using UnityEngine.InputSystem;
 
 namespace Level.Runtime.Scopes
 {
@@ -9,6 +10,9 @@ namespace Level.Runtime.Scopes
     {
         protected override void Configure(IContainerBuilder builder)
         {
+            builder.Register<InputAction>(Lifetime.Singleton)
+                .AsSelf();
+            
             builder.Register<SceneLoader>(Lifetime.Singleton);
             builder.Register<GameStateFactory>(Lifetime.Singleton)
                 .As<IGameStateFactory<GameState>>();
