@@ -11,13 +11,49 @@ namespace Car.Controller
     {
         private readonly InputActions _actions = new InputActions();
 
-        public float Steer => _actions.Car.Steer.ReadValue<float>();
-        public bool ShiftUpTriggered => _actions.Car.ShiftUp.WasPerformedThisFrame();
-        public bool ShiftDownTriggered => _actions.Car.ShiftDown.WasPerformedThisFrame();
-        public bool DriftHeld => _actions.Car.Drift.IsPressed();
+        // Delegate fields to use for unsubscription
+        private readonly Action<InputAction.CallbackContext> _onDriftPerformed;
+        private readonly Action<InputAction.CallbackContext> _onDriftCanceled;
+        private readonly Action<InputAction.CallbackContext> _onShiftUp;
+        private readonly Action<InputAction.CallbackContext> _onShiftDown;
 
-        public void Initialize() => _actions.Enable();
-        public void Dispose() => _actions.Disable();
+        public float Steer => _actions.Car.Steer.ReadValue<float>();
+        public bool DriftHeld { get; private set; }
+        public bool ShiftUpTriggered { get; private set; }
+        public bool ShiftDownTriggered { get; private set; }
+
+
+        public InputService()
+        {
+            _onDriftPerformed = ctx => DriftHeld = true;
+            _onDriftCanceled = ctx => DriftHeld = false;
+            _onShiftUp = ctx => ShiftUpTriggered = true;
+            _onShiftDown = ctx => ShiftDownTriggered = true;
+        }
+
+        public void Initialize()
+        {
+            _actions.Enable();
+            _actions.Car.Drift.performed += _onDriftPerformed;
+            _actions.Car.Drift.canceled += _onDriftCanceled;
+            _actions.Car.ShiftUp.performed += _onShiftUp;
+            _actions.Car.ShiftDown.performed += _onShiftDown;
+        }
+
+        public void Dispose()
+        {
+            _actions.Car.Drift.performed -= _onDriftPerformed;
+            _actions.Car.Drift.canceled -= _onDriftCanceled;
+            _actions.Car.ShiftUp.performed -= _onShiftUp;
+            _actions.Car.ShiftDown.performed -= _onShiftDown;
+            _actions.Disable();
+        }
+
+        public void ResetShiftBuffers()
+        {
+            ShiftUpTriggered = false;
+            ShiftDownTriggered = false;
+        }
     }
 
 }
