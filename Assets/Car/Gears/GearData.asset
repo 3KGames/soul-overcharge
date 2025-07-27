@@ -13,18 +13,28 @@ MonoBehaviour:
   m_Name: GearData
   m_EditorClassIdentifier: 
   gears:
-  - accelerationCurve:
+  - preferredSpeed: {x: 0, y: 5}
+    accelerationCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 2
-        inSlope: -0.69176996
-        outSlope: -0.69176996
+        time: -0.9541472
+        value: 0.5
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0.9973798
+        inWeight: 0.33333334
+        outWeight: 0.84599984
+      - serializedVersion: 3
+        time: 0
+        value: 2
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
         value: 0.2
@@ -34,60 +44,86 @@ MonoBehaviour:
         weightedMode: 0
         inWeight: 0.20784211
         outWeight: 0
+      - serializedVersion: 3
+        time: 1.4979591
+        value: -0.35849053
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 0
-    maxSpeed: 20
     maxSteerAngle: 45
-  - accelerationCurve:
+  - preferredSpeed: {x: 4, y: 15}
+    accelerationCurve:
       serializedVersion: 2
       m_Curve:
+      - serializedVersion: 3
+        time: -1
+        value: 0.05
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       - serializedVersion: 3
         time: 0
         value: 1.6
         inSlope: 0
         outSlope: 0
-        tangentMode: 0
+        tangentMode: 136
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       - serializedVersion: 3
-        time: 1
-        value: 0.3
-        inSlope: -0.22935803
-        outSlope: -0.22935803
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.13984889
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 0
-    maxSpeed: 40
-    maxSteerAngle: 35
-  - accelerationCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 1.5
+        value: -0.2
         inSlope: 0
         outSlope: 0
         tangentMode: 0
         weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0.5
-        inSlope: -0.73600715
-        outSlope: -0.73600715
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.24353743
-        outWeight: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 0
-    maxSpeed: 60
+    maxSteerAngle: 35
+  - preferredSpeed: {x: 13, y: 30}
+    accelerationCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -1
+        value: 0.05
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.000000029802322
+        value: 1.6000001
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.5
+        value: -0.2
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 0
     maxSteerAngle: 25

@@ -8,15 +8,20 @@ namespace UI
     {
         [SerializeField] private CarController car;
         [SerializeField] private TextMeshProUGUI gearText;
+        [SerializeField] private TextMeshProUGUI speedText;
 
         private void Start()
         {
-            car.OnGearChanged += UpdateDisplay;
-            UpdateDisplay(car.CurrentGearIndex);
+            car.OnGearChanged += UpdateGearDisplay;
+            UpdateGearDisplay(car.CurrentGearIndex);
+
+            car.OnSpeedChanged += UpdateSpeedDisplay;
+            UpdateSpeedDisplay(car.CurrentSpeed);
         }
 
-        private void OnDestroy() => car.OnGearChanged -= UpdateDisplay;
+        private void OnDestroy() => car.OnGearChanged -= UpdateGearDisplay;
 
-        private void UpdateDisplay(int gearIndex) => gearText.text = (gearIndex + 1).ToString();
+        private void UpdateGearDisplay(int gearIndex) => gearText.text = (gearIndex + 1).ToString();
+        private void UpdateSpeedDisplay(int speed) => speedText.text = speed.ToString();
     }
 }
