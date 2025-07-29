@@ -6,9 +6,9 @@ namespace UI
 {
     public class GearDisplayUI : MonoBehaviour
     {
-        [SerializeField] private CarController car;
-        [SerializeField] private TextMeshProUGUI gearText;
-        [SerializeField] private TextMeshProUGUI speedText;
+        [SerializeField] private	CarController		car;
+        [SerializeField] private	TextMeshProUGUI		gearText;
+        [SerializeField] private	TextMeshProUGUI		speedText;
 
         private void Start()
         {

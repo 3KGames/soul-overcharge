@@ -8,10 +8,10 @@ namespace Car.Controller
 {
     public readonly struct CarPhysicsInput
     {
-        public bool Drift  { get; }
-        public float Steer { get; }
-        public IGear Gear  { get; }
-        public Vector3 RoadNormal { get; }
+        public bool		Drift		{ get; }
+        public float	Steer		{ get; }
+        public IGear	Gear		{ get; }
+        public Vector3	RoadNormal	{ get; }
 
         public CarPhysicsInput(bool drift, float steer, IGear gear, Vector3 normal)
         {
@@ -25,18 +25,19 @@ namespace Car.Controller
     [RequireComponent(typeof(Rigidbody))]
     public class CarController : MonoBehaviour
     {
-        [Inject] private InputService _input;
-        [Inject] private CarPhysicsService _physics;
-        [Inject] private RoadCheckService _road;
+        [Inject] private InputService		_input;
+        [Inject] private CarPhysicsService	_physics;
+        [Inject] private RoadCheckService	_road;
 
 		[Expandable]
         [SerializeField] private GearDataBase gearData;
 
         private Rigidbody _rb;
         
-        public int CurrentSpeed { get; private set; } = 0;
-        public int CurrentGearIndex { get; private set; } = 0;
-        public event System.Action<int> OnGearChanged;
+        public int		CurrentSpeed		{ get; private set; } = 0;
+        public int		CurrentGearIndex	{ get; private set; } = 0;
+        
+		public event System.Action<int> OnGearChanged;
         public event System.Action<int> OnSpeedChanged;
 
         

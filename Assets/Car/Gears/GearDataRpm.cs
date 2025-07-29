@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace Car.Gears
 {
     [CreateAssetMenu(menuName = "ArcadeCar/GearData-RPM")]
-    public class RpmGearData : GearDataBase, ISerializationCallbackReceiver
+	public class GearDataRpm : GearDataBase, ISerializationCallbackReceiver
     {
         // X - RPM, Y - Acceleration
 		[CurveRange(0, 0, 1f, 1f)]
@@ -48,7 +48,7 @@ namespace Car.Gears
             [SerializeField] private	float			maxSteerAngle;
             
 			// RpmGearData
-            [NonSerialized]  private	RpmGearData		_owner;
+            [NonSerialized]  private	GearDataRpm		_owner;
             
 			public float MaxSteerAngle => maxSteerAngle;
 
@@ -78,7 +78,7 @@ namespace Car.Gears
                 return accel;
             }
 			
-			public void SetOwner(RpmGearData owner) => _owner = owner;
+			public void SetOwner(GearDataRpm owner) => _owner = owner;
         }
     }
 }
