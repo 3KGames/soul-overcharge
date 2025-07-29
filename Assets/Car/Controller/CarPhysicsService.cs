@@ -31,8 +31,11 @@ namespace Car.Controller
             // Lateral friction
             ApplyLateralFriction(rb, inputData.Drift ? DriftFrictionCoefficient : SideFrictionCoefficient);
         }
-        
-        public float GetForwardSpeed(Rigidbody rb) => Vector3.Project(rb.linearVelocity, rb.transform.forward).magnitude;
+
+		public float GetForwardSpeed(Rigidbody rb)
+		{
+			return Vector3.Dot(rb.linearVelocity, rb.transform.forward);
+		}
 
         
         private void AlignToRoad(Rigidbody rb, Vector3 roadNormal)

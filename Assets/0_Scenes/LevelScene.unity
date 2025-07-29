@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a39c0bdc6685e44699e889344c29ed6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gearData: {fileID: 11400000, guid: cac064f50007de84cbd1ef2ed630e3ed, type: 2}
+  gearData: {fileID: 11400000, guid: 51417a27e12f11647a2989db851998e0, type: 2}
 --- !u!54 &52702742
 Rigidbody:
   m_ObjectHideFlags: 0

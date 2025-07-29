@@ -17,12 +17,15 @@ namespace Car.Gears
 		[SerializeField] private	float			rpmIdle = 1000f;
 		[Range(5000f, 10000f)]
 		[SerializeField] private	float			rpmRedline = 7000f;
-		[Range(0f, 0.05f)]
+		[Range(0f, 0.03f)]
 		[SerializeField] private	float			engineBrakeFactor = 0.02f;
+		[Range(0f, 0.1f)]
+		[SerializeField] private	float			lowRpmBrakeFactor = 0.02f;
 		[Range(0f, 50f)]
         [SerializeField] private	float			accelerationModifier;
         [SerializeField] private	Gear[]			gears;
-        
+		
+
 		public override int   GearsCount          => gears.Length;
 		public override IGear GetGear(int index)  => gears[index];
 
@@ -54,8 +57,9 @@ namespace Car.Gears
 
 			
             public float EvaluateAcceleration(float speed)
-            {
-                float rpm = speed * gearRatio * _owner.speedToRpmFactor;
+			{
+				float clampedSpeed = speed < 0 ? 0 : speed;
+                float rpm = clampedSpeed * gearRatio * _owner.speedToRpmFactor;
 
                 // Normalize RPM
                 float normalizedRpm = Mathf.InverseLerp(_owner.rpmIdle, _owner.rpmRedline, rpm);
@@ -66,8 +70,16 @@ namespace Car.Gears
 
                 // Calculate acceleration
                 float accel = torque * _owner.accelerationModifier;
-
-                // Engine braking
+				
+				// Too low rpm
+				if (rpm < _owner.rpmIdle)
+				{
+					float lackRpm   = _owner.rpmIdle - rpm;                    // сколько «не хватает» до холостых
+					float lugPenalty = lackRpm * _owner.lowRpmBrakeFactor;     // коэффициент подбираете в инспекторе
+					accel -= lugPenalty;                                       // отрицательное ускорение
+				}
+				
+                // Rpm overshoot
                 if (rpm > _owner.rpmRedline)
                 {
                     float excessRpm = rpm - _owner.rpmRedline;

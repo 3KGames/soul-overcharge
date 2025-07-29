@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9af50437b9ab4850a5f509ed10a26e05, type: 3}
-  m_Name: GearDataRPM
+  m_Name: GearDataRpm
   m_EditorClassIdentifier: 
   accelerationCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.28
+      value: 0.1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -45,15 +45,16 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  speedToRpmFactor: 329
-  rpmIdle: 1000
+  speedToRpmFactor: 312
+  rpmIdle: 2111
   rpmRedline: 7000
   engineBrakeFactor: 0.003
+  lowRpmBrakeFactor: 0.00011
   accelerationModifier: 11.1
   gears:
-  - gearRatio: 2.94
+  - gearRatio: 4.56
     maxSteerAngle: 51.1
-  - gearRatio: 2
+  - gearRatio: 3.35
     maxSteerAngle: 35
-  - gearRatio: 1
+  - gearRatio: 0.75
     maxSteerAngle: 25
