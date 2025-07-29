@@ -1,22 +1,24 @@
 using Car.Gears;
+using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VContainer;
 
 namespace Car.Controller
 {
     public readonly struct CarPhysicsInput
     {
-        public bool Drift { get; }
+        public bool Drift  { get; }
         public float Steer { get; }
-        public GearData.Gear Gear { get; }
+        public IGear Gear  { get; }
         public Vector3 RoadNormal { get; }
-        
-        public CarPhysicsInput(bool drift, float steer, GearData.Gear gear, Vector3 roadNormal)
+
+        public CarPhysicsInput(bool drift, float steer, IGear gear, Vector3 normal)
         {
             Drift      = drift;
             Steer      = steer;
             Gear       = gear;
-            RoadNormal = roadNormal;
+            RoadNormal = normal;
         }
     }
 
@@ -27,14 +29,17 @@ namespace Car.Controller
         [Inject] private CarPhysicsService _physics;
         [Inject] private RoadCheckService _road;
 
-        [SerializeField] private GearData gearData;
+		[Expandable]
+        [SerializeField] private GearDataBase gearData;
 
         private Rigidbody _rb;
+        
         public int CurrentSpeed { get; private set; } = 0;
         public int CurrentGearIndex { get; private set; } = 0;
-        public System.Action<int> OnGearChanged;
-        public System.Action<int> OnSpeedChanged;
+        public event System.Action<int> OnGearChanged;
+        public event System.Action<int> OnSpeedChanged;
 
+        
         private void Awake() => _rb = GetComponent<Rigidbody>();
 
         private void FixedUpdate()
@@ -45,7 +50,7 @@ namespace Car.Controller
             var inputData = new CarPhysicsInput(
                 _input.DriftHeld,
                 _input.Steer,
-                gearData.gears[CurrentGearIndex],
+                gearData.GetGear(CurrentGearIndex),
                 _road.GetRoadNormal(transform.position));
             _physics.UpdatePhysics(_rb, inputData);
 
@@ -54,7 +59,7 @@ namespace Car.Controller
 
         private void HandleGearShift()
         {
-            if (_input.ShiftUpTriggered && CurrentGearIndex < gearData.gears.Length - 1)
+            if (_input.ShiftUpTriggered && CurrentGearIndex < gearData.GearsCount - 1)
             {
                 CurrentGearIndex++;
                 OnGearChanged?.Invoke(CurrentGearIndex);

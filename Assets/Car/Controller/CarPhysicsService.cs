@@ -11,19 +11,17 @@ namespace Car.Controller
 
         public void UpdatePhysics(Rigidbody rb, CarPhysicsInput inputData)
         {
-            GearData.Gear gear = inputData.Gear;
+            IGear gear = inputData.Gear;
             
             AlignToRoad(rb, inputData.RoadNormal);
             
             // Auto‑acceleration
-            float speed = GetForwardSpeed(rb); 
-            float t = (speed - gear.MinPrefSpeed) / (gear.MaxPrefSpeed - gear.MinPrefSpeed); // Inverse lerp without clamping
-            float accel = gear.accelerationCurve.Evaluate(t) * 5f;
+            float speed = GetForwardSpeed(rb);
+            float accel = gear.EvaluateAcceleration(speed);
             rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
-            //Debug.Log($"Speed: {speed};   T: {t};   Accel: {accel}");
 
             // Steering
-            float steerAngle = gear.maxSteerAngle * inputData.Steer;
+            float steerAngle = gear.MaxSteerAngle * inputData.Steer;
             Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
             rb.MoveRotation(rb.rotation * delta);
 
