@@ -50,7 +50,7 @@ MonoBehaviour:
   rpmRedline: 7000
   engineBrakeFactor: 0.003
   lowRpmBrakeFactor: 0.00011
-  accelerationModifier: 22.2
+  accelerationModifier: 5
   gears:
   - gearRatio: 2.6
     maxSteerAngle: 51.1

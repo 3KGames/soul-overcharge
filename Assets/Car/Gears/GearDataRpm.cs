@@ -69,7 +69,7 @@ namespace Car.Gears
                 float torque = _owner.accelerationCurve.Evaluate(normalizedRpm);
 
                 // Calculate acceleration
-                float accel = torque * _owner.accelerationModifier;
+                float accel = torque * gearRatio * _owner.accelerationModifier;
 				
 				// Too low rpm
 				if (rpm < _owner.rpmIdle)
