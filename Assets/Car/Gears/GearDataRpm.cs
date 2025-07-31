@@ -8,8 +8,7 @@ namespace Car.Gears
     [CreateAssetMenu(menuName = "ArcadeCar/GearData-RPM")]
 	public class GearDataRpm : GearDataBase, ISerializationCallbackReceiver
     {
-        // X - RPM, Y - Acceleration
-		[CurveRange(0, 0, 1f, 1f)]
+		[CurveRange(0, 0, 1f, 1f), Tooltip("X - RPM, Y - Acceleration")]
 		[SerializeField] private	AnimationCurve	accelerationCurve;
 		[Range(1f, 1000f)]
 		[SerializeField] private	float			speedToRpmFactor = 300f;
@@ -86,7 +85,7 @@ namespace Car.Gears
                     float brake = -excessRpm * _owner.engineBrakeFactor;
                     accel += brake;
                 }
-                Debug.Log($"Speed: {speed};   Rpm: {rpm};   Accel: {accel}");
+                //Debug.Log($"Speed: {speed};   Rpm: {rpm};   Accel: {accel}");
                 return accel;
             }
 			

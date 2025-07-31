@@ -1,5 +1,6 @@
 using System;
 using Car.Controller;
+using NaughtyAttributes;
 using UI;
 using UnityEngine;
 using VContainer;
@@ -10,7 +11,11 @@ namespace Level.Runtime.Scopes
     public class LevelLifetimeScope : LifetimeScope
     {
         [SerializeField] private LayerMask surfaceMask; //TODO: Remove form here, maybe has to be in RoadCheckService
-        
+		[Expandable]
+		[SerializeField] private CarPhysicsData physicsData;
+		[Expandable] 
+		[SerializeField] private NitroData nitroData;
+		
         protected override void Configure(IContainerBuilder builder)
         {
             if (Parent == null)
@@ -18,19 +23,19 @@ namespace Level.Runtime.Scopes
                 Debug.LogError("LevelLifetimeScope: Parent container is null.");
                 return;
             }
+			
+			builder.RegisterInstance(physicsData);
+			builder.RegisterInstance(nitroData);
 
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<IInitializable>()
                 .As<IDisposable>();
             builder.Register<CarPhysicsService>(Lifetime.Singleton);
-            builder.RegisterInstance(new RoadCheckService(surfaceMask));
+			builder.Register<NitroService>(Lifetime.Singleton);
+            builder.RegisterInstance(new RoadCheckService(surfaceMask)); //This is shit
             builder.RegisterComponentInHierarchy<CarController>();
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
-
-            // Bootstrap static tiles once the scene is ready
-            //builder.RegisterEntryPoint<LevelBootstrap>(Lifetime.Scoped);
-
         }
     }
 }
