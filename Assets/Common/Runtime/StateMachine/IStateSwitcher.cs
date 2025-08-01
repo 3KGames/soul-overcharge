@@ -1,7 +1,7 @@
 ﻿namespace Common.Runtime.StateMachine
 {
-    public interface IStateSwitcher<StateType>
+    public interface IStateSwitcher<TStateType>
     {
-        void Switch(StateType state);
+        void Switch(TStateType state);
     }
 }

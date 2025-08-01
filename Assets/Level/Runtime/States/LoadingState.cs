@@ -7,7 +7,7 @@ namespace Level.Runtime.States
         public static LevelData levelData;
     }*/
     
-    public sealed class LoadingState : IGameState<GameState>
+    public sealed class LoadingState : IState<GameState>
     {
         readonly IStateSwitcher<GameState> _fsm;
         readonly SceneLoader _loader;

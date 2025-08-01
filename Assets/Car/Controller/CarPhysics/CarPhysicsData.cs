@@ -1,7 +1,7 @@
 using NaughtyAttributes;
 using UnityEngine;
 
-namespace Car.Controller
+namespace Car.Controller.CarPhysics
 {
 	[CreateAssetMenu(menuName = "ArcadeCar/CarPhysicsData")]
 	public class CarPhysicsData : ScriptableObject

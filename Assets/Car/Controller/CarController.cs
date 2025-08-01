@@ -1,3 +1,5 @@
+using Car.Controller.CarPhysics;
+using Car.Controller.CarPhysics.States;
 using Car.Gears;
 using DG.Tweening;
 using NaughtyAttributes;
@@ -32,6 +34,10 @@ namespace Car.Controller
         [Inject] private CarPhysicsService	_physics;
 		[Inject] private NitroService		_nitro;
         [Inject] private RoadCheckService	_road;
+		/// Field only for unsubscription
+		[Inject] private DriftCarState		_driftState;
+		
+		
 
 		[Expandable]
         [SerializeField] private GearDataBase gearData;
@@ -56,15 +62,18 @@ namespace Car.Controller
 		{
 			_rb = GetComponent<Rigidbody>();
 
-			_physics.OnDriftStarted += DriftStarted;
-			_physics.OnDriftEnded += DriftEnded;
+			_driftState.OnDriftStarted	+= DriftStarted;
+			_driftState.OnDriftEnded	+= DriftEnded;
 			
-			_physics.OnDriftEnded += _nitro.DriftEnded;
+			_driftState.OnDriftEnded	+= _nitro.DriftEnded;
 		}
 
 		private void OnDestroy()
 		{
-			_physics.OnDriftEnded -= _nitro.DriftEnded;
+			_driftState.OnDriftStarted	-= DriftStarted;
+			_driftState.OnDriftEnded	-= DriftEnded;
+			
+			_driftState.OnDriftEnded	-= _nitro.DriftEnded;
 		}
 
         private void FixedUpdate()
@@ -80,7 +89,7 @@ namespace Car.Controller
                 gearData.GetGear(CurrentGearIndex),
                 _road.GetRoadNormal(transform.position),
 				_nitro.GetTorqueMultiplier());
-            _physics.UpdatePhysics(_rb, inputData);
+            _physics.Tick(Time.fixedDeltaTime, _rb, inputData);
 
             _input.ResetShiftBuffers();
         }
@@ -101,7 +110,7 @@ namespace Car.Controller
 
         private void HandleSpeedChange()
         {
-            int newSpeed = Mathf.CeilToInt(_physics.GetForwardSpeed(_rb));
+            int newSpeed = Mathf.CeilToInt(CarPhysicsService.GetForwardSpeed(_rb));
             if (newSpeed != CurrentSpeed)
             {
                 CurrentSpeed = newSpeed;

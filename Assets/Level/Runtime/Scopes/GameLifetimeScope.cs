@@ -15,7 +15,7 @@ namespace Level.Runtime.Scopes
             
             builder.Register<SceneLoader>(Lifetime.Singleton);
             builder.Register<GameStateFactory>(Lifetime.Singleton)
-                .As<IGameStateFactory<GameState>>();
+                .As<IStateFactory<GameState>>();
             builder.RegisterEntryPoint<GameFlowStateMachine>()
                 .As<IStateSwitcher<GameState>>();
             builder.Register<LoadingState>(Lifetime.Singleton);

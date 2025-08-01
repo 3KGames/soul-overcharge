@@ -1,8 +1,8 @@
 ﻿namespace Common.Runtime.StateMachine
 {
-    public interface IGameState<StateType>
+    public interface IState<TStateType>
     {
-        StateType Kind { get; }
+        TStateType Kind { get; }
         void Enter(); 
         void Exit();
     }

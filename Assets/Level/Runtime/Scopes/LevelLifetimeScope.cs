@@ -1,5 +1,7 @@
 using System;
 using Car.Controller;
+using Car.Controller.CarPhysics;
+using Car.Controller.CarPhysics.States;
 using NaughtyAttributes;
 using UI;
 using UnityEngine;
@@ -24,17 +26,27 @@ namespace Level.Runtime.Scopes
                 return;
             }
 			
+			// Scriptable Objects
 			builder.RegisterInstance(physicsData);
 			builder.RegisterInstance(nitroData);
 
+			// Car controller
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<IInitializable>()
                 .As<IDisposable>();
+			builder.Register<DriveCarState>(Lifetime.Singleton)
+				.AsSelf()
+				.As<BaseCarState>();
+			builder.Register<DriftCarState>(Lifetime.Singleton)
+				.AsSelf()
+				.As<BaseCarState>();
             builder.Register<CarPhysicsService>(Lifetime.Singleton);
 			builder.Register<NitroService>(Lifetime.Singleton);
             builder.RegisterInstance(new RoadCheckService(surfaceMask)); //This is shit
             builder.RegisterComponentInHierarchy<CarController>();
+			
+			// UI
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
         }
     }

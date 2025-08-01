@@ -8,11 +8,11 @@ namespace Level.Runtime
 
     public sealed class GameFlowStateMachine : IStartable, IStateSwitcher<GameState>
     {
-        readonly IGameStateFactory<GameState> _factory;
-        readonly Dictionary<GameState, IGameState<GameState>> _states = new();
+        readonly IStateFactory<GameState> _factory;
+        readonly Dictionary<GameState, IState<GameState>> _states = new();
         GameState _current;
 
-        public GameFlowStateMachine(IGameStateFactory<GameState> factory)
+        public GameFlowStateMachine(IStateFactory<GameState> factory)
         {
             _factory = factory;
         }

@@ -4,7 +4,7 @@ using Common.Runtime.StateMachine;
 
 namespace Level.Runtime.States
 {    
-    public class GameStateFactory : IGameStateFactory<GameState>
+    public class GameStateFactory : IStateFactory<GameState>
     {
         private readonly IObjectResolver _resolver;
 
@@ -13,7 +13,7 @@ namespace Level.Runtime.States
             _resolver = resolver;
         }
 
-        public IGameState<GameState> Create(GameState state)
+        public IState<GameState> Create(GameState state)
         {
             return state switch
             {
