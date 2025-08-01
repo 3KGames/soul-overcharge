@@ -51,7 +51,7 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Exit()
 		{
-			
+				
 		}
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
@@ -62,7 +62,9 @@ namespace Car.Controller.CarPhysics.States
             
 			// Auto‑acceleration
 			float speed = CarPhysicsService.GetForwardSpeed(rb);
-			float accel = gear.EvaluateAcceleration(speed) * inputData.TorqueMultiplier;
+			float accel = gear.EvaluateAcceleration(speed / _physicsData.DriftMaxSpeedCoefficient) 
+						  * inputData.TorqueMultiplier 
+						  * _physicsData.DriftAccelerationCoefficient;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 
 			// Drift steering
@@ -72,7 +74,6 @@ namespace Car.Controller.CarPhysics.States
 				_physicsData.MaxDriftAngleCoefficient,
 				t
 			);
-			Debug.Log(inputData.Gear.MaxSteerAngle * driftAngleCoef * DriftDir);
 			float steerAngle = inputData.Gear.MaxSteerAngle * driftAngleCoef * DriftDir;
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
 			rb.MoveRotation(rb.rotation * delta);

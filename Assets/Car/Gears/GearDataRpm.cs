@@ -22,6 +22,8 @@ namespace Car.Gears
 		[SerializeField] private	float			lowRpmBrakeFactor = 0.02f;
 		[Range(0f, 50f)]
         [SerializeField] private	float			accelerationModifier;
+		[Range(-10f, 10f), Tooltip("Desmos: m")] 
+		[SerializeField] private	float			speedShift = 1.3f;
         [SerializeField] private	Gear[]			gears;
 		
 
@@ -57,7 +59,7 @@ namespace Car.Gears
 			
             public float EvaluateAcceleration(float speed)
 			{
-				float clampedSpeed = speed < 0 ? 0 : speed;
+				float clampedSpeed = speed < 0 ? _owner.speedShift : speed + _owner.speedShift;
                 float rpm = clampedSpeed * gearRatio * _owner.speedToRpmFactor;
 
                 // Normalize RPM
@@ -76,6 +78,8 @@ namespace Car.Gears
 					float lackRpm   = _owner.rpmIdle - rpm;                    // сколько «не хватает» до холостых
 					float lugPenalty = lackRpm * _owner.lowRpmBrakeFactor;     // коэффициент подбираете в инспекторе
 					accel -= lugPenalty;                                       // отрицательное ускорение
+					if (accel < 0)
+						accel = 0;
 				}
 				
                 // Rpm overshoot

@@ -33,6 +33,7 @@ namespace Car.Controller.CarPhysics.States
 				&& Mathf.Abs(inputData.Steer) > 0.1f)
 			{
 				int driftDir = inputData.Steer > 0 ? 1 : -1;
+				//rb.AddForce(-rb.transform.forward * 10f, ForceMode.Acceleration);
 				return new Transition<int>(CarState.Drift, driftDir);
 			}
 
@@ -49,6 +50,8 @@ namespace Car.Controller.CarPhysics.States
 			float speed = CarPhysicsService.GetForwardSpeed(rb);
 			float accel = gear.EvaluateAcceleration(speed) * inputData.TorqueMultiplier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
+			
+			Debug.Log($"Speed: {speed};   Accel: {accel}");
 
 			// Steering
 			float steerAngle = gear.MaxSteerAngle * inputData.Steer;

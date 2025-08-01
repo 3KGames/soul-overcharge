@@ -17,7 +17,7 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.1
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -35,7 +35,7 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 0.20018868
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -45,16 +45,17 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  speedToRpmFactor: 312
-  rpmIdle: 2111
+  speedToRpmFactor: 106
+  rpmIdle: 1010
   rpmRedline: 7000
-  engineBrakeFactor: 0.003
-  lowRpmBrakeFactor: 0.00011
-  accelerationModifier: 5
+  engineBrakeFactor: 0.0003
+  lowRpmBrakeFactor: 0.001
+  accelerationModifier: 2
+  speedShift: 3
   gears:
-  - gearRatio: 2.6
+  - gearRatio: 6
     maxSteerAngle: 51.1
-  - gearRatio: 2.05
+  - gearRatio: 4
     maxSteerAngle: 35
-  - gearRatio: 0.87
+  - gearRatio: 2
     maxSteerAngle: 25
