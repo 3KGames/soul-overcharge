@@ -56,6 +56,11 @@ namespace Car.Gears
             
 			public float MaxSteerAngle => maxSteerAngle;
 
+			public float EvaluateRpm(float speed)
+			{
+				float clampedSpeed = speed < 0 ? _owner.speedShift : speed + _owner.speedShift;
+				return clampedSpeed * gearRatio * _owner.speedToRpmFactor;
+			}
 			
             public float EvaluateAcceleration(float speed)
 			{

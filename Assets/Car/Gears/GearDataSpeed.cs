@@ -21,6 +21,10 @@ namespace Car.Gears
 
             public float MaxSteerAngle	=> maxSteerAngle;
 
+            public float EvaluateRpm(float speed)
+            {
+                return 1000;
+            }
             public float EvaluateAcceleration(float speed)
             {
 				return accelerationCurve.Evaluate(speed) * 5f;

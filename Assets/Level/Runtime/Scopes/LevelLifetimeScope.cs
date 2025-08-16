@@ -2,6 +2,7 @@ using System;
 using Car.Controller;
 using Car.Controller.CarPhysics;
 using Car.Controller.CarPhysics.States;
+using Car.Gears;
 using NaughtyAttributes;
 using UI;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace Level.Runtime.Scopes
 		[SerializeField] private CarPhysicsData physicsData;
 		[Expandable] 
 		[SerializeField] private NitroData nitroData;
+		[Expandable]
+		[SerializeField] private GearDataRpm gearDataRpm;
 		
         protected override void Configure(IContainerBuilder builder)
         {
@@ -29,6 +32,7 @@ namespace Level.Runtime.Scopes
 			// Scriptable Objects
 			builder.RegisterInstance(physicsData);
 			builder.RegisterInstance(nitroData);
+			builder.RegisterInstance(gearDataRpm);
 
 			// Car controller
             builder.Register<InputService>(Lifetime.Singleton)
@@ -48,6 +52,7 @@ namespace Level.Runtime.Scopes
 			
 			// UI
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
+            builder.RegisterComponentInHierarchy<TachometerController>();
         }
     }
 }

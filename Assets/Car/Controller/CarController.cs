@@ -16,7 +16,7 @@ namespace Car.Controller
         public IGear	Gear				{ get; }
         public Vector3	RoadNormal			{ get; }
 		public float	TorqueMultiplier	{ get; }
-
+		
         public CarPhysicsInput(bool drift, float steer, IGear gear, Vector3 normal, float torqueMultiplier)
         {
 			Drift      			= drift;
