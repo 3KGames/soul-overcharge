@@ -167,7 +167,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a39c0bdc6685e44699e889344c29ed6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gearData: {fileID: 11400000, guid: 51417a27e12f11647a2989db851998e0, type: 2}
   body: {fileID: 1960367332}
 --- !u!54 &52702742
 Rigidbody:
@@ -364,6 +363,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   physicsData: {fileID: 11400000, guid: 64494ce466f6a874f97066b5cbf971ea, type: 2}
   nitroData: {fileID: 11400000, guid: 411b366ec64d4c545b381290c7b4241e, type: 2}
+  gearDataRpm: {fileID: 11400000, guid: 51417a27e12f11647a2989db851998e0, type: 2}
 --- !u!4 &320111563
 Transform:
   m_ObjectHideFlags: 0
@@ -989,7 +989,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 838.3, y: -364}
+  m_AnchoredPosition: {x: 514, y: -275}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1448717734
@@ -1350,7 +1350,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 910, y: -208}
+  m_AnchoredPosition: {x: 585.69995, y: -119}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1816002030

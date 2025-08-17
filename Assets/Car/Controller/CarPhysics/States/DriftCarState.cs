@@ -7,6 +7,7 @@ namespace Car.Controller.CarPhysics.States
 	public class DriftCarState: BaseCarState, ITransitionPayload<int>
 	{
 		private CarPhysicsData _physicsData;
+		private TransmissionService _transmission;
 		
 		private float  _driftTimer;
 		
@@ -22,9 +23,10 @@ namespace Car.Controller.CarPhysics.States
 		public event DriftEndedHandler OnDriftEnded;
 
 
-		public DriftCarState(CarPhysicsData physicsData)
+		public DriftCarState(CarPhysicsData physicsData, TransmissionService transmission)
 		{
 			_physicsData = physicsData;
+			_transmission = transmission;
 		}
 		
 		public void ApplyPayload(int driftDir)
@@ -56,13 +58,10 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
-			IGear gear = inputData.Gear;
-            
 			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
             
 			// Auto‑acceleration
-			float speed = CarPhysicsService.GetForwardSpeed(rb);
-			float accel = gear.EvaluateAcceleration(speed / _physicsData.DriftMaxSpeedCoefficient) 
+			float accel = _transmission.GetAcceleration(rb.linearVelocity.magnitude / _physicsData.DriftMaxSpeedCoefficient) 
 						  * inputData.TorqueMultiplier 
 						  * _physicsData.DriftAccelerationCoefficient;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
@@ -74,7 +73,7 @@ namespace Car.Controller.CarPhysics.States
 				_physicsData.MaxDriftAngleCoefficient,
 				t
 			);
-			float steerAngle = inputData.Gear.MaxSteerAngle * driftAngleCoef * DriftDir;
+			float steerAngle = _transmission.GetGearData().MaxSteerAngle * driftAngleCoef * DriftDir;
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
 			rb.MoveRotation(rb.rotation * delta);
 			

@@ -1,12 +1,13 @@
 using System;
+using UnityEngine;
 
 namespace Car.Gears
 {
     public class TransmissionService
     {
-        private GearDataRpm _gearDataRpm;
+        private readonly GearDataRpm _gearDataRpm;
         
-        public Action TransmissionChanged;
+        public Action GearChanged;
         
         public int SelectedGear { get; private set; }
 
@@ -18,32 +19,51 @@ namespace Car.Gears
 
         public bool CanShiftUp()
         {
-            return false;
+            return _gearDataRpm.GearsCount > (SelectedGear + 1);
         }
         
-        public void ShiftUp()
+        public void ShiftUpSafe()
         {
-            
+            if (!CanShiftUp()) return;
+            SelectedGear++;
+            GearChanged?.Invoke();
         }
 
         public bool CanShiftDown()
         {
-            return false;
+            return SelectedGear > 0;
         }
         
-        public void ShiftDown()
+        public void ShiftDownSafe()
         {
-            
+            if (!CanShiftDown()) return;
+            SelectedGear--;
+            GearChanged?.Invoke();
         }
 
         public float GetRpm(float currentSpeed)
         {
-            return 0f;
+            return currentSpeed * GetGearData().GearRatio * _gearDataRpm.SpeedToRpmFactor;
         }
 
         public float GetAcceleration(float currentSpeed)
         {
-            return 0f;
+            float rpm = GetRpm(currentSpeed);
+            if (rpm > _gearDataRpm.RpmRedline)
+            {
+                //TODO: brake
+                return -1;
+            }
+            else
+            {
+                float normalized = Mathf.InverseLerp(0,  _gearDataRpm.RpmRedline, rpm);
+                return _gearDataRpm.AccelerationModifier * _gearDataRpm.AccelerationCurve.Evaluate(normalized);
+            }
+        }
+
+        public GearDataRpm.Gear GetGearData()
+        {
+            return _gearDataRpm.GetGear(SelectedGear);
         }
     }
 }

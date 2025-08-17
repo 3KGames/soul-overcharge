@@ -34,6 +34,7 @@ namespace Level.Runtime.Scopes
 			builder.RegisterInstance(nitroData);
 			builder.RegisterInstance(gearDataRpm);
 
+			builder.Register<TransmissionService>(Lifetime.Singleton);
 			// Car controller
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
@@ -45,9 +46,10 @@ namespace Level.Runtime.Scopes
 			builder.Register<DriftCarState>(Lifetime.Singleton)
 				.AsSelf()
 				.As<BaseCarState>();
+			builder.Register<CarService>(Lifetime.Singleton);
             builder.Register<CarPhysicsService>(Lifetime.Singleton);
 			builder.Register<NitroService>(Lifetime.Singleton);
-            builder.RegisterInstance(new RoadCheckService(surfaceMask)); //This is shit
+            builder.RegisterInstance(new RoadCheckService(surfaceMask)); //TODO: Fix this shit
             builder.RegisterComponentInHierarchy<CarController>();
 			
 			// UI

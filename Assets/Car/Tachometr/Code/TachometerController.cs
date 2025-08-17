@@ -14,33 +14,34 @@ public class TachometerController : MonoBehaviour
     
     [SerializeField]  private RectTransform       arrow;
     [SerializeField]  private TextMeshProUGUI     tachometerText;
-    [SerializeField]  private CarController       car;
-    [Inject]          private GearDataRpm         _gearDataRpm;
+    private CarService                   _car;
+    private TransmissionService          _transmission;
 
-    private int _prevGear   = 1;
-    private int _prevSpeed  = 0;
-
+    [Inject]
+    void Construct(CarService car, TransmissionService tr)
+    {
+        Debug.Log("[TachometerController] Injected OK");
+        _car = car;
+        _transmission = tr;
+    }
+    
     void Start()
     {
-        tachometerText.text = _prevGear.ToString();
+        tachometerText.text = "1";
         arrow.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -45));
-        car.OnGearChanged += UpdateGearDisplay;
-        car.OnSpeedChanged += UpdateTachometer;
+        _transmission.GearChanged += UpdateGearDisplay;
+        _car.PhysicsUpdated += UpdateTachometer;
     }
 
-    private void UpdateGearDisplay(int gear)
+    private void UpdateGearDisplay()
     {
-        _prevGear = gear;
-        tachometerText.text = (gear + 1).ToString();
-        UpdateTachometer(_prevSpeed);
+        tachometerText.text = _transmission.SelectedGear.ToString();
+        UpdateTachometer();
     }
 
-    private void UpdateTachometer(int speed)
+    private void UpdateTachometer()
     {
-        _prevSpeed = speed;
-        var gear = _gearDataRpm.GetGear(_prevGear);
-        
-        float rpm = gear.EvaluateRpm(speed);
+        float rpm = _transmission.GetRpm(_car.CurrentSpeed);
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);
 
