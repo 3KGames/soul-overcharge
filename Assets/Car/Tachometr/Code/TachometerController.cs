@@ -35,7 +35,7 @@ public class TachometerController : MonoBehaviour
 
     private void UpdateGearDisplay()
     {
-        tachometerText.text = _transmission.SelectedGear.ToString();
+        tachometerText.text = (_transmission.SelectedGear + 1).ToString();
         UpdateTachometer();
     }
 

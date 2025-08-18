@@ -41,24 +41,48 @@ namespace Car.Gears
             GearChanged?.Invoke();
         }
 
-        public float GetRpm(float currentSpeed)
+        public float GetRpm(float speed)
         {
-            return currentSpeed * GetGearData().GearRatio * _gearDataRpm.SpeedToRpmFactor;
+            var gear = GetGearData();
+            float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
+            return clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
         }
 
-        public float GetAcceleration(float currentSpeed)
+        public float GetAcceleration(float speed)
         {
-            float rpm = GetRpm(currentSpeed);
+            var gear = GetGearData();
+            float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
+            float rpm = clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
+
+            // Normalize RPM
+            float normalizedRpm = Mathf.InverseLerp(_gearDataRpm.RpmIdle, _gearDataRpm.RpmRedline, rpm);
+            normalizedRpm = Mathf.Clamp01(normalizedRpm);
+
+            // Get torque from a curve (0..1)
+            float torque = _gearDataRpm.AccelerationCurve.Evaluate(normalizedRpm);
+
+            // Calculate acceleration
+            float accel = torque * gear.GearRatio * _gearDataRpm.AccelerationModifier;
+				
+            // Too low rpm
+            if (rpm < _gearDataRpm.RpmIdle)
+            {
+                float lackRpm   = _gearDataRpm.RpmIdle - rpm;                    // сколько «не хватает» до холостых
+                float lugPenalty = lackRpm * _gearDataRpm.LowRpmBrakeFactor;     // коэффициент подбираете в инспекторе
+                accel -= lugPenalty;                                       // отрицательное ускорение
+                if (accel < 0)
+                    accel = 0;
+            }
+				
+            // Rpm overshoot
             if (rpm > _gearDataRpm.RpmRedline)
             {
-                //TODO: brake
-                return -1;
+                float excessRpm = rpm - _gearDataRpm.RpmRedline;
+                float brake = -excessRpm * _gearDataRpm.EngineBrakeFactor;
+                accel += brake;
             }
-            else
-            {
-                float normalized = Mathf.InverseLerp(0,  _gearDataRpm.RpmRedline, rpm);
-                return _gearDataRpm.AccelerationModifier * _gearDataRpm.AccelerationCurve.Evaluate(normalized);
-            }
+            //Debug.Log($"Speed: {speed};   Rpm: {rpm};   Accel: {accel}");
+            return accel;
         }
 
         public GearDataRpm.Gear GetGearData()
