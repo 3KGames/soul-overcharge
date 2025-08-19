@@ -6,11 +6,13 @@ namespace Car.Controller.CarPhysics.States
 	public class DriveCarState: BaseCarState
 	{
 		private CarPhysicsData _physicsData;
+		private TransmissionService _transmission;
 		
 		public override CarState Kind => CarState.Drive;
 
-		public DriveCarState(CarPhysicsData physicsData)
+		public DriveCarState(CarPhysicsData physicsData, TransmissionService transmission)
 		{
+			_transmission = transmission;
 			_physicsData = physicsData;
 		}
 		
@@ -42,19 +44,17 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
-			IGear gear = inputData.Gear;
-            
 			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
             
 			// Auto‑acceleration
-			float speed = CarPhysicsService.GetForwardSpeed(rb);
-			float accel = gear.EvaluateAcceleration(speed) * inputData.TorqueMultiplier;
+			float accel = _transmission.GetAcceleration(rb.linearVelocity.magnitude) * inputData.TorqueMultiplier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 			
-			Debug.Log($"Speed: {speed};   Accel: {accel}");
-
+			Debug.Log($"Speed: {rb.linearVelocity.magnitude};   Accel: {accel}");
+			
+			Debug.Log($"Steer {inputData.Steer}");
 			// Steering
-			float steerAngle = gear.MaxSteerAngle * inputData.Steer;
+			float steerAngle = _transmission.GetGearData().MaxSteerAngle * inputData.Steer;
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
 			rb.MoveRotation(rb.rotation * delta);
 

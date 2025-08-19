@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace Car.Gears
 {
     [CreateAssetMenu(menuName = "ArcadeCar/GearData-RPM")]
-	public class GearDataRpm : GearDataBase, ISerializationCallbackReceiver
+	public class GearDataRpm : ScriptableObject, ISerializationCallbackReceiver
     {
 		[CurveRange(0, 0, 1f, 1f), Tooltip("X - RPM, Y - Acceleration")]
 		[SerializeField] private	AnimationCurve	accelerationCurve;
@@ -27,8 +27,16 @@ namespace Car.Gears
         [SerializeField] private	Gear[]			gears;
 		
 
-		public override int   GearsCount          => gears.Length;
-		public override IGear GetGear(int index)  => gears[index];
+        public AnimationCurve AccelerationCurve => accelerationCurve;
+        public float SpeedToRpmFactor => speedToRpmFactor;
+        public float RpmIdle => rpmIdle;
+        public float RpmRedline => rpmRedline;
+        public float EngineBrakeFactor => engineBrakeFactor;
+        public float LowRpmBrakeFactor => lowRpmBrakeFactor;
+        public float AccelerationModifier => accelerationModifier;
+        public float SpeedShift => speedShift;
+		public int   GearsCount          => gears.Length;
+		public Gear GetGear(int index)   => gears[index];
 
 
 		public void OnBeforeSerialize() { }
@@ -44,7 +52,7 @@ namespace Car.Gears
 		
 
 		[System.Serializable]
-		private class Gear : IGear
+		public struct Gear
         {
 			[Range(0f, 10f)]
             [SerializeField] private	float			gearRatio;
@@ -55,7 +63,7 @@ namespace Car.Gears
             [NonSerialized]  private	GearDataRpm		_owner;
             
 			public float MaxSteerAngle => maxSteerAngle;
-
+			public float GearRatio => gearRatio;
 			public float EvaluateRpm(float speed)
 			{
 				float clampedSpeed = speed < 0 ? _owner.speedShift : speed + _owner.speedShift;
