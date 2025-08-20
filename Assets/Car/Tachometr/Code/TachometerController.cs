@@ -30,18 +30,19 @@ public class TachometerController : MonoBehaviour
         tachometerText.text = "1";
         arrow.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -45));
         _transmission.GearChanged += UpdateGearDisplay;
-        _car.PhysicsUpdated += UpdateTachometer;
-    }
+		_transmission.RpmChanged += UpdateTachometer;
+		//_car.PhysicsUpdated += UpdateTachometer;
+	}
 
     private void UpdateGearDisplay()
     {
         tachometerText.text = (_transmission.SelectedGear + 1).ToString();
-        UpdateTachometer();
+        //UpdateTachometer();
     }
 
-    private void UpdateTachometer()
+    private void UpdateTachometer(float rpm)
     {
-        float rpm = _transmission.GetRpm(_car.CurrentSpeed);
+        //float rpm = _transmission.GetRpm(_car.CurrentSpeed);
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);
 

@@ -7,7 +7,8 @@ namespace Car.Gears
     {
         private readonly GearDataRpm _gearDataRpm;
         
-        public Action GearChanged;
+        public event Action GearChanged;
+		public event Action<float> RpmChanged;
         
         public int SelectedGear { get; private set; }
 
@@ -53,6 +54,7 @@ namespace Car.Gears
             var gear = GetGearData();
             float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
             float rpm = clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
+			RpmChanged?.Invoke(rpm);
 
             // Normalize RPM
             float normalizedRpm = Mathf.InverseLerp(_gearDataRpm.RpmIdle, _gearDataRpm.RpmRedline, rpm);
@@ -62,7 +64,7 @@ namespace Car.Gears
             float torque = _gearDataRpm.AccelerationCurve.Evaluate(normalizedRpm);
 
             // Calculate acceleration
-            float accel = torque * gear.GearRatio * _gearDataRpm.AccelerationModifier;
+            float accel = torque * Mathf.Pow(gear.GearRatio, _gearDataRpm.GearRatioPow) * _gearDataRpm.AccelerationModifier;
 				
             // Too low rpm
             if (rpm < _gearDataRpm.RpmIdle)

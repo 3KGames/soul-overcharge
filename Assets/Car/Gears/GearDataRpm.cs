@@ -24,6 +24,7 @@ namespace Car.Gears
         [SerializeField] private	float			accelerationModifier;
 		[Range(-10f, 10f), Tooltip("Desmos: m")] 
 		[SerializeField] private	float			speedShift = 1.3f;
+		[SerializeField] private	float			accelerationGearRatioPow = 1f;
         [SerializeField] private	Gear[]			gears;
 		
 
@@ -36,6 +37,7 @@ namespace Car.Gears
         public float AccelerationModifier => accelerationModifier;
         public float SpeedShift => speedShift;
 		public int   GearsCount          => gears.Length;
+		public float GearRatioPow       => accelerationGearRatioPow;
 		public Gear GetGear(int index)   => gears[index];
 
 

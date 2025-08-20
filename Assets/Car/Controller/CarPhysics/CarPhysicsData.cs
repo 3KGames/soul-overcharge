@@ -10,6 +10,8 @@ namespace Car.Controller.CarPhysics
 		[SerializeField] private float		downforce = 100f;
 		[Range(0f, 10f)]
 		[SerializeField] private float		sideFrictionCoefficient = 5f;
+		[Range(0f, 10f)]
+		[SerializeField] private float		driftSideFrictionCoefficient = 5f;
 		[Range(0f, 50f)]
 		[SerializeField] private float		minSpeedForDrift      = 3f;      //Not sure if this is needed
 		[MinMaxSlider(0f, 3f), Tooltip("Minimal and maximal drift rotation angle coefficient")]	
@@ -23,6 +25,7 @@ namespace Car.Controller.CarPhysics
 		
 		public float Downforce						=> downforce;
 		public float SideFrictionCoefficient		=> sideFrictionCoefficient;
+		public float DriftSideFrictionCoefficient	=> driftSideFrictionCoefficient;
 		public float MinSpeedForDrift				=> minSpeedForDrift;
 		public float MinDriftAngleCoefficient		=> driftAngleCoefficient.x;
 		public float MaxDriftAngleCoefficient		=> driftAngleCoefficient.y;

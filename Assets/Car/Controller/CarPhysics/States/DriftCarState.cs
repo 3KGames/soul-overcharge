@@ -81,7 +81,7 @@ namespace Car.Controller.CarPhysics.States
 			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
 			
 			// Lateral friction
-			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.SideFrictionCoefficient);
+			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient);
 			
 			
 			_driftTimer += dt;

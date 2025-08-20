@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   downforce: 100
   sideFrictionCoefficient: 5
+  driftSideFrictionCoefficient: 1.2
   minSpeedForDrift: 3
-  driftAngleCoefficient: {x: 0.4994665, y: 1.9210243}
+  driftAngleCoefficient: {x: 0.4994665, y: 1.6}
+  driftBrakeForce: 10
+  driftMaxSpeedCoefficient: 0.8
+  driftAccelerationCoefficient: 1
