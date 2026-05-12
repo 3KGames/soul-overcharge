@@ -1,4 +1,6 @@
 using System;
+using Car.Controller;
+using Car.Controller.CarPhysics;
 using UnityEngine;
 
 namespace Car.Gears
@@ -6,16 +8,18 @@ namespace Car.Gears
     public class TransmissionService
     {
         private readonly GearDataRpm _gearDataRpm;
+		private readonly CarPhysicsData _carPhysicsData;
         
         public event Action GearChanged;
 		public event Action<float> RpmChanged;
         
         public int SelectedGear { get; private set; }
 
-        public TransmissionService(GearDataRpm gearDataRpm)
+        public TransmissionService(CarPhysicsData carPhysicsData, GearDataRpm gearDataRpm)
         {
             SelectedGear = 0;
-            this._gearDataRpm = gearDataRpm;
+            _gearDataRpm = gearDataRpm;
+			_carPhysicsData = carPhysicsData;
         }
 
         public bool CanShiftUp()
@@ -49,8 +53,11 @@ namespace Car.Gears
             return clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
         }
 
-        public float GetAcceleration(float speed)
-        {
+        public float GetAcceleration(float speed, CarPhysicsInput input)
+		{
+			if (speed < 0)
+				speed = 0;
+			
             var gear = GetGearData();
             float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
             float rpm = clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
@@ -62,16 +69,23 @@ namespace Car.Gears
 
             // Get torque from a curve (0..1)
             float torque = _gearDataRpm.AccelerationCurve.Evaluate(normalizedRpm);
-
+			float pushForce = torque * Mathf.Pow(gear.GearRatio, _gearDataRpm.GearRatioPow) * _gearDataRpm.AccelerationModifier * input.Throttle;
+			
+			
+			// Engine drag
+			float desiredEngineDrag = (_gearDataRpm.BaseEngineDrag + (normalizedRpm * _gearDataRpm.HighRpmDragMultiplier)) * (1f - input.Throttle);
+			float maxAllowedDeceleration = speed / Time.fixedDeltaTime;
+			float engineDragForce = Mathf.Min(desiredEngineDrag, maxAllowedDeceleration);
+			
             // Calculate acceleration
-            float accel = torque * Mathf.Pow(gear.GearRatio, _gearDataRpm.GearRatioPow) * _gearDataRpm.AccelerationModifier;
+			float accel = pushForce - engineDragForce;
 				
             // Too low rpm
             if (rpm < _gearDataRpm.RpmIdle)
             {
-                float lackRpm   = _gearDataRpm.RpmIdle - rpm;                    // сколько «не хватает» до холостых
-                float lugPenalty = lackRpm * _gearDataRpm.LowRpmBrakeFactor;     // коэффициент подбираете в инспекторе
-                accel -= lugPenalty;                                       // отрицательное ускорение
+                float lackRpm   = _gearDataRpm.RpmIdle - rpm;
+                float lugPenalty = lackRpm * _gearDataRpm.LowRpmBrakeFactor;
+                accel -= lugPenalty;
                 if (accel < 0)
                     accel = 0;
             }

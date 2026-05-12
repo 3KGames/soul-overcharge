@@ -46,12 +46,12 @@ namespace Car.Controller.CarPhysics.States
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
 			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
-            
+			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 			// Auto‑acceleration
-			float accel = _transmission.GetAcceleration(rb.linearVelocity.magnitude) * inputData.TorqueMultiplier;
+			float accel = _transmission.GetAcceleration(forwardSpeed, inputData) * inputData.TorqueMultiplier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 			
-			Debug.Log($"Speed: {rb.linearVelocity.magnitude};   Accel: {accel}");
+			Debug.Log($"Speed: {forwardSpeed};   Accel: {accel}");
 			
 			Debug.Log($"Steer {inputData.Steer}");
 			// Steering

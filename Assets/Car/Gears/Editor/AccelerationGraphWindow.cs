@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using Car.Controller;
+using Car.Controller.CarPhysics;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +12,7 @@ namespace Car.Gears.Editor
 		private const int DefaultSamples = 512;
 
 		private GearDataRpm _gearData;
+		private CarPhysicsData _carPhysicsData;
 
 		private enum PlotMode { SelectedGear, AllGears }
 		private PlotMode _plotMode = PlotMode.SelectedGear;
@@ -40,6 +43,7 @@ namespace Car.Gears.Editor
 			EditorGUILayout.Space(4);
 			EditorGUI.BeginChangeCheck();
 			_gearData = (GearDataRpm)EditorGUILayout.ObjectField(new GUIContent("GearDataRpm", "Выберите ScriptableObject c настройками передач"), _gearData, typeof(GearDataRpm), false);
+			_carPhysicsData = (CarPhysicsData)EditorGUILayout.ObjectField(new GUIContent("CarPhysicsData", "Выберите ScriptableObject c настройками машины"), _carPhysicsData, typeof(CarPhysicsData), false);
 			if (EditorGUI.EndChangeCheck())
 			{
 				ResetRangesToData();
@@ -210,7 +214,7 @@ namespace Car.Gears.Editor
 			{
 				int gearIdx = _plotMode == PlotMode.SelectedGear ? Mathf.Clamp(_selectedGearIndex, 0, _gearData.GearsCount - 1) : gi;
 
-				var svc = new TransmissionService(_gearData);
+				var svc = new TransmissionService(_carPhysicsData, _gearData);
 				for (int s = 0; s < gearIdx; s++) svc.ShiftUpSafe();
 
 				var pts = new List<Vector3>(_samples);
@@ -224,7 +228,8 @@ namespace Car.Gears.Editor
 				{
 					float t = (float)i / (_samples - 1);
 					float spd = Mathf.Lerp(_minSpeed, _maxSpeed, t);
-					float a = svc.GetAcceleration(spd);
+					CarPhysicsInput inputMock = new CarPhysicsInput(1f, 0f, false, 0f, Vector3.up, 1f);
+					float a = svc.GetAcceleration(spd, inputMock);
 					minA = Mathf.Min(minA, a);
 					maxA = Mathf.Max(maxA, a);
 					pts.Add(new Vector3(spd, a, 0f));
@@ -367,9 +372,10 @@ namespace Car.Gears.Editor
 			if (_plotMode == PlotMode.SelectedGear)
 			{
 				int gi = Mathf.Clamp(_selectedGearIndex, 0, _gearData.GearsCount - 1);
-				var svc = new TransmissionService(_gearData);
+				var svc = new TransmissionService(_carPhysicsData, _gearData);
 				for (int s = 0; s < gi; s++) svc.ShiftUpSafe();
-				float accel = svc.GetAcceleration(speed);
+				CarPhysicsInput inputMock = new CarPhysicsInput(1f, 0f, false, 0f, Vector3.up, 1f);
+				float accel = svc.GetAcceleration(speed, inputMock);
 				float rpm = GetRpmForSpeed(_gearData, gi, speed);
 				GUI.Label(new Rect(inner.x, y, inner.width, 16), $"<b>Accel:</b> {accel:0.###}"); y += 18f;
 				GUI.Label(new Rect(inner.x, y, inner.width, 16), $"<b>RPM:</b> {rpm:0}  (idle {_gearData.RpmIdle:0}, redline {_gearData.RpmRedline:0})");
@@ -379,9 +385,10 @@ namespace Car.Gears.Editor
 				foreach (var c in curves)
 				{
 					int gi = c.GearIndex;
-					var svc = new TransmissionService(_gearData);
+					var svc = new TransmissionService(_carPhysicsData, _gearData);
 					for (int s = 0; s < gi; s++) svc.ShiftUpSafe();
-					float accel = svc.GetAcceleration(speed);
+					CarPhysicsInput inputMock = new CarPhysicsInput(1f, 0f, false, 0f, Vector3.up, 1f);
+					float accel = svc.GetAcceleration(speed, inputMock);
 					float rpm = GetRpmForSpeed(_gearData, gi, speed);
 					GUI.Label(new Rect(inner.x, y, inner.width, 16), $"G{gi}: a={accel:0.###}, rpm={rpm:0}");
 					y += 18f;

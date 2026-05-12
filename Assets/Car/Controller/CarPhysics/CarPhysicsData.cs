@@ -10,6 +10,13 @@ namespace Car.Controller.CarPhysics
 		[SerializeField] private float		downforce = 100f;
 		[Range(0f, 10f)]
 		[SerializeField] private float		sideFrictionCoefficient = 5f;
+		[Header("Engine Braking")]
+		[Tooltip("Базовая сила торможения двигателем при отпущенном газе")]
+		[SerializeField] private float		baseEngineBrakingForce = 10f;
+		[Tooltip("Множитель торможения в зависимости от оборотов")]
+		[SerializeField] private float		rpmBrakingMultiplier = 2f;
+		[Min(0f)]
+		[SerializeField] private float		brakeForce = 30f;
 		[Range(0f, 10f)]
 		[SerializeField] private float		driftSideFrictionCoefficient = 5f;
 		[Range(0f, 50f)]
@@ -25,6 +32,9 @@ namespace Car.Controller.CarPhysics
 		
 		public float Downforce						=> downforce;
 		public float SideFrictionCoefficient		=> sideFrictionCoefficient;
+		public float BaseEngineBrakingForce			=> baseEngineBrakingForce;
+		public float RpmBrakingMultiplier			=> rpmBrakingMultiplier;
+		public float BrakeForce						=> brakeForce;
 		public float DriftSideFrictionCoefficient	=> driftSideFrictionCoefficient;
 		public float MinSpeedForDrift				=> minSpeedForDrift;
 		public float MinDriftAngleCoefficient		=> driftAngleCoefficient.x;

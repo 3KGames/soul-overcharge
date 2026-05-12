@@ -50,6 +50,8 @@ MonoBehaviour:
   rpmRedline: 7000
   engineBrakeFactor: 0.01
   lowRpmBrakeFactor: 0.0003
+  baseEngineDrag: 2
+  highRpmDragMultiplier: 8
   accelerationModifier: 5.3
   speedShift: 1
   accelerationGearRatioPow: 0.25

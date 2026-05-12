@@ -650,6 +650,24 @@ namespace InputSystem
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Throttle"",
+                    ""type"": ""Value"",
+                    ""id"": ""29323510-94d8-45cd-ab44-de6f5d8c9c42"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Brake"",
+                    ""type"": ""Value"",
+                    ""id"": ""61b689bc-1379-4d26-9d02-89507624a234"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -689,7 +707,7 @@ namespace InputSystem
                 {
                     ""name"": """",
                     ""id"": ""3040a8c2-683f-48dc-baae-f1068cd67ace"",
-                    ""path"": ""<Keyboard>/w"",
+                    ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -700,7 +718,7 @@ namespace InputSystem
                 {
                     ""name"": """",
                     ""id"": ""a6a08d9e-ecc4-4138-b547-986b59f4ca38"",
-                    ""path"": ""<Keyboard>/s"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -716,6 +734,28 @@ namespace InputSystem
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Drift"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f373c180-9c2d-44a1-8f98-d8d1ae43210c"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Throttle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1e93c407-582e-4115-9b5b-19f23e568c7f"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Brake"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -805,6 +845,8 @@ namespace InputSystem
             m_Car_ShiftUp = m_Car.FindAction("ShiftUp", throwIfNotFound: true);
             m_Car_ShiftDown = m_Car.FindAction("ShiftDown", throwIfNotFound: true);
             m_Car_Drift = m_Car.FindAction("Drift", throwIfNotFound: true);
+            m_Car_Throttle = m_Car.FindAction("Throttle", throwIfNotFound: true);
+            m_Car_Brake = m_Car.FindAction("Brake", throwIfNotFound: true);
         }
 
         ~@InputActions()
@@ -1171,6 +1213,8 @@ namespace InputSystem
         private readonly InputAction m_Car_ShiftUp;
         private readonly InputAction m_Car_ShiftDown;
         private readonly InputAction m_Car_Drift;
+        private readonly InputAction m_Car_Throttle;
+        private readonly InputAction m_Car_Brake;
         /// <summary>
         /// Provides access to input actions defined in input action map "Car".
         /// </summary>
@@ -1198,6 +1242,14 @@ namespace InputSystem
             /// Provides access to the underlying input action "Car/Drift".
             /// </summary>
             public InputAction @Drift => m_Wrapper.m_Car_Drift;
+            /// <summary>
+            /// Provides access to the underlying input action "Car/Throttle".
+            /// </summary>
+            public InputAction @Throttle => m_Wrapper.m_Car_Throttle;
+            /// <summary>
+            /// Provides access to the underlying input action "Car/Brake".
+            /// </summary>
+            public InputAction @Brake => m_Wrapper.m_Car_Brake;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1236,6 +1288,12 @@ namespace InputSystem
                 @Drift.started += instance.OnDrift;
                 @Drift.performed += instance.OnDrift;
                 @Drift.canceled += instance.OnDrift;
+                @Throttle.started += instance.OnThrottle;
+                @Throttle.performed += instance.OnThrottle;
+                @Throttle.canceled += instance.OnThrottle;
+                @Brake.started += instance.OnBrake;
+                @Brake.performed += instance.OnBrake;
+                @Brake.canceled += instance.OnBrake;
             }
 
             /// <summary>
@@ -1259,6 +1317,12 @@ namespace InputSystem
                 @Drift.started -= instance.OnDrift;
                 @Drift.performed -= instance.OnDrift;
                 @Drift.canceled -= instance.OnDrift;
+                @Throttle.started -= instance.OnThrottle;
+                @Throttle.performed -= instance.OnThrottle;
+                @Throttle.canceled -= instance.OnThrottle;
+                @Brake.started -= instance.OnBrake;
+                @Brake.performed -= instance.OnBrake;
+                @Brake.canceled -= instance.OnBrake;
             }
 
             /// <summary>
@@ -1478,6 +1542,20 @@ namespace InputSystem
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnDrift(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Throttle" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnThrottle(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Brake" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBrake(InputAction.CallbackContext context);
         }
     }
 }

@@ -17,6 +17,8 @@ namespace Car.Controller
         private readonly Action<InputAction.CallbackContext> _onShiftUp;
         private readonly Action<InputAction.CallbackContext> _onShiftDown;
 
+		public float    Throttle            => _actions.Car.Throttle.ReadValue<float>();
+		public float    Brake				=> _actions.Car.Brake.ReadValue<float>();
         public float	Steer				=> _actions.Car.Steer.ReadValue<float>();
         public bool		DriftHeld			{ get; private set; }
         public bool		ShiftUpTriggered	{ get; private set; }

@@ -10,6 +10,11 @@ namespace UI
         [SerializeField] private	TextMeshProUGUI		gearText;
         [SerializeField] private	TextMeshProUGUI		speedText;
 
-        
+		private void Update()
+		{
+			UpdateSpeedDisplay(car.RB.linearVelocity.magnitude);
+		}
+
+		private void UpdateSpeedDisplay(float speed) => speedText.text = ((int)speed).ToString();
     }
 }

@@ -20,6 +20,8 @@ namespace Car.Gears
 		[SerializeField] private	float			engineBrakeFactor = 0.02f;
 		[Range(0f, 0.1f)]
 		[SerializeField] private	float			lowRpmBrakeFactor = 0.02f;
+		[SerializeField] private	float			baseEngineDrag = 5f;
+		[SerializeField] private	float			highRpmDragMultiplier = 20f;
 		[Range(0f, 50f)]
         [SerializeField] private	float			accelerationModifier;
 		[Range(-10f, 10f), Tooltip("Desmos: m")] 
@@ -34,6 +36,8 @@ namespace Car.Gears
         public float RpmRedline => rpmRedline;
         public float EngineBrakeFactor => engineBrakeFactor;
         public float LowRpmBrakeFactor => lowRpmBrakeFactor;
+		public float BaseEngineDrag => baseEngineDrag;
+		public float HighRpmDragMultiplier => highRpmDragMultiplier;
         public float AccelerationModifier => accelerationModifier;
         public float SpeedShift => speedShift;
 		public int   GearsCount          => gears.Length;

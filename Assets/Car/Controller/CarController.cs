@@ -35,6 +35,8 @@ namespace Car.Controller
 		private bool _isDrifting;
 		private float _driftDir;
 
+		public Rigidbody RB => _rb;
+
 		private void Start()
 		{
 			_rb = GetComponent<Rigidbody>();
