@@ -16,7 +16,10 @@ namespace Car.Controller
         private readonly Action<InputAction.CallbackContext> _onDriftCanceled;
         private readonly Action<InputAction.CallbackContext> _onShiftUp;
         private readonly Action<InputAction.CallbackContext> _onShiftDown;
+		private readonly Action<InputAction.CallbackContext> _onThrottleUpdate;
 
+		public event Action<float> OnThrottleChanged;
+		
 		public float    Throttle            => _actions.Car.Throttle.ReadValue<float>();
 		public float    Brake				=> _actions.Car.Brake.ReadValue<float>();
         public float	Steer				=> _actions.Car.Steer.ReadValue<float>();
@@ -31,6 +34,8 @@ namespace Car.Controller
             _onDriftCanceled	= ctx => DriftHeld				= false;
             _onShiftUp			= ctx => ShiftUpTriggered		= true;
             _onShiftDown		= ctx => ShiftDownTriggered	= true;
+			
+			_onThrottleUpdate = ctx => OnThrottleChanged?.Invoke(ctx.ReadValue<float>());
         }
 
         public void Initialize()
@@ -40,6 +45,9 @@ namespace Car.Controller
             _actions.Car.Drift.canceled			+= _onDriftCanceled;
             _actions.Car.ShiftUp.performed		+= _onShiftUp;
             _actions.Car.ShiftDown.performed	+= _onShiftDown;
+			
+			_actions.Car.Throttle.performed += _onThrottleUpdate;
+			_actions.Car.Throttle.canceled  += _onThrottleUpdate;
         }
 
         public void Dispose()
@@ -48,6 +56,10 @@ namespace Car.Controller
             _actions.Car.Drift.canceled			-= _onDriftCanceled;
             _actions.Car.ShiftUp.performed		-= _onShiftUp;
             _actions.Car.ShiftDown.performed	-= _onShiftDown;
+			
+			_actions.Car.Throttle.performed -= _onThrottleUpdate;
+			_actions.Car.Throttle.canceled  -= _onThrottleUpdate;
+			
             _actions.Disable();
         }
 

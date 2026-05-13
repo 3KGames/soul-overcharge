@@ -47,7 +47,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   speedToRpmFactor: 318
   rpmIdle: 1000
-  rpmRedline: 7000
+  rpmRedline: 8000
   engineBrakeFactor: 0.01
   lowRpmBrakeFactor: 0.0003
   baseEngineDrag: 2
