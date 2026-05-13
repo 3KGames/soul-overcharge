@@ -51,7 +51,7 @@ namespace Level.Runtime.Scopes
 			builder.Register<NitroService>(Lifetime.Singleton);
             builder.RegisterInstance(new RoadCheckService(surfaceMask)); //TODO: Fix this shit
             builder.RegisterComponentInHierarchy<CarController>();
-			
+			builder.RegisterComponentInHierarchy<DynamicCameraController>();
 			// UI
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
             builder.RegisterComponentInHierarchy<TachometerController>();
