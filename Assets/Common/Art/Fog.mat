@@ -44,7 +44,7 @@ Material:
     - _StepsNum: 6
     m_Colors:
     - _FogColor: {r: 0.8, g: 0.51794064, b: 0.2, a: 1}
-    - _FogMinMaxDist: {r: 20, g: 0, b: 0, a: 0}
+    - _FogMinMaxDist: {r: 10, g: 0, b: 0, a: 0}
     - _WindSpeed: {r: 0.05, g: 0, b: 0.03, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

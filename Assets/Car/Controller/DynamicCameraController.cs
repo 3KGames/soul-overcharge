@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Cinemachine;
 using VContainer;
 using Car.Controller;
+using NaughtyAttributes;
 
 public class DynamicCameraController : MonoBehaviour
 {
@@ -9,12 +10,13 @@ public class DynamicCameraController : MonoBehaviour
     [SerializeField] private float _maxSpeed = 20f;
 
     [Header("Orthographic Size (Zoom)")]
-    [SerializeField] private float _minOrthoSize = 5f;
-    [SerializeField] private float _maxOrthoSize = 10f;
+	[MinMaxSlider(0f, 120f)]
+    [SerializeField] private Vector2 _minMaxFOV = new (70f, 100);
 
     [Header("Follow Offset Z (Distance)")]
-    [SerializeField] private float _minOffsetZ = -2.96f;
-    [SerializeField] private float _maxOffsetZ = -8f;
+    
+	[MinMaxSlider(-30f, 30f)]
+	[SerializeField] private Vector2 _minMaxOffsetZ = new (-8f, -2.96f);
 
     [Header("Smoothing")]
     [SerializeField] private float _smoothTime = 0.4f;
@@ -65,25 +67,29 @@ public class DynamicCameraController : MonoBehaviour
 
         float speedFactor = Mathf.Clamp01(_rb.linearVelocity.magnitude / _maxSpeed);
 
-        ApplyOrthoSize(speedFactor);
+        ApplyFOV(speedFactor);
         ApplyFollowOffsetZ(speedFactor);
     }
 
-    private void ApplyOrthoSize(float speedFactor)
+    private void ApplyFOV(float speedFactor)
     {
-        float target = Mathf.Lerp(_minOrthoSize, _maxOrthoSize, speedFactor);
+        float target = Mathf.Lerp(_minMaxFOV.x, _minMaxFOV.y, speedFactor);
 
-        _vcam.Lens.OrthographicSize = Mathf.SmoothDamp(
+        /*_vcam.Lens.OrthographicSize = Mathf.SmoothDamp(
             _vcam.Lens.OrthographicSize,
             target,
             ref _orthoSizeVelocity,
             _smoothTime
-        );
-    }
+        );*/
+
+		target = Camera.HorizontalToVerticalFieldOfView(target, Camera.main.aspect);
+
+		_vcam.Lens.FieldOfView = target;
+	}
 
     private void ApplyFollowOffsetZ(float speedFactor)
     {
-        float targetZ = Mathf.Lerp(_minOffsetZ, _maxOffsetZ, speedFactor);
+        float targetZ = Mathf.Lerp(_minMaxOffsetZ.y, _minMaxOffsetZ.x, speedFactor);
 
         Vector3 offset = _follow.FollowOffset;
         offset.z = Mathf.SmoothDamp(
@@ -94,12 +100,4 @@ public class DynamicCameraController : MonoBehaviour
         );
         _follow.FollowOffset = offset;
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (_maxSpeed <= 0f)               _maxSpeed = 1f;
-        if (_maxOrthoSize < _minOrthoSize) _maxOrthoSize = _minOrthoSize;
-    }
-#endif
 }
