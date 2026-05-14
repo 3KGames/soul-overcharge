@@ -6,14 +6,19 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
 using DG.Tweening;
+using NaughtyAttributes;
 
 public class TachometerController : MonoBehaviour
 {
-    private readonly float MAX_RPM = 9000;
-    private readonly float MIN_RPM = 0;
-    
-    [SerializeField]  private RectTransform       arrow;
-    [SerializeField]  private TextMeshProUGUI     tachometerText;
+	[SerializeField] private float MIN_RPM = 0;
+	[SerializeField] private float MAX_RPM = 9000;
+	
+	[MinMaxSlider(-360f, 360f)]
+	[SerializeField] private Vector2 minMaxAngle = new (-45f, -247f);
+	
+
+    [SerializeField] private RectTransform       arrow;
+    [SerializeField] private TextMeshProUGUI     tachometerText;
     private CarService                   _car;
     private TransmissionService          _transmission;
 
@@ -46,7 +51,7 @@ public class TachometerController : MonoBehaviour
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);
 
-        float zAngle = Mathf.Lerp(-45, -247, normalizedRpm);
+        float zAngle = Mathf.Lerp(minMaxAngle.y, minMaxAngle.x, normalizedRpm);
         arrow.DORotate(new Vector3(0, 0, zAngle), 0.5f);
     }
 }

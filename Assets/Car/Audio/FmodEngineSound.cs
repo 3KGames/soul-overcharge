@@ -28,7 +28,7 @@ public class FmodEngineSound : MonoBehaviour
         {
             _engineInstance = RuntimeManager.CreateInstance(engineEvent);
             
-            RuntimeManager.AttachInstanceToGameObject(_engineInstance, transform, GetComponent<Rigidbody>());
+            RuntimeManager.AttachInstanceToGameObject(_engineInstance, gameObject, GetComponent<Rigidbody>());
             
             _engineInstance.start();
         }
