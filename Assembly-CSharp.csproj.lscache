@@ -73,14 +73,27 @@ Assets/Car/
  Gears/
   GearDataRpm.cs
   TransmissionService.cs
+ Health/
+  Data/HealthData.cs
+  Services/HealthService.cs
+  UI/
+   DebugSoulHealthTester.cs
+   DualBarController.cs
+ Souls/
+  Data/SoulData.cs
+  Services/
+   SoulDrainService.cs
+   SoulService.cs
  Tachometr/Code/TachometerController.cs
 Assets/Common/Runtime/
  Constants.cs
+ IDamageable.cs
  StateMachine/
   IState.cs
   IStateFactory.cs
   IStateSwitcher.cs
 Assets/
+ Enemies/EnemyHealth.cs
  InputActions.cs
  Level/Runtime/
   GameFlowStateMachine.cs
@@ -357,6 +370,12 @@ Temp/bin/Debug/
  UniTask.DOTween.dll
  UniTask.Linq.dll
  UniTask.TextMeshPro.dll
+ Unity.2D.Aseprite.Common.dll
+ Unity.2D.Aseprite.Editor.dll
+ Unity.2D.Common.Editor.dll
+ Unity.2D.Common.Path.Editor.dll
+ Unity.2D.Common.Runtime.dll
+ Unity.2D.Sprite.Editor.dll
  Unity.AI.Navigation.dll
  Unity.AI.Navigation.Editor.ConversionSystem.dll
  Unity.AI.Navigation.Editor.dll
@@ -369,6 +388,8 @@ Temp/bin/Debug/
  Unity.Collections.Editor.dll
  Unity.InputSystem.dll
  Unity.InputSystem.ForUI.dll
+ Unity.InternalAPIEditorBridge.001.dll
+ Unity.InternalAPIEngineBridge.001.dll
  Unity.Mathematics.dll
  Unity.Mathematics.Editor.dll
  Unity.PlasticSCM.Editor.dll
@@ -389,7 +410,9 @@ Temp/bin/Debug/
  Unity.RenderPipelines.Universal.Shaders.dll
  Unity.Rider.Editor.dll
  Unity.Searcher.Editor.dll
+ Unity.Settings.Editor.dll
  Unity.ShaderGraph.Editor.dll
+ Unity.ShaderGraph.Utilities.dll
  Unity.Splines.dll
  Unity.Splines.Editor.dll
  Unity.TextMeshPro.dll
@@ -397,7 +420,9 @@ Temp/bin/Debug/
  Unity.Timeline.dll
  Unity.Timeline.Editor.dll
  Unity.VisualStudio.Editor.dll
+ UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
  UnityEngine.UI.dll
  VContainer.dll
  VContainer.Editor.dll

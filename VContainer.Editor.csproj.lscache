@@ -320,6 +320,10 @@ Temp/obj/Debug/VContainer.Editor/.NETStandard,Version=v2.1.AssemblyAttributes.cs
  System.Xml.Linq.dll
 Library/PackageCache/com.unity.ext.nunit@031a54704bff/net40/unity-custom/nunit.framework.dll
 Temp/bin/Debug/
+ UniTask.dll
+ Unity.Burst.dll
+ Unity.Collections.dll
+ Unity.Mathematics.dll
  UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
  UnityEngine.TestRunner.dll

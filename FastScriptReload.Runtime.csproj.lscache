@@ -302,7 +302,9 @@ Assets/Plugins/FastScriptReload/Plugins/
  Harmony/net48/0Harmony.dll
  ImmersiveVrToolsCommon/ImmersiveVRTools.Common.Runtime.dll
 Temp/bin/Debug/
+ UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
  UnityEngine.UI.dll
 
 [analyzerReferences]

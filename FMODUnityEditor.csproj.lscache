@@ -356,7 +356,16 @@ Library/PackageCache/
  com.unity.nuget.mono-cecil@d6f9955a5d5f/Mono.Cecil.dll
 Temp/bin/Debug/
  FMODUnity.dll
+ Unity.Burst.dll
+ Unity.Collections.dll
  Unity.InputSystem.dll
+ Unity.Mathematics.dll
+ Unity.RenderPipeline.Universal.ShaderLibrary.dll
+ Unity.RenderPipelines.Core.Runtime.dll
+ Unity.RenderPipelines.Core.Runtime.Shared.dll
+ Unity.RenderPipelines.GPUDriven.Runtime.dll
+ Unity.RenderPipelines.Universal.Config.Runtime.dll
+ Unity.RenderPipelines.Universal.Runtime.dll
  Unity.Timeline.dll
  Unity.Timeline.Editor.dll
  UnityEditor.TestRunner.dll

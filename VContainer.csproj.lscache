@@ -387,8 +387,12 @@ Temp/obj/Debug/VContainer/.NETStandard,Version=v2.1.AssemblyAttributes.cs
  WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
 Temp/bin/Debug/
  UniTask.dll
+ Unity.Burst.dll
  Unity.Collections.dll
+ Unity.Mathematics.dll
+ UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
  UnityEngine.UI.dll
 
 [analyzerReferences]

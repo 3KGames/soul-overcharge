@@ -51,9 +51,10 @@ namespace Car.Controller.CarPhysics.States
 			float accel = _transmission.GetAcceleration(forwardSpeed, inputData) * inputData.TorqueMultiplier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 			
-			Debug.Log($"Speed: {forwardSpeed};   Accel: {accel}");
+			// Debug.Log($"Speed: {forwardSpeed};   Accel: {accel}");
 			
-			Debug.Log($"Steer {inputData.Steer}");
+			// Debug.Log($"Steer {inputData.Steer}");
+			
 			// Steering
 			float steerAngle = _transmission.GetGearData().MaxSteerAngle * inputData.Steer;
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
