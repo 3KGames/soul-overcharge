@@ -16,7 +16,7 @@ namespace Car.Controller.CarPhysics.States
 		public override CarState Kind => CarState.Drift;
 		
 		/// <param name="dir">Drift direction (-1 = left,  +1 = right)</param>
-		public delegate void DriftStartedHandler(float dir);
+		public delegate void DriftStartedHandler(int dir);
 		public event DriftStartedHandler OnDriftStarted;
 		/// <param name="duration">Drift duration (sec.)</param>
 		public delegate void DriftEndedHandler(float duration);

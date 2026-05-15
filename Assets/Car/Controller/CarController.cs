@@ -14,6 +14,7 @@ namespace Car.Controller
 	public class CarController : MonoBehaviour
 	{
 		private static readonly int SpriteN = Animator.StringToHash("SpriteN");
+		private static readonly int DriftDir = Animator.StringToHash("DriftDir");
 
 		[Inject] private CarService _carService;
 		/// Field only for unsubscription
@@ -33,7 +34,7 @@ namespace Car.Controller
 		private const float RecoverTime = 0.35f;
 
 		private bool _isDrifting;
-		private float _driftDir;
+		private int _driftDir;
 
 		public Rigidbody RB => _rb;
 
@@ -58,14 +59,20 @@ namespace Car.Controller
 		private void Update()
 		{
 			animator.SetBool("IsDrifting", _isDrifting);
-			spriteRenderer.flipX = _isDrifting ? _driftDir > 0 : _input.Steer > 0f;
+			//spriteRenderer.flipX = _isDrifting ? _driftDir > 0 : _input.Steer > 0f;
 			if (_isDrifting)
 			{
-				animator.SetFloat(SpriteN, _driftDir * _input.Steer);
+				animator.SetInteger(SpriteN, _driftDir /** _input.Steer*/);
 			}
 			else
 			{
-				animator.SetFloat(SpriteN, _input.Steer);
+				int dir;
+				if (Mathf.Approximately(_input.Steer, 0f))
+					dir = 0;
+				else
+					dir = (int)Mathf.Sign(_input.Steer);
+				animator.SetInteger(SpriteN, dir);
+				Debug.Log(dir);
 			}
 		}
 
@@ -74,12 +81,13 @@ namespace Car.Controller
 	        _carService.PhysicsUpdate(_rb);
         }
 
-		private void DriftStarted(float dir)
+		private void DriftStarted(int dir)
 		{
 			_driftTween.Kill();
 
 			_isDrifting = true;
 			_driftDir = dir;
+			animator.SetInteger(DriftDir, dir);
 			float targetY  = DriftAngle * dir;
 			Vector3 endRot = new Vector3(0f, targetY, 0f);
 
