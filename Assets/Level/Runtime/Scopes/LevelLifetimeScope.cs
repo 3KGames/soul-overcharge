@@ -63,6 +63,7 @@ namespace Level.Runtime.Scopes
 
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
             builder.RegisterComponentInHierarchy<TachometerController>();
+<<<<<<< HEAD
 
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
@@ -74,6 +75,16 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<EnemyHealth>();
+=======
+			
+			
+			builder.Register<TargetRegistry>(Lifetime.Singleton);
+			
+			/*builder.RegisterBuildCallback(resolver =>
+			{
+				resolver.InjectGameObject(gameObject);
+			});*/
+>>>>>>> 9f5d13264e649b4b24e4fcdb564eeb02e87d38fa
         }
     }
 }
