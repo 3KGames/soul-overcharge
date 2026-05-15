@@ -403,6 +403,7 @@ Library/PackageCache/
  com.unity.ext.nunit@031a54704bff/net40/unity-custom/nunit.framework.dll
  com.unity.nuget.mono-cecil@d6f9955a5d5f/Mono.Cecil.dll
 Temp/bin/Debug/
+ Unity.Burst.dll
  Unity.Mathematics.dll
  Unity.Settings.Editor.dll
  Unity.Splines.dll

@@ -316,7 +316,9 @@ Library/PackageCache/
  com.unity.nuget.mono-cecil@d6f9955a5d5f/Mono.Cecil.dll
 Temp/bin/Debug/
  Unity.InputSystem.dll
+ UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
  UnityEngine.UI.dll
 
 [analyzerReferences]

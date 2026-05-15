@@ -324,6 +324,11 @@ Library/PackageCache/
 Temp/bin/Debug/
  Unity.Burst.dll
  Unity.Collections.dll
+ Unity.Mathematics.dll
+ UnityEditor.TestRunner.dll
+ UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
+ UnityEngine.UI.dll
 
 [analyzerReferences]
 ../../../../../../../Program Files/Unity/Hub/Editor/6000.0.45f1/Editor/Data/Tools/Unity.SourceGenerators/

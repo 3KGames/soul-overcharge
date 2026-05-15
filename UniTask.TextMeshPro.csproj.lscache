@@ -316,7 +316,9 @@ Library/PackageCache/
 Temp/bin/Debug/
  UniTask.dll
  Unity.TextMeshPro.dll
+ UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
+ UnityEngine.TestRunner.dll
  UnityEngine.UI.dll
 
 [analyzerReferences]

@@ -50,7 +50,7 @@ public class FmodEngineSound : MonoBehaviour
 	{
 		if (_engineInstance.isValid())
 		{
-			Debug.Log("ASLOFKAS;LFKASL;");
+			//Debug.Log("ASLOFKAS;LFKASL;");
 			_engineInstance.setParameterByName("Load", Mathf.Abs(throttleValue));
 		}
 	}
