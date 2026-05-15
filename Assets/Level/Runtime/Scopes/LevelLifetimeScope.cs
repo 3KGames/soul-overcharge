@@ -55,6 +55,14 @@ namespace Level.Runtime.Scopes
 			// UI
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
             builder.RegisterComponentInHierarchy<TachometerController>();
+			
+			
+			builder.Register<TargetRegistry>(Lifetime.Singleton);
+			
+			/*builder.RegisterBuildCallback(resolver =>
+			{
+				resolver.InjectGameObject(gameObject);
+			});*/
         }
     }
 }
