@@ -368,10 +368,13 @@ Temp/bin/Debug/
  Unity.ShaderGraph.Utilities.dll
  Unity.Splines.dll
  Unity.Splines.Editor.dll
+ Unity.Sysroot.Linux_x86_64.dll
+ Unity.SysrootPackage.Editor.dll
  Unity.TextMeshPro.dll
  Unity.TextMeshPro.Editor.dll
  Unity.Timeline.dll
  Unity.Timeline.Editor.dll
+ Unity.Toolchain.Linux-x86_64.dll
  Unity.VisualStudio.Editor.dll
  UnityEditor.TestRunner.dll
  UnityEditor.UI.dll
