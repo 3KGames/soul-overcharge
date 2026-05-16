@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - CRT_WARP_ON
+  - DISTORT_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -43,24 +44,25 @@ Material:
     m_Ints: []
     m_Floats:
     - CRT_WARP: 1
-    - DISTORT: 0
+    - DISTORT: 1
     - RGB_STRIPES: 0
     - SCROLL_STATIC: 0
     - STATIC: 0
-    - Vector1_1BFF6B46: 256
+    - Vector1_1BFF6B46: 0
     - Vector1_5660967D: 1
     - Vector1_63AA1B2A: 0.2
     - Vector1_96113905: 100
     - Vector1_DF019693: 0.5
     - WOBBLE: 0
-    - _DistortionStrength: 0.5
+    - _CRTStrength: 0.04
+    - _DistortionStrength: 0.01
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _ScanlineHeight: 10
-    - _ScanlineStrength: 0.4
-    - _StaticStrength: 0.08
+    - _ScanlineHeight: 12
+    - _ScanlineStrength: 0.2
+    - _StaticStrength: 0
     m_Colors:
-    - _CRTWarpStrength: {r: 1, g: 1, b: 0, a: 0}
+    - _CRTWarpStrength: {r: 0.2, g: 0.2, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &6657729383248154032

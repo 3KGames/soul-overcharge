@@ -200,7 +200,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -4995756551994499801, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+  m_Motion: {fileID: 7400000, guid: a8325d6026d96574787d532ccc3561fd, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -698,8 +698,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bakedTransitions:
-  - name: Drift -> DriftRightSlight
-    destinationStateHash: 450260163
+  - name: Drift -> DriftRightSlight  1
+    destinationStateHash: 910671907
     crossfadeDuration: 0
     conditons:
     - dataType: 4
@@ -712,8 +712,8 @@ MonoBehaviour:
       parameter: DriftDir
       mode: 6
       threshold: 1
-  - name: Drift -> DriftLeftSlight
-    destinationStateHash: 659881292
+  - name: Drift -> DriftLeftSlight  1
+    destinationStateHash: -1211972108
     crossfadeDuration: 0.25
     conditons:
     - dataType: 4
@@ -727,11 +727,11 @@ MonoBehaviour:
       mode: 6
       threshold: -1
   config:
-  - name: Drift -> DriftRightSlight
+  - name: Drift -> DriftRightSlight  1
     editorReference: {fileID: 8655547793000083329}
     transition:
-      name: Drift -> DriftRightSlight
-      destinationStateHash: 450260163
+      name: Drift -> DriftRightSlight  1
+      destinationStateHash: 910671907
       crossfadeDuration: 0
       conditons:
       - dataType: 4
@@ -744,11 +744,11 @@ MonoBehaviour:
         parameter: DriftDir
         mode: 6
         threshold: 1
-  - name: Drift -> DriftLeftSlight
+  - name: Drift -> DriftLeftSlight  1
     editorReference: {fileID: 748243438246719390}
     transition:
-      name: Drift -> DriftLeftSlight
-      destinationStateHash: 659881292
+      name: Drift -> DriftLeftSlight  1
+      destinationStateHash: -1211972108
       crossfadeDuration: 0.25
       conditons:
       - dataType: 4
@@ -1019,7 +1019,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 8618492759471452794, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+  m_Motion: {fileID: 7400000, guid: 9e507c1dda7bfbd459abf320cee9bd2d, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -1119,7 +1119,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 1548314274068234791, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+  m_Motion: {fileID: 7400000, guid: 1311067da874e9a49b149f14666c660e, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -1269,7 +1269,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 1159006733195845043, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+  m_Motion: {fileID: 7400000, guid: 8cd5c8a55c9f1ce47a6a95704d20b376, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -1297,7 +1297,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 3522329215021676317, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+  m_Motion: {fileID: 7400000, guid: 25ccec8df6029104aa24ba5f64c719a9, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

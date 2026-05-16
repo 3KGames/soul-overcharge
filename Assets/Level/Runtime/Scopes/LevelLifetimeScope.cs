@@ -81,11 +81,6 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<EnemyHealth>();
-
-            /*builder.RegisterBuildCallback(resolver =>
-            {
-                resolver.InjectGameObject(gameObject);
-            });*/
         }
     }
 }
