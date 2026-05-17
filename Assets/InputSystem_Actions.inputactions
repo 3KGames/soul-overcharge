@@ -582,7 +582,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Fire",
+                    "name": "Nitro",
                     "type": "Button",
                     "id": "f898a721-99f9-4952-bdbd-45cbbc56e614",
                     "expectedControlType": "",
@@ -687,7 +687,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Fire",
+                    "action": "Nitro",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

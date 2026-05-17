@@ -93,6 +93,9 @@ Assets/Common/Runtime/
   IState.cs
   IStateFactory.cs
   IStateSwitcher.cs
+Assets/degenerate/
+ RoadGenerator.cs
+ RoadSegment.cs
 Assets/Enemies/
  EnemyHealth.cs
  Runtime/

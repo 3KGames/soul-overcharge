@@ -670,7 +670,7 @@ namespace InputSystem
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Fire"",
+                    ""name"": ""Nitro"",
                     ""type"": ""Button"",
                     ""id"": ""f898a721-99f9-4952-bdbd-45cbbc56e614"",
                     ""expectedControlType"": """",
@@ -775,7 +775,7 @@ namespace InputSystem
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Fire"",
+                    ""action"": ""Nitro"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -867,7 +867,7 @@ namespace InputSystem
             m_Car_Drift = m_Car.FindAction("Drift", throwIfNotFound: true);
             m_Car_Throttle = m_Car.FindAction("Throttle", throwIfNotFound: true);
             m_Car_Brake = m_Car.FindAction("Brake", throwIfNotFound: true);
-            m_Car_Fire = m_Car.FindAction("Fire", throwIfNotFound: true);
+            m_Car_Nitro = m_Car.FindAction("Nitro", throwIfNotFound: true);
         }
 
         ~@InputActions()
@@ -1236,7 +1236,7 @@ namespace InputSystem
         private readonly InputAction m_Car_Drift;
         private readonly InputAction m_Car_Throttle;
         private readonly InputAction m_Car_Brake;
-        private readonly InputAction m_Car_Fire;
+        private readonly InputAction m_Car_Nitro;
         /// <summary>
         /// Provides access to input actions defined in input action map "Car".
         /// </summary>
@@ -1273,9 +1273,9 @@ namespace InputSystem
             /// </summary>
             public InputAction @Brake => m_Wrapper.m_Car_Brake;
             /// <summary>
-            /// Provides access to the underlying input action "Car/Fire".
+            /// Provides access to the underlying input action "Car/Nitro".
             /// </summary>
-            public InputAction @Fire => m_Wrapper.m_Car_Fire;
+            public InputAction @Nitro => m_Wrapper.m_Car_Nitro;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1320,9 +1320,9 @@ namespace InputSystem
                 @Brake.started += instance.OnBrake;
                 @Brake.performed += instance.OnBrake;
                 @Brake.canceled += instance.OnBrake;
-                @Fire.started += instance.OnFire;
-                @Fire.performed += instance.OnFire;
-                @Fire.canceled += instance.OnFire;
+                @Nitro.started += instance.OnNitro;
+                @Nitro.performed += instance.OnNitro;
+                @Nitro.canceled += instance.OnNitro;
             }
 
             /// <summary>
@@ -1352,9 +1352,9 @@ namespace InputSystem
                 @Brake.started -= instance.OnBrake;
                 @Brake.performed -= instance.OnBrake;
                 @Brake.canceled -= instance.OnBrake;
-                @Fire.started -= instance.OnFire;
-                @Fire.performed -= instance.OnFire;
-                @Fire.canceled -= instance.OnFire;
+                @Nitro.started -= instance.OnNitro;
+                @Nitro.performed -= instance.OnNitro;
+                @Nitro.canceled -= instance.OnNitro;
             }
 
             /// <summary>
@@ -1589,12 +1589,12 @@ namespace InputSystem
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnBrake(InputAction.CallbackContext context);
             /// <summary>
-            /// Method invoked when associated input action "Fire" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// Method invoked when associated input action "Nitro" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>
             /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnFire(InputAction.CallbackContext context);
+            void OnNitro(InputAction.CallbackContext context);
         }
     }
 }
