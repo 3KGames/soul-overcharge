@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb3dfd95174a4798a1e64cc74c9fc615, type: 3}
+  m_Name: NewRoadSettings
+  m_EditorClassIdentifier: 
+  laneWidth: 3.5
+  roadThickness: 0.01
+  laneMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  textureRatio: 1
+  transitionLength: 8
+  cleanEmptyRoadMaterial: {fileID: 2100000, guid: 6e72edf8cd93169439b49bb4b932f6dd, type: 2}
+  cleanCenterLaneMaterial: {fileID: 2100000, guid: 6e72edf8cd93169439b49bb4b932f6dd, type: 2}
+  cleanSideLaneMaterial: {fileID: 2100000, guid: d2ac72287cde36b478c75130e5a50f1b, type: 2}
+  smallPotholePrefab: {fileID: 1838550014578707942, guid: 7f904a302e352c74c84bf1d49448c122, type: 3}
+  mediumPotholePrefab: {fileID: 1838550014578707942, guid: 85c843980521879438938d4c276bd790, type: 3}
+  largePotholePrefab: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
+  leftTransitionPrefab: {fileID: 5037822364835359590, guid: 77e21df14ddfe7e43b69b315a7838835, type: 3}
+  rightTransitionPrefab: {fileID: 5037822364835359590, guid: 77e21df14ddfe7e43b69b315a7838835, type: 3}
