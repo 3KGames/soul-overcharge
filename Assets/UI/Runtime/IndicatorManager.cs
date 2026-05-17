@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -7,7 +6,7 @@ using VContainer;
 public class IndicatorManager : MonoBehaviour
 {
     [SerializeField] private GameObject indicatorPrefab;
-    [SerializeField] private float padding = 50f;
+    [SerializeField] private float padding = 50f; 
 
     [Header("Sprites")]
     [SerializeField] private Sprite closeSprite;
@@ -17,10 +16,12 @@ public class IndicatorManager : MonoBehaviour
     [Header("Distance")]
     [SerializeField] private float closeThreshold = 10f;
     [SerializeField] private float mediumThreshold = 25f;
-	[SerializeField] private float farThreshold = 25f;
+    [SerializeField] private float farThreshold = 25f;
 
     private TargetRegistry _registry;
     private Camera _mainCamera;
+    
+    private RectTransform _containerRect;
     
     private class IndicatorData
     {
@@ -39,6 +40,7 @@ public class IndicatorManager : MonoBehaviour
     private void Start()
     {
         _mainCamera = Camera.main;
+        _containerRect = GetComponent<RectTransform>();
 
         _registry.OnTargetAdded += AddIndicator;
         _registry.OnTargetRemoved += RemoveIndicator;
@@ -61,10 +63,15 @@ public class IndicatorManager : MonoBehaviour
     private void AddIndicator(Transform target)
     {
         var instance = Instantiate(indicatorPrefab, transform);
+        var rect = instance.GetComponent<RectTransform>();
+        
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
         
         var data = new IndicatorData
         {
-            Rect = instance.GetComponent<RectTransform>(),
+            Rect = rect,
             Img = instance.GetComponent<Image>()
         };
         
@@ -97,7 +104,7 @@ public class IndicatorManager : MonoBehaviour
         
         bool isBehind = screenPos.z < 0;
         bool isOffScreen = isBehind || screenPos.x < 0 || screenPos.x > Screen.width || screenPos.y < 0 || screenPos.y > Screen.height;
-		float distance = Vector3.Distance(_mainCamera.transform.position, target.position);
+        float distance = Vector3.Distance(_mainCamera.transform.position, target.position);
 
         if (isOffScreen && distance < farThreshold)
         {
@@ -119,17 +126,16 @@ public class IndicatorManager : MonoBehaviour
             dir.z = 0;
             dir = dir.normalized;
 
-            float boundsX = (Screen.width / 2f) - padding;
-            float boundsY = (Screen.height / 2f) - padding;
+            float boundsX = (_containerRect.rect.width / 2f) - padding;
+            float boundsY = (_containerRect.rect.height / 2f) - padding;
 
             float m = Mathf.Min(
                 boundsX / Mathf.Abs(dir.x), 
                 boundsY / Mathf.Abs(dir.y)
             );
 
-            Vector3 edgePosition = screenCenter + dir * m;
-            
-            data.Rect.position = edgePosition;
+            Vector3 edgePosition = dir * m;
+            data.Rect.anchoredPosition = edgePosition;
 
             float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
             data.Rect.rotation = Quaternion.Euler(0, 0, angle);

@@ -87,6 +87,7 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<EnemyHealth>();
 
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
+
         }
     }
 }
