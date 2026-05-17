@@ -41,8 +41,22 @@ AnimationClip:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 0, y: 0, z: 0}
   m_ClipBindingConstant:
-    genericBindings: []
-    pptrCurveMapping: []
+    genericBindings:
+    - serializedVersion: 2
+      path: 0
+      attribute: 0
+      script: {fileID: 0}
+      typeID: 212
+      customType: 23
+      isPPtrCurve: 1
+      isIntCurve: 0
+      isSerializeReferenceCurve: 0
+    pptrCurveMapping:
+    - {fileID: -3701147003824146998, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+    - {fileID: 1968220961115497970, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+    - {fileID: -4854799262745413358, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+    - {fileID: 6622013823127511965, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
+    - {fileID: 6622013823127511965, guid: 56ea2dbde34d9a14799b5ca2cbe8b0ec, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -67,4 +81,11 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0
+    functionName: PlayParticlesRight
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0

@@ -4,10 +4,11 @@ using Car.Controller.CarPhysics;
 using Car.Controller.CarPhysics.States;
 using Car.Gears;
 using Car.Souls.Data;
-using Car.Souls.Services; 
+using Car.Souls.Services;
 using Car.UI;
 using Car.Health.Data;
 using Car.Health.Services;
+//using Car.Attack.Services;
 using Enemies;
 using NaughtyAttributes;
 using UI;
@@ -20,6 +21,7 @@ namespace Level.Runtime.Scopes
     public class LevelLifetimeScope : LifetimeScope
     {
         [SerializeField] private LayerMask surfaceMask;
+
         [Expandable]
         [SerializeField] private CarPhysicsData physicsData;
         [Expandable]
@@ -27,7 +29,8 @@ namespace Level.Runtime.Scopes
         [Expandable]
         [SerializeField] private GearDataRpm gearDataRpm;
 
-        [SerializeField] private SoulData soulData;
+        [Header("Souls / Health")]
+        [SerializeField] private SoulData   soulData;
         [SerializeField] private HealthData healthData;
 
         protected override void Configure(IContainerBuilder builder)
@@ -38,18 +41,14 @@ namespace Level.Runtime.Scopes
                 return;
             }
 
-            // Physics & Car Data
             builder.RegisterInstance(physicsData);
             builder.RegisterInstance(nitroData);
             builder.RegisterInstance(gearDataRpm);
             builder.RegisterInstance(new RoadCheckService(surfaceMask));
+            builder.RegisterInstance(soulData);
+            builder.RegisterInstance(healthData);
 
-            // Core Services & States
             builder.Register<TransmissionService>(Lifetime.Singleton);
-            builder.Register<CarService>(Lifetime.Singleton);
-            builder.Register<CarPhysicsService>(Lifetime.Singleton);
-            builder.Register<NitroService>(Lifetime.Singleton);
-
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<IInitializable>()
@@ -61,26 +60,34 @@ namespace Level.Runtime.Scopes
             builder.Register<DriftCarState>(Lifetime.Singleton)
                 .AsSelf()
                 .As<BaseCarState>();
-
-            // Soul & Health Systems
-            builder.RegisterInstance(soulData);
-            builder.RegisterInstance(healthData);
+            builder.Register<CarPhysicsService>(Lifetime.Singleton);
+            builder.Register<NitroService>(Lifetime.Singleton);
+            builder.Register<CarService>(Lifetime.Singleton);
 
             builder.Register<SoulService>(Lifetime.Singleton);
-            builder.Register<SoulDrainService>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
-            builder.Register<HealthService>(Lifetime.Singleton).AsImplementedInterfaces().AsSelf();
+            builder.Register<SoulDrainService>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .AsSelf();
+            builder.Register<HealthService>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .AsSelf();
 
-            // Combat & Target Systems
+            // ── Attack (заглушка) ─────────────────────────────────────────
+            //builder.Register<NullAttackService>(Lifetime.Singleton)
+            //    .As<IAttackService>();
+
             builder.Register<TargetRegistry>(Lifetime.Singleton);
 
-            // In-Hierarchy Components (MonoBehaviours)
             builder.RegisterComponentInHierarchy<CarController>();
             builder.RegisterComponentInHierarchy<DynamicCameraController>();
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
-            builder.RegisterComponentInHierarchy<TachometerController>();   
-            builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
+            builder.RegisterComponentInHierarchy<TachometerController>();
             builder.RegisterComponentInHierarchy<DualBarController>();
+            builder.RegisterComponentInHierarchy<NitroBarController>();
             builder.RegisterComponentInHierarchy<EnemyHealth>();
+
+            builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
+
         }
     }
 }

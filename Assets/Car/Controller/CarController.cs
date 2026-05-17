@@ -72,7 +72,7 @@ namespace Car.Controller
 				else
 					dir = (int)Mathf.Sign(_input.Steer);
 				animator.SetInteger(SpriteN, dir);
-				Debug.Log(dir);
+				//Debug.Log(dir);
 			}
 		}
 

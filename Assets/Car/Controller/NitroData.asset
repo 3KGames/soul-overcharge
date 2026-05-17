@@ -13,30 +13,48 @@ MonoBehaviour:
   m_Name: NitroData
   m_EditorClassIdentifier: 
   duration: 2
+  nitroMultiplier: 8
   ramp:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: -0.46038884
+      outSlope: -0.46038884
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.35841528
+      value: 0.8349896
+      inSlope: -0.2124142
+      outSlope: -0.2124142
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.598674
+    - serializedVersion: 3
+      time: 0.66172683
+      value: 0.5745406
+      inSlope: 0.35092542
+      outSlope: 0.35092542
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.15981045
+      outWeight: 0.48759374
     - serializedVersion: 3
       time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
+      value: 0
+      inSlope: -1.6984516
+      outSlope: -1.6984516
       tangentMode: 34
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.33333334
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  miniTurboSmall: 3
-  miniTurboMedium: 5
-  miniTurboLarge: 8
+  cooldownDuration: 5
+  soulDrainPerSecond: 5

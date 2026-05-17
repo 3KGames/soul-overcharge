@@ -1,6 +1,5 @@
 using InputSystem;
 using System;
-using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer.Unity;
 
@@ -15,6 +14,8 @@ namespace Car.Controller
         private readonly Action<InputAction.CallbackContext> _onShiftUp;
         private readonly Action<InputAction.CallbackContext> _onShiftDown;
         private readonly Action<InputAction.CallbackContext> _onThrottleUpdate;
+        private readonly Action<InputAction.CallbackContext> _onNitroPerformed;
+        private readonly Action<InputAction.CallbackContext> _onNitroCanceled;
 
         public event Action<float> OnThrottleChanged;
 
@@ -22,16 +23,19 @@ namespace Car.Controller
         public float Brake              => _actions.Car.Brake.ReadValue<float>();
         public float Steer              => _actions.Car.Steer.ReadValue<float>();
         public bool  DriftHeld          { get; private set; }
+        public bool  NitroHeld          { get; private set; }
         public bool  ShiftUpTriggered   { get; private set; }
         public bool  ShiftDownTriggered { get; private set; }
 
         public InputService()
         {
-            _onDriftPerformed = ctx => DriftHeld           = true;
-            _onDriftCanceled  = ctx => DriftHeld           = false;
-            _onShiftUp        = ctx => ShiftUpTriggered    = true;
-            _onShiftDown      = ctx => ShiftDownTriggered  = true;
+            _onDriftPerformed = ctx => DriftHeld          = true;
+            _onDriftCanceled  = ctx => DriftHeld          = false;
+            _onShiftUp        = ctx => ShiftUpTriggered   = true;
+            _onShiftDown      = ctx => ShiftDownTriggered = true;
             _onThrottleUpdate = ctx => OnThrottleChanged?.Invoke(ctx.ReadValue<float>());
+            _onNitroPerformed = ctx => NitroHeld          = true;
+            _onNitroCanceled  = ctx => NitroHeld          = false;
         }
 
         public void Initialize()
@@ -42,9 +46,17 @@ namespace Car.Controller
             _actions.Car.Drift.canceled      += _onDriftCanceled;
             _actions.Car.ShiftUp.performed   += _onShiftUp;
             _actions.Car.ShiftDown.performed += _onShiftDown;
-
             _actions.Car.Throttle.performed  += _onThrottleUpdate;
             _actions.Car.Throttle.canceled   += _onThrottleUpdate;
+
+
+            var nitroAction = _actions.asset.FindActionMap("Car")?.FindAction("Nitro");
+            if (nitroAction != null)
+            {
+                nitroAction.performed += _onNitroPerformed;
+                nitroAction.canceled  += _onNitroCanceled;
+                nitroAction.Enable();
+            }
         }
 
         public void Dispose()
@@ -53,9 +65,15 @@ namespace Car.Controller
             _actions.Car.Drift.canceled      -= _onDriftCanceled;
             _actions.Car.ShiftUp.performed   -= _onShiftUp;
             _actions.Car.ShiftDown.performed -= _onShiftDown;
-
             _actions.Car.Throttle.performed  -= _onThrottleUpdate;
             _actions.Car.Throttle.canceled   -= _onThrottleUpdate;
+
+            var nitroAction = _actions.asset.FindActionMap("Car")?.FindAction("Nitro");
+            if (nitroAction != null)
+            {
+                nitroAction.performed -= _onNitroPerformed;
+                nitroAction.canceled  -= _onNitroCanceled;
+            }
 
             _actions.Disable();
         }
