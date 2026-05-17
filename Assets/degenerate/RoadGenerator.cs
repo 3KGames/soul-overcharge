@@ -48,7 +48,7 @@ public class RoadGenerator : MonoBehaviour
         if (activeSegments.Count == 0) return;
 
         RoadSegment lastSeg = activeSegments[activeSegments.Count - 1];
-        float distToEnd = Vector3.Distance(player.position, lastSeg.exitPoint.position);
+        float distToEnd = Vector3.Distance(player.position, lastSeg.exitPoint.transform.position);
 
         if (distToEnd < spawnDistanceThreshold)
         {
@@ -75,7 +75,7 @@ public class RoadGenerator : MonoBehaviour
         AlignSegment(seg, lastExitPoint);
 
         activeSegments.Add(seg);
-        lastExitPoint = seg.exitPoint;
+        lastExitPoint = seg.exitPoint.transform;
         lastSpawnedType = seg.segmentType;
     }
 
@@ -164,10 +164,10 @@ public class RoadGenerator : MonoBehaviour
 
     void AlignSegment(RoadSegment seg, Transform targetExit)
     {
-        Quaternion rotationDiff = targetExit.rotation * Quaternion.Inverse(seg.entryPoint.rotation);
+        Quaternion rotationDiff = targetExit.rotation * Quaternion.Inverse(seg.entryPoint.transform.rotation);
         seg.transform.rotation = rotationDiff * seg.transform.rotation;
 
-        Vector3 posDiff = targetExit.position - seg.entryPoint.position;
+        Vector3 posDiff = targetExit.position - seg.entryPoint.transform.position;
         seg.transform.position += posDiff;
     }
 

@@ -1,10 +1,11 @@
+using degenerate;
 using UnityEngine;
 
 public class RoadSegment : MonoBehaviour
 {
     [Header("Точки стыковки")]
-    public Transform entryPoint;
-    public Transform exitPoint;
+    public ConnectionPoint entryPoint;
+    public ConnectionPoint exitPoint;
 
     [Header("Тип сегмента (для логики чередования)")]
     public SegmentType segmentType = SegmentType.Straight;
@@ -23,15 +24,15 @@ public class RoadSegment : MonoBehaviour
         if (entryPoint != null)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawSphere(entryPoint.position, 0.3f);
-            Gizmos.DrawRay(entryPoint.position, entryPoint.forward * 2f);
+            Gizmos.DrawSphere(entryPoint.transform.position, 0.3f);
+            Gizmos.DrawRay(entryPoint.transform.position, entryPoint.transform.forward * 2f);
         }
 
         if (exitPoint != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(exitPoint.position, 0.3f);
-            Gizmos.DrawRay(exitPoint.position, exitPoint.forward * 2f);
+            Gizmos.DrawSphere(exitPoint.transform.position, 0.3f);
+            Gizmos.DrawRay(exitPoint.transform.position, exitPoint.transform.forward * 2f);
         }
     }
 }

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb3dfd95174a4798a1e64cc74c9fc615, type: 3}
   m_Name: NewRoadSettings
   m_EditorClassIdentifier: 
-  laneWidth: 3.5
+  laneWidth: 3
   roadThickness: 0.01
   laneMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   textureRatio: 1
