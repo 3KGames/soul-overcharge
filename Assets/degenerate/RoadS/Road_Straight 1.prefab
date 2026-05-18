@@ -1451,7 +1451,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d30bab2252d54d5dafe3af5de2f4baf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numLanes: 3
+  numLanes: 2
 --- !u!1 &8545565238388433368
 GameObject:
   m_ObjectHideFlags: 0

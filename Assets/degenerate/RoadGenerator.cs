@@ -29,6 +29,7 @@ public class RoadGenerator : MonoBehaviour
 
     private List<RoadSegment> activeSegments = new List<RoadSegment>();
     private Transform lastExitPoint;
+    private int lastExitLanes = -1;
 
     private SegmentType lastSpawnedType = SegmentType.Straight;
     private int sameTurnCount = 0;
@@ -38,6 +39,7 @@ public class RoadGenerator : MonoBehaviour
     void Start()
     {
         lastExitPoint = this.transform;
+        lastExitLanes = -1;
 
         for (int i = 0; i < segmentsAhead; i++)
             SpawnSegment();
@@ -60,7 +62,11 @@ public class RoadGenerator : MonoBehaviour
     void SpawnSegment()
     {
         GameObject prefab = PickPrefab();
-        if (prefab == null) return;
+        if (prefab == null)
+        {
+            Debug.LogError($"Не найден подходящий префаб с {lastExitLanes} линиями на входе!");
+            return;
+        }
 
         GameObject go = Instantiate(prefab);
         RoadSegment seg = go.GetComponent<RoadSegment>();
@@ -76,50 +82,103 @@ public class RoadGenerator : MonoBehaviour
 
         activeSegments.Add(seg);
         lastExitPoint = seg.exitPoint.transform;
+        lastExitLanes = seg.exitPoint.NumLanes;
         lastSpawnedType = seg.segmentType;
+
+        seg.GetComponent<TrackEnemySpawner>()?.TrySpawnEnemies();
     }
 
     GameObject PickPrefab()
     {
-        List<(SegmentType type, int weight)> options = new List<(SegmentType, int)>();
+        var candidates = FilterByLanes(BuildCandidateList());
 
-        options.Add((SegmentType.Straight, weightStraight));
+        if (candidates.Count == 0)
+        {
+            Debug.LogWarning($"Нет кандидатов с {lastExitLanes} линиями при текущих ограничениях. Снимаем ограничения.");
+            candidates = FilterByLanes(BuildCandidateListNoRestrictions());
+        }
 
-        bool blockLeft  = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
-        bool blockRight = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
+        if (candidates.Count == 0) return null;
 
-        if (!blockLeft)  options.Add((SegmentType.TurnLeft,  weightTurnLeft));
-        if (!blockRight) options.Add((SegmentType.TurnRight, weightTurnRight));
-
-        bool blockHills = hillCount >= maxHillsInRow;
-        bool blockHillUp   = blockHills || (lastSpawnedType == SegmentType.HillDown);
-        bool blockHillDown = blockHills || (lastSpawnedType == SegmentType.HillUp);
-
-        if (!blockHillUp)   options.Add((SegmentType.HillUp,   weightHillUp));
-        if (!blockHillDown) options.Add((SegmentType.HillDown, weightHillDown));
-
-        SegmentType chosenType = WeightedRandom(options);
-
-        UpdateCounters(chosenType);
-
-        return PickFromArray(chosenType);
+        return WeightedRandomPrefab(candidates);
     }
 
-    SegmentType WeightedRandom(List<(SegmentType type, int weight)> options)
+    List<(GameObject prefab, SegmentType type, int weight)> BuildCandidateList()
+    {
+        var list = new List<(GameObject, SegmentType, int)>();
+
+        bool blockLeft     = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
+        bool blockRight    = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
+        bool blockHills    = hillCount >= maxHillsInRow;
+        bool blockHillUp   = blockHills || lastSpawnedType == SegmentType.HillDown;
+        bool blockHillDown = blockHills || lastSpawnedType == SegmentType.HillUp;
+
+        AddToList(list, straightPrefabs,  SegmentType.Straight,  weightStraight);
+        if (!blockLeft)     AddToList(list, turnLeftPrefabs,  SegmentType.TurnLeft,  weightTurnLeft);
+        if (!blockRight)    AddToList(list, turnRightPrefabs, SegmentType.TurnRight, weightTurnRight);
+        if (!blockHillUp)   AddToList(list, hillUpPrefabs,    SegmentType.HillUp,    weightHillUp);
+        if (!blockHillDown) AddToList(list, hillDownPrefabs,  SegmentType.HillDown,  weightHillDown);
+
+        return list;
+    }
+
+    List<(GameObject prefab, SegmentType type, int weight)> BuildCandidateListNoRestrictions()
+    {
+        var list = new List<(GameObject, SegmentType, int)>();
+        AddToList(list, straightPrefabs,  SegmentType.Straight,  weightStraight);
+        AddToList(list, turnLeftPrefabs,  SegmentType.TurnLeft,  weightTurnLeft);
+        AddToList(list, turnRightPrefabs, SegmentType.TurnRight, weightTurnRight);
+        AddToList(list, hillUpPrefabs,    SegmentType.HillUp,    weightHillUp);
+        AddToList(list, hillDownPrefabs,  SegmentType.HillDown,  weightHillDown);
+        return list;
+    }
+
+    void AddToList(List<(GameObject, SegmentType, int)> list, GameObject[] prefabs, SegmentType type, int weight)
+    {
+        if (prefabs == null || prefabs.Length == 0 || weight == 0) return;
+        foreach (var p in prefabs)
+            if (p != null) list.Add((p, type, weight));
+    }
+
+    List<(GameObject prefab, SegmentType type, int weight)> FilterByLanes(
+        List<(GameObject prefab, SegmentType type, int weight)> candidates)
+    {
+        if (lastExitLanes == -1) return candidates;
+
+        var filtered = new List<(GameObject, SegmentType, int)>();
+
+        foreach (var (prefab, type, weight) in candidates)
+        {
+            RoadSegment seg = prefab.GetComponent<RoadSegment>();
+            if (seg == null) continue;
+
+            if (seg.entryPoint.NumLanes == lastExitLanes)
+                filtered.Add((prefab, type, weight));
+        }
+
+        return filtered;
+    }
+
+    GameObject WeightedRandomPrefab(List<(GameObject prefab, SegmentType type, int weight)> candidates)
     {
         int total = 0;
-        foreach (var o in options) total += o.weight;
+        foreach (var c in candidates) total += c.weight;
 
         int roll = Random.Range(0, total);
         int cumulative = 0;
 
-        foreach (var o in options)
+        foreach (var (prefab, type, weight) in candidates)
         {
-            cumulative += o.weight;
-            if (roll < cumulative) return o.type;
+            cumulative += weight;
+            if (roll < cumulative)
+            {
+                UpdateCounters(type);
+                return prefab;
+            }
         }
 
-        return SegmentType.Straight;
+        UpdateCounters(candidates[0].type);
+        return candidates[0].prefab;
     }
 
     void UpdateCounters(SegmentType chosen)
@@ -133,33 +192,12 @@ public class RoadGenerator : MonoBehaviour
         if (chosen == SegmentType.HillUp || chosen == SegmentType.HillDown)
         {
             hillCount++;
-            lastHillWasUp = (chosen == SegmentType.HillUp);
+            lastHillWasUp = chosen == SegmentType.HillUp;
         }
         else
         {
             hillCount = 0;
         }
-    }
-
-    GameObject PickFromArray(SegmentType type)
-    {
-        GameObject[] arr = type switch
-        {
-            SegmentType.Straight   => straightPrefabs,
-            SegmentType.TurnLeft   => turnLeftPrefabs,
-            SegmentType.TurnRight  => turnRightPrefabs,
-            SegmentType.HillUp     => hillUpPrefabs,
-            SegmentType.HillDown   => hillDownPrefabs,
-            _                      => straightPrefabs
-        };
-
-        if (arr == null || arr.Length == 0)
-        {
-            Debug.LogWarning($"Массив префабов для {type} пуст! Используем Straight.");
-            arr = straightPrefabs;
-        }
-
-        return arr[Random.Range(0, arr.Length)];
     }
 
     void AlignSegment(RoadSegment seg, Transform targetExit)
@@ -175,6 +213,7 @@ public class RoadGenerator : MonoBehaviour
     {
         while (activeSegments.Count > segmentsAhead + 3)
         {
+            activeSegments[0].GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
             Destroy(activeSegments[0].gameObject);
             activeSegments.RemoveAt(0);
         }
@@ -183,10 +222,15 @@ public class RoadGenerator : MonoBehaviour
     public void ResetGenerator()
     {
         foreach (var seg in activeSegments)
-            if (seg != null) Destroy(seg.gameObject);
+        {
+            if (seg == null) continue;
+            seg.GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
+            Destroy(seg.gameObject);
+        }
 
         activeSegments.Clear();
         lastExitPoint = this.transform;
+        lastExitLanes = -1;
         lastSpawnedType = SegmentType.Straight;
         sameTurnCount = 0;
         hillCount = 0;
