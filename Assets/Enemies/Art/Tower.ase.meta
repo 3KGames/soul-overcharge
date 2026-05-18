@@ -125,14 +125,14 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Frame_0
     originalName: 
-    pivot: {x: 0.49107146, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 298
-      y: 279
+      x: 302
+      y: 285
       width: 117
       height: 249
     spriteID: 02f48039d7ae70a4080670ee93f02ae6
@@ -146,14 +146,14 @@ ScriptedImporter:
     uvTransform: {x: 298, y: 279}
   - name: Frame_1
     originalName: 
-    pivot: {x: 0.48245615, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 157
-      y: 548
+      x: 161
+      y: 553
       width: 117
       height: 249
     spriteID: 4f437da10118a0547965fdd447374c9c
@@ -167,14 +167,14 @@ ScriptedImporter:
     uvTransform: {x: 157, y: 548}
   - name: Frame_2
     originalName: 
-    pivot: {x: 0.45454544, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 157
-      y: 10
+      x: 161
+      y: 15
       width: 117
       height: 249
     spriteID: 15bfaa3521a3b5540b0e8382a05ea157
@@ -188,14 +188,14 @@ ScriptedImporter:
     uvTransform: {x: 157, y: 10}
   - name: Frame_3
     originalName: 
-    pivot: {x: 0.44354838, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 10
-      y: 279
+      x: 14
+      y: 285
       width: 117
       height: 249
     spriteID: ca154e14cb0b56346b88602a1e75b01c
@@ -209,14 +209,14 @@ ScriptedImporter:
     uvTransform: {x: 10, y: 279}
   - name: Frame_4
     originalName: 
-    pivot: {x: 0.43307087, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 10
-      y: 10
+      x: 14
+      y: 15
       width: 117
       height: 249
     spriteID: 58c4a95fbf0e2af4993cd998b40f1e93
@@ -230,14 +230,14 @@ ScriptedImporter:
     uvTransform: {x: 10, y: 10}
   - name: Frame_5
     originalName: 
-    pivot: {x: 0.44354838, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 11
-      y: 548
+      x: 14
+      y: 553
       width: 117
       height: 249
     spriteID: 453bb499059f3ab4db304793af283254
@@ -251,14 +251,14 @@ ScriptedImporter:
     uvTransform: {x: 10, y: 548}
   - name: Frame_6
     originalName: 
-    pivot: {x: 0.45454544, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 157
-      y: 279
+      x: 160
+      y: 285
       width: 117
       height: 249
     spriteID: d31ddfa02e42d4c449971cc93555b529
@@ -272,14 +272,14 @@ ScriptedImporter:
     uvTransform: {x: 157, y: 279}
   - name: Frame_7
     originalName: 
-    pivot: {x: 0.48245615, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 298
-      y: 10
+      x: 302
+      y: 15
       width: 117
       height: 249
     spriteID: b3d6d9caaa73b4a48bbecd2ce964052d
@@ -293,14 +293,14 @@ ScriptedImporter:
     uvTransform: {x: 298, y: 10}
   - name: Frame_8
     originalName: 
-    pivot: {x: 0.49107146, y: 0.58232933}
-    alignment: 9
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
     rect:
       serializedVersion: 2
-      x: 298
-      y: 548
+      x: 302
+      y: 553
       width: 117
       height: 249
     spriteID: f0de978afc7232747950f074c9ff73a5

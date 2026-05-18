@@ -434,10 +434,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyEntries:
   - enemyTag: pizza tower
-    prefab: {fileID: 4935128079177602218, guid: 19f5ddeb0a53c4b48ab8952fe2252158, type: 3}
+    prefab: {fileID: 8862096984965193432, guid: b61f9658906d6b4439933dbbb252510a, type: 3}
     spawnCount: 1
     spawnChance: 1
-  globalSpawnChance: 0.33
+  globalSpawnChance: 0.9
 --- !u!1 &8716828465166700170
 GameObject:
   m_ObjectHideFlags: 0

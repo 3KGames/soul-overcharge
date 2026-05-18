@@ -2064,8 +2064,8 @@ MonoBehaviour:
   maxSameTurnInRow: 1
   maxHillsInRow: 2
   weightStraight: 10
-  weightTurnLeft: 2
-  weightTurnRight: 2
+  weightTurnLeft: 1
+  weightTurnRight: 1
   weightHillUp: 0
   weightHillDown: 0
 --- !u!4 &1488523654
