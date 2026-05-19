@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 64671491642201598}
   - component: {fileID: 1656418792329061138}
   - component: {fileID: 4239590636883197433}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Generated_Road_Spline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1297,7 +1297,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7063002145863882957}
   - component: {fileID: 1142718666467712837}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: EntryPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1344,7 +1344,7 @@ GameObject:
   - component: {fileID: 5900717807636797523}
   - component: {fileID: 4344326420265896121}
   - component: {fileID: 7032834274494429218}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1450,7 +1450,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2792479679456578268}
   - component: {fileID: 1721448112536201342}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ExitPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1496,7 +1496,7 @@ GameObject:
   - component: {fileID: 488128056607879470}
   - component: {fileID: 5967029271708455266}
   - component: {fileID: 4618950325399043868}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Road_Straight 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1645,6 +1645,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Generated_Decal_Lane_1_0
       objectReference: {fileID: 0}
+    - target: {fileID: 1838550014578707942, guid: 85c843980521879438938d4c276bd790, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 85c843980521879438938d4c276bd790, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5
@@ -1715,6 +1719,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Generated_Decal_Lane_2_2
       objectReference: {fileID: 0}
+    - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.5
@@ -1784,6 +1792,10 @@ PrefabInstance:
     - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_Name
       value: Generated_Decal_Lane_2_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_LocalPosition.x

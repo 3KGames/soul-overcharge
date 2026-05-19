@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8375250994541592990}
   - component: {fileID: 7754401094524056671}
-  - component: {fileID: 6493754580927890053}
+  - component: {fileID: 2172122729643632500}
   m_Layer: 0
   m_Name: GarbageSkeleton_0
   m_TagString: Untagged
@@ -88,7 +88,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &6493754580927890053
+--- !u!95 &2172122729643632500
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
@@ -230,6 +230,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7394603249729158438}
+  - component: {fileID: 1554892955929225621}
   m_Layer: 0
   m_Name: skelet
   m_TagString: Untagged
@@ -246,10 +247,30 @@ Transform:
   m_GameObject: {fileID: 8862096984965193432}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.08, y: -2.5658069, z: 23.225569}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5918690997621398133}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1554892955929225621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8862096984965193432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e96ab685c97d544d8bb025b5b521a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skeletonAnimator: {fileID: 2172122729643632500}
+  bombPrefab: {fileID: 1398456539812983005, guid: 87a6721fa7fe6b24a83109310e1d6534, type: 3}
+  attackRadius: 100
+  predictionTime: 1.5
+  randomOffsetX: 3
+  randomOffsetZ: 3
+  bombSpawnHeight: 20
+  attackCooldown: 2

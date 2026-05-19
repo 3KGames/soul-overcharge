@@ -9,6 +9,7 @@ using Car.UI;
 using Car.Health.Data;
 using Car.Health.Services;
 using Common.Runtime;
+using Car.Health;
 //using Car.Attack.Services;
 using Enemies;
 using NaughtyAttributes;
@@ -85,11 +86,12 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<TachometerController>();
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<NitroBarController>();
-			builder.Register<PlayerTracker>(Lifetime.Singleton);
-			builder.RegisterComponentInHierarchy<PlayerInitializer>();
+            builder.Register<PlayerTracker>(Lifetime.Singleton);
+            builder.RegisterComponentInHierarchy<PlayerInitializer>();
+            builder.RegisterComponentInHierarchy<EnemyHealth>();
+            builder.RegisterComponentInHierarchy<CarHealthBridge>();
 
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
-
         }
     }
 }

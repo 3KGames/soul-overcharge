@@ -8,13 +8,13 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 'Projectile '
+  - 
   - Water
   - UI
-  - Player
-  - 'Enemy '
-  - Mirrored
-  - NotInMirror
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 
@@ -43,4 +43,3 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
-  - Mirror
