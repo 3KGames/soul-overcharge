@@ -52,10 +52,10 @@ MonoBehaviour:
   autoDestroyTime: 5
   carLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 128
   groundLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 320
   indicatorPrefab: {fileID: 6522917859937953919, guid: e4652dcb4a44dba4caecc4eb5e1fdbcd, type: 3}
   indicatorOffsetY: 0.05
   explosionVFX: {fileID: 0}
@@ -147,7 +147,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: ee8e3fdd97d247f4ba3b89858200d671, type: 3}
+  m_Sprite: {fileID: 21300000, guid: fcebf77e76bbd0147a18e8467de7be11, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

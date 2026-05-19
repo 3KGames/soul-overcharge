@@ -57,7 +57,7 @@ GameObject:
   - component: {fileID: 5900717807636797523}
   - component: {fileID: 4344326420265896121}
   - component: {fileID: 7032834274494429218}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -510,6 +510,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33592aaf7dcc44b6aff68d7174e5fef3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spline: {fileID: 0}
   previousRoad: {fileID: 0}
   nextRoad: {fileID: 0}
   laneCount: 4
@@ -1584,7 +1585,7 @@ GameObject:
   - component: {fileID: 767364367750243254}
   - component: {fileID: 3655512126029509718}
   - component: {fileID: 814301781859172331}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mesh (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

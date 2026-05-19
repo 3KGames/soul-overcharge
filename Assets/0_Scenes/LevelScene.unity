@@ -178,7 +178,8 @@ GameObject:
   - component: {fileID: 52702747}
   - component: {fileID: 52702741}
   - component: {fileID: 52702746}
-  m_Layer: 6
+  - component: {fileID: 52702748}
+  m_Layer: 7
   m_Name: Car
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -282,6 +283,18 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &52702748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 52702739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba998b53bceeeb14cb4794f7f5ea6783, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &136365317
 GameObject:
   m_ObjectHideFlags: 0
@@ -505,7 +518,7 @@ GameObject:
   - component: {fileID: 286374693}
   - component: {fileID: 286374694}
   - component: {fileID: 286374695}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -993,7 +1006,7 @@ GameObject:
   - component: {fileID: 359297295}
   - component: {fileID: 359297296}
   - component: {fileID: 359297297}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -1677,7 +1690,7 @@ GameObject:
   - component: {fileID: 878953407}
   - component: {fileID: 878953409}
   - component: {fileID: 878953408}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Mirror Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1804,7 +1817,7 @@ GameObject:
   m_Component:
   - component: {fileID: 898400181}
   - component: {fileID: 898400182}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Audio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2523,7 +2536,7 @@ GameObject:
   - component: {fileID: 1563111867}
   - component: {fileID: 1563111869}
   - component: {fileID: 1563111868}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: DustLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7358,7 +7371,7 @@ GameObject:
   - component: {fileID: 1628457533}
   - component: {fileID: 1628457535}
   - component: {fileID: 1628457534}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7780,7 +7793,7 @@ GameObject:
   - component: {fileID: 1859946293}
   - component: {fileID: 1859946291}
   - component: {fileID: 1859946292}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: DustRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12692,7 +12705,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1960367332}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: BodyHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}

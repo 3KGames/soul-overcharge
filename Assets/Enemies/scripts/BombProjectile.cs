@@ -15,8 +15,6 @@ public class BombProjectile : MonoBehaviour
     public GameObject indicatorPrefab;
     public float indicatorOffsetY = 0.05f;
 
-    [Header("Визуал взрыва")]
-    public GameObject explosionVFX;
 
     private bool       _exploded;
     private GameObject _indicator;
@@ -76,9 +74,6 @@ public class BombProjectile : MonoBehaviour
         _exploded = true;
         Vector3 explosionCenter = _hasGroundPoint ? _groundHitPoint : transform.position;
         Debug.Log($"[Bomb] Explode в точке {explosionCenter}");
-
-        if (explosionVFX != null)
-            Instantiate(explosionVFX, explosionCenter, Quaternion.identity);
 
         Collider[] allHits = Physics.OverlapSphere(explosionCenter, explosionRadius);
         Debug.Log($"[Bomb] OverlapSphere нашёл {allHits.Length} коллайдеров без маски");
