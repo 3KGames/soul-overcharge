@@ -15,6 +15,8 @@ public class BombProjectile : MonoBehaviour
     public GameObject indicatorPrefab;
     public float indicatorOffsetY = 0.05f;
 
+    [Header("Анимация")]
+    public Animator bombAnimator;
 
     private bool       _exploded;
     private GameObject _indicator;
@@ -26,6 +28,9 @@ public class BombProjectile : MonoBehaviour
     {
         _timer = autoDestroyTime;
 
+        if (bombAnimator == null)
+            bombAnimator = GetComponentInChildren<Animator>();
+
         if (indicatorPrefab != null)
             _indicator = Instantiate(indicatorPrefab);
 
@@ -34,7 +39,16 @@ public class BombProjectile : MonoBehaviour
 
     void Update()
     {
-        if (_exploded) return;
+        if (_exploded)
+        {
+            if (bombAnimator != null)
+            {
+                var stateInfo = bombAnimator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.IsName("died") && stateInfo.normalizedTime >= 1f)
+                    Destroy(gameObject);
+            }
+            return;
+        }
 
         transform.position += Vector3.down * fallSpeed * Time.deltaTime;
 
@@ -72,32 +86,30 @@ public class BombProjectile : MonoBehaviour
     private void Explode()
     {
         _exploded = true;
+
+        if (bombAnimator != null)
+            bombAnimator.SetTrigger("DoBoom");
+
         Vector3 explosionCenter = _hasGroundPoint ? _groundHitPoint : transform.position;
-        Debug.Log($"[Bomb] Explode в точке {explosionCenter}");
-
-        Collider[] allHits = Physics.OverlapSphere(explosionCenter, explosionRadius);
-        Debug.Log($"[Bomb] OverlapSphere нашёл {allHits.Length} коллайдеров без маски");
-        foreach (var h in allHits)
-            Debug.Log($"[Bomb]   → {h.gameObject.name} | Layer: {LayerMask.LayerToName(h.gameObject.layer)}");
-
         Collider[] hits = Physics.OverlapSphere(explosionCenter, explosionRadius, carLayer);
-        Debug.Log($"[Bomb] OverlapSphere с carLayer нашёл {hits.Length} коллайдеров");
+
         foreach (var hit in hits)
-        {
-            var bridge = hit.GetComponent<CarHealthBridge>();
-            Debug.Log($"[Bomb]   → {hit.gameObject.name} | CarHealthBridge: {bridge != null}");
-            bridge?.TakeDamage(damage);
-        }
+            hit.GetComponent<CarHealthBridge>()?.TakeDamage(damage);
 
         DestroyIndicator();
-        Destroy(gameObject);
+
+        if (bombAnimator == null) Destroy(gameObject);
     }
 
     private void SelfDestruct()
     {
         _exploded = true;
         DestroyIndicator();
-        Destroy(gameObject);
+
+        if (bombAnimator != null)
+            bombAnimator.SetTrigger("DoBoom");
+        else
+            Destroy(gameObject);
     }
 
     private void DestroyIndicator()
