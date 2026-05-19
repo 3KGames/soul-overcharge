@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class RoadSegment : MonoBehaviour
 {
+	public RoadSegmentView roadView;
+	
     [Header("Точки стыковки")]
     public ConnectionPoint entryPoint;
     public ConnectionPoint exitPoint;

@@ -1,5 +1,37 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &992550019927745300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3019908931683819429}
+  m_Layer: 0
+  m_Name: SpawnPoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3019908931683819429
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 992550019927745300}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5467728845600497069}
+  m_Father: {fileID: 488128056607879470}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1466284525268120359
 GameObject:
   m_ObjectHideFlags: 0
@@ -237,6 +269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33592aaf7dcc44b6aff68d7174e5fef3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spline: {fileID: 0}
   previousRoad: {fileID: 0}
   nextRoad: {fileID: 0}
   laneCount: 4
@@ -1462,6 +1495,7 @@ GameObject:
   m_Component:
   - component: {fileID: 488128056607879470}
   - component: {fileID: 5967029271708455266}
+  - component: {fileID: 4618950325399043868}
   m_Layer: 0
   m_Name: Road_Straight 1
   m_TagString: Untagged
@@ -1486,6 +1520,7 @@ Transform:
   - {fileID: 7063002145863882957}
   - {fileID: 2792479679456578268}
   - {fileID: 6511613663315923008}
+  - {fileID: 3019908931683819429}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5967029271708455266
@@ -1500,9 +1535,96 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2493554cacd83194aabf08885e223488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roadView: {fileID: 2514782045624521033}
   entryPoint: {fileID: 1142718666467712837}
   exitPoint: {fileID: 1721448112536201342}
   segmentType: 0
+--- !u!114 &4618950325399043868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8545565238388433368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79d17651125637c4e966d8573f5be4a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyEntries:
+  - enemyTag: 2
+    prefab: {fileID: 4955545895787366916, guid: a46ce7e5fc0d96940ad64ba13dc08b85, type: 3}
+    spawnCount: 1
+    spawnChance: 1
+  globalSpawnChance: 1
+--- !u!1 &9193873473188091254
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5467728845600497069}
+  - component: {fileID: 4528666142896763069}
+  - component: {fileID: 8383325592447940786}
+  m_Layer: 0
+  m_Name: SpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5467728845600497069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9193873473188091254}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.1, z: -22.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3019908931683819429}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4528666142896763069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9193873473188091254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allowedEnemyTags: 02000000
+  spawnOnTrigger: 1
+--- !u!65 &8383325592447940786
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9193873473188091254}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 50, y: 2, z: 5}
+  m_Center: {x: 0, y: 1, z: 22.26}
 --- !u!1001 &42789490256909381
 PrefabInstance:
   m_ObjectHideFlags: 0

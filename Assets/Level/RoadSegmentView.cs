@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Dreamteck.Splines;
 using UnityEngine;
 
 [System.Serializable]
@@ -10,6 +12,8 @@ public class LaneTopology
 
 public class RoadSegmentView : MonoBehaviour
 {
+	public SplineComputer spline;
+	
 	[Header("Связи с другими дорогами")]
 	public RoadSegmentView previousRoad;
 	public RoadSegmentView nextRoad;
@@ -20,6 +24,11 @@ public class RoadSegmentView : MonoBehaviour
     
 	[HideInInspector]
 	public List<LaneTopology> serializedTopology = new List<LaneTopology>();
+
+	public void Awake()
+	{
+		spline = GetComponent<SplineComputer>();
+	}
 
 	public Dictionary<int, List<Vector2Int>> GetTopologyMap()
 	{

@@ -8,6 +8,7 @@ using Car.Souls.Services;
 using Car.UI;
 using Car.Health.Data;
 using Car.Health.Services;
+using Common.Runtime;
 //using Car.Attack.Services;
 using Enemies;
 using NaughtyAttributes;
@@ -85,6 +86,8 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<NitroBarController>();
             builder.RegisterComponentInHierarchy<EnemyHealth>();
+			builder.Register<PlayerTracker>(Lifetime.Singleton);
+			builder.RegisterComponentInHierarchy<PlayerInitializer>();
 
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
 

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 public class TrackEnemySpawner : MonoBehaviour
 {
@@ -14,6 +16,18 @@ public class TrackEnemySpawner : MonoBehaviour
     private readonly List<GameObject> _spawnedEnemies = new();
     private bool _hasSpawned;
 
+    #region VContainer
+    
+    private LifetimeScope _parentScope;
+    
+    [Inject]
+    public void Construct(LifetimeScope parentScope)
+    {
+       _parentScope = parentScope;
+    }
+    
+    #endregion
+    
     void Awake()
     {
         _spawnPoints = GetComponentsInChildren<EnemySpawnPoint>();
@@ -42,29 +56,70 @@ public class TrackEnemySpawner : MonoBehaviour
 
             foreach (var point in picked)
             {
-                GameObject enemy = Instantiate(
-                    entry.prefab,
-                    point.transform.position,
-                    point.transform.rotation,
-                    transform
-                );
-                _spawnedEnemies.Add(enemy);
+                if (point.spawnOnTrigger)
+                {
+                    point.ArmForAmbush(entry.prefab, this);
+                }
+                else
+                {
+                    PerformSpawn(point, entry.prefab);
+                }
             }
         }
+    }
 
-        Debug.Log($"[TrackEnemySpawner] {gameObject.name}: заспавнено {_spawnedEnemies.Count} врагов");
+    public void SpawnFromTrigger(EnemySpawnPoint point, GameObject prefab)
+    {
+        PerformSpawn(point, prefab);
+    }
+
+    private void PerformSpawn(EnemySpawnPoint point, GameObject prefab)
+    {
+        GameObject enemy;
+        var scopePrefab = prefab.GetComponent<LifetimeScope>();
+
+        if (scopePrefab != null)
+        {
+            using (LifetimeScope.EnqueueParent(_parentScope))
+            {
+                enemy = Instantiate(
+                    prefab, 
+                    point.transform.position, 
+                    point.transform.rotation, 
+                    transform
+                );
+            }
+        }
+        else
+        {
+            enemy = _parentScope.Container.Instantiate(
+                prefab, 
+                point.transform.position, 
+                point.transform.rotation, 
+                transform
+            );
+        }
+                
+        _spawnedEnemies.Add(enemy);
     }
 
     public void DespawnEnemies()
     {
         foreach (var e in _spawnedEnemies)
+        {
             if (e != null) Destroy(e);
-
+        }
         _spawnedEnemies.Clear();
+
+        foreach (var point in _spawnPoints)
+        {
+            point.Disarm();
+        }
+
         _hasSpawned = false;
     }
 
-    private List<EnemySpawnPoint> GetValidPoints(string enemyTag)
+    private List<EnemySpawnPoint> GetValidPoints(EnemyTag enemyTag)
     {
         var result = new List<EnemySpawnPoint>();
         foreach (var p in _spawnPoints)
@@ -85,14 +140,4 @@ public class TrackEnemySpawner : MonoBehaviour
 
         return pool.GetRange(0, k);
     }
-
-#if UNITY_EDITOR
-    void OnValidate()
-    {
-        if (enemyEntries == null) return;
-        foreach (var e in enemyEntries)
-            if (string.IsNullOrWhiteSpace(e.enemyTag))
-                e.enemyTag = "Default";
-    }
-#endif
 }

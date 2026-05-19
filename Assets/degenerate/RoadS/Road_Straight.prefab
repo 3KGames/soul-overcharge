@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowedEnemyTags: []
+  allowedEnemyTags: 01000000
 --- !u!1 &3476367964500373523
 GameObject:
   m_ObjectHideFlags: 0
@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowedEnemyTags: []
+  allowedEnemyTags: 01000000
 --- !u!1 &3697750541494172207
 GameObject:
   m_ObjectHideFlags: 0
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allowedEnemyTags: []
+  allowedEnemyTags: 01000000
 --- !u!1 &4208336595777870563
 GameObject:
   m_ObjectHideFlags: 0
@@ -417,6 +417,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2493554cacd83194aabf08885e223488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roadView: {fileID: 7908452783360626710}
   entryPoint: {fileID: 8023920961736497343}
   exitPoint: {fileID: 6069205116902030557}
   segmentType: 0
@@ -433,7 +434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyEntries:
-  - enemyTag: pizza tower
+  - enemyTag: 1
     prefab: {fileID: 8862096984965193432, guid: b61f9658906d6b4439933dbbb252510a, type: 3}
     spawnCount: 1
     spawnChance: 1
@@ -615,6 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33592aaf7dcc44b6aff68d7174e5fef3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spline: {fileID: 0}
   previousRoad: {fileID: 0}
   nextRoad: {fileID: 0}
   laneCount: 4

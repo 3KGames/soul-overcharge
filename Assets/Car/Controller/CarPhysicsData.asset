@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62f383ddb95c4cae8dd00a2ec4cdb324, type: 3}
   m_Name: CarPhysicsData
   m_EditorClassIdentifier: 
-  downforce: 100
-  sideFrictionCoefficient: 5
+  downforce: 0
+  sideFrictionCoefficient: 10
+  baseEngineBrakingForce: 10
+  rpmBrakingMultiplier: 2
+  brakeForce: 30
   driftSideFrictionCoefficient: 1.2
   minSpeedForDrift: 3
   driftAngleCoefficient: {x: 0.4994665, y: 1.6}

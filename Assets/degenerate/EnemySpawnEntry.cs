@@ -1,11 +1,18 @@
 using System;
 using UnityEngine;
 
+public enum EnemyTag
+{
+	None,
+	Tower,
+	Biker,
+}
+
 [Serializable]
 public class EnemySpawnEntry
 {
     [Tooltip("Уникальный тег врага — совпадает с allowedEnemyTags в точках спавна")]
-    public string enemyTag = "Default";
+    public EnemyTag enemyTag = EnemyTag.None;
 
     [Tooltip("Префаб врага")]
     public GameObject prefab;

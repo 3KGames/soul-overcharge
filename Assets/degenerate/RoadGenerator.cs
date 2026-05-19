@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 using static RoadSegment;
 
 public class RoadGenerator : MonoBehaviour
@@ -36,6 +38,14 @@ public class RoadGenerator : MonoBehaviour
     private int hillCount = 0;
     private bool lastHillWasUp = false;
 
+    private IObjectResolver _resolver;
+
+    [Inject]
+    public void Construct(IObjectResolver resolver)
+    {
+        _resolver = resolver;
+    }
+
     void Start()
     {
         lastExitPoint = this.transform;
@@ -68,7 +78,8 @@ public class RoadGenerator : MonoBehaviour
             return;
         }
 
-        GameObject go = Instantiate(prefab);
+        GameObject go = _resolver.Instantiate(prefab);
+        
         RoadSegment seg = go.GetComponent<RoadSegment>();
 
         if (seg == null)
@@ -77,6 +88,12 @@ public class RoadGenerator : MonoBehaviour
             Destroy(go);
             return;
         }
+
+       if (activeSegments.Count > 0)
+       {
+          seg.roadView.previousRoad = activeSegments[^1].roadView;
+          activeSegments[^1].roadView.nextRoad = seg.roadView;
+       }
 
         AlignSegment(seg, lastExitPoint);
 
