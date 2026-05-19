@@ -791,7 +791,6 @@ MonoBehaviour:
   autoInjectGameObjects:
   - {fileID: 898400180}
   - {fileID: 1768508370}
-  - {fileID: 0}
   - {fileID: 1488523652}
   surfaceMask:
     serializedVersion: 2
@@ -12642,9 +12641,9 @@ RectTransform:
   - {fileID: 513290702}
   m_Father: {fileID: 519572316}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 300, y: -200}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 300, y: 200}
   m_SizeDelta: {x: 450, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1873656994

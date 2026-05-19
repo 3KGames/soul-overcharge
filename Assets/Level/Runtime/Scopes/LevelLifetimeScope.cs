@@ -85,7 +85,6 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<TachometerController>();
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<NitroBarController>();
-            builder.RegisterComponentInHierarchy<EnemyHealth>();
 			builder.Register<PlayerTracker>(Lifetime.Singleton);
 			builder.RegisterComponentInHierarchy<PlayerInitializer>();
 
