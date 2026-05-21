@@ -46,7 +46,7 @@ GameObject:
   - component: {fileID: 64671491642201598}
   - component: {fileID: 1656418792329061138}
   - component: {fileID: 4239590636883197433}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Generated_Road_Spline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1647,7 +1647,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1838550014578707942, guid: 85c843980521879438938d4c276bd790, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 85c843980521879438938d4c276bd790, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1721,7 +1721,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1795,7 +1795,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_LocalPosition.x

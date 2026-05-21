@@ -6,8 +6,7 @@ public class BikerAttackState : IUpdatableState<BikerStateType>
 {
 	private readonly BikerContext _ctx;
 	private readonly IStateSwitcher<BikerStateType> _switcher;
-	private float _attackDuration = 1.5f;
-	private float _timer;
+	private bool _isAnimationStarted;
 
 	public BikerStateType Kind => BikerStateType.Attack;
 
@@ -19,16 +18,20 @@ public class BikerAttackState : IUpdatableState<BikerStateType>
 
 	public void Enter()
 	{
-		_timer = _attackDuration;
 		_ctx.Animator.SetTrigger("Attack");
+		_isAnimationStarted = false;
 	}
 
-	public void Exit() { }
+	public void Exit()
+	{
+		//_ctx.CloseAttackZone();
+	}
 
 	public void Update()
 	{
-		_timer -= Time.deltaTime;
-		if (_timer <= 0f)
+		AnimatorStateInfo stateInfo = _ctx.Animator.GetCurrentAnimatorStateInfo(0);
+
+		if (stateInfo.IsName("Attack Reverse"))
 		{
 			_switcher.Switch(BikerStateType.Parallel);
 			return;

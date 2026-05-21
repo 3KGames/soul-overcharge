@@ -19,7 +19,8 @@ public class BikerParallelState : IUpdatableState<BikerStateType>
 	public void Enter()
 	{
 		_ctx.Animator.SetBool("IsParallel", true);
-		_attackTimer = Random.Range(2f, 5f);
+		
+		_attackTimer = Random.Range(_ctx.MinTimeBetweenAttacks, _ctx.MaxTimeBetweenAttacks);
 	}
 
 	public void Exit() { _ctx.Animator.SetBool("IsParallel", false); }

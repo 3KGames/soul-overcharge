@@ -88,7 +88,7 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<NitroBarController>();
             builder.Register<PlayerTracker>(Lifetime.Singleton);
             builder.RegisterComponentInHierarchy<PlayerInitializer>();
-            builder.RegisterComponentInHierarchy<EnemyHealth>();
+            //builder.RegisterComponentInHierarchy<EnemyHealth>(); 
             builder.RegisterComponentInHierarchy<CarHealthBridge>();
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
         }

@@ -27,6 +27,13 @@ namespace Enemies.Biker.Runtime
         public float WaitBehindDistance = 15f;
         public float LaneChangeCooldown = 2f;
 
+		[Header("Настройки: Атака")]
+		public float MinTimeBetweenAttacks = 2f;
+		public float MaxTimeBetweenAttacks = 5f;
+		public float AttackDamage = 15f;
+		public BikerAttackZone AttackZone;
+		public Transform VisualModel;
+		
         [Header("Здоровье и Урон")]
         public float MaxHealth = 100f;
         public float CurrentHealth { get; private set; }
@@ -59,6 +66,9 @@ namespace Enemies.Biker.Runtime
             _stateMachine = stateMachine;
             _playerTracker = playerTracker;
         }
+		
+		public void OpenAttackZone() => AttackZone.SetActive(true);
+		public void CloseAttackZone() => AttackZone.SetActive(false);
 
         private void Awake()
         {
@@ -89,28 +99,53 @@ namespace Enemies.Biker.Runtime
             EffectiveDistanceOffset = ParallelDistanceOffset;
 
             _stateMachine.Switch(BikerStateType.Chase);
+			
+			if (AttackZone != null)
+			{
+				AttackZone.Setup(AttackDamage);
+				AttackZone.SetActive(false);
+			}
         }
 
-        private void FixedUpdate()
-        {
-            if (CurrentRoad == null || _playerTransform == null) return;
+		private void FixedUpdate()
+		{
+			if (CurrentRoad == null || _playerTransform == null) return;
 
-            CurrentRoad = CheckRoadTransition(CurrentRoad, transform.position);
-            PlayerRoad = CheckRoadTransition(PlayerRoad, _playerTransform.position);
+			CurrentRoad = CheckRoadTransition(CurrentRoad, transform.position);
+			PlayerRoad = CheckRoadTransition(PlayerRoad, _playerTransform.position);
 
-            SplineSample currentSample = CurrentRoad.spline.Project(transform.position);
-            CurrentSpeed = Vector3.Dot(Rb.linearVelocity, currentSample.forward);
+			SplineSample currentSample = CurrentRoad.spline.Project(transform.position);
+			CurrentSpeed = Vector3.Dot(Rb.linearVelocity, currentSample.forward);
 
-            SplineSample playerSample = PlayerRoad.spline.Project(_playerTransform.position);
-            PlayerSpeed = Vector3.Dot(_playerRb.linearVelocity, playerSample.forward);
+			SplineSample playerSample = PlayerRoad.spline.Project(_playerTransform.position);
+			PlayerSpeed = Vector3.Dot(_playerRb.linearVelocity, playerSample.forward);
 
-            CalculateRelativeDistance();
+			CalculateRelativeDistance();
             
-            UpdateLaneLogic(playerSample);
+			UpdateLaneLogic(playerSample);
 
-            _stateMachine.Update();
-        }
+			UpdateMirroring(playerSample);
 
+			_stateMachine.Update();
+		}
+		
+		private void UpdateMirroring(SplineSample playerSample)
+		{
+			Vector3 directionToBiker = transform.position - _playerTransform.position;
+
+			float lateralDot = Vector3.Dot(directionToBiker, playerSample.right);
+
+			bool isLeft = lateralDot < 0f;
+
+			if (VisualModel != null)
+			{
+				Vector3 scale = VisualModel.localScale;
+			
+				scale.x = Mathf.Abs(scale.x) * (isLeft ? 1f : -1f);
+				VisualModel.localScale = scale;
+			}
+		}
+		
         private void UpdateLaneLogic(SplineSample playerSample)
         {
             int laneCount = Mathf.Max(1, CurrentRoad.laneCount);
