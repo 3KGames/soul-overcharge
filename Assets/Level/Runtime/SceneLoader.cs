@@ -12,8 +12,13 @@ namespace Level.Runtime
             /*DataToPass = Resources.Load<LevelData>(levelName);
             Debug.Log($"Loaded {DataToPass}");*/
 
-            var scene = SceneManager.LoadSceneAsync("LevelScene", LoadSceneMode.Additive);
+			string sceneName = "LevelScene";
+			
+            var scene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             await UniTask.WaitUntil(() => scene.isDone);
+			
+			Scene loadedScene = SceneManager.GetSceneByName(sceneName);
+			SceneManager.SetActiveScene(loadedScene);
         }
         
         /*public LevelData ConsumeAndClear()
