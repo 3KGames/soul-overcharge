@@ -30,6 +30,8 @@ public class RoadGeneratorWindow : EditorWindow
     private RoadSegmentView nextRoad;
 
     private int laneCount = 3;
+    private bool zeroYCoordinates = true;
+
     private int minDecals = 3;
     private int maxDecals = 7;
     private float minSpacing = 5f;
@@ -73,6 +75,8 @@ public class RoadGeneratorWindow : EditorWindow
         targetSpline = (SplineComputer)EditorGUILayout.ObjectField("Целевой Сплайн", targetSpline, typeof(SplineComputer), true);
         settings = (RoadSettingsSO)EditorGUILayout.ObjectField("Настройки (SO)", settings, typeof(RoadSettingsSO), false);
         laneCount = EditorGUILayout.IntSlider("Количество полос", laneCount, 1, 11);
+        
+        zeroYCoordinates = EditorGUILayout.Toggle("Занулить Y сплайна", zeroYCoordinates); 
 
         EditorGUILayout.Space();
         GUILayout.Label("Соединения графа дорог", EditorStyles.boldLabel);
@@ -137,11 +141,8 @@ public class RoadGeneratorWindow : EditorWindow
 
         GameObject splineObj = new GameObject("Generated_Road_Spline");
         
-        // ПРЕФАБ ФИКС: Привязываем созданный объект к тому же родителю, что и точка входа,
-        // чтобы он гарантированно остался внутри открытого Prefab Mode, а не улетел в сцену.
         splineObj.transform.SetParent(entryPoint.parent, false);
 
-        // ПРЕФАБ ФИКС: Добавляем компонент через систему Undo
         SplineComputer spline = Undo.AddComponent<SplineComputer>(splineObj);
         spline.type = Spline.Type.Bezier;
 
@@ -178,8 +179,27 @@ public class RoadGeneratorWindow : EditorWindow
             EditorUtility.DisplayDialog("Ошибка", "Пожалуйста, выберите Spline Computer и файл настроек RoadSettingsSO!", "OK");
             return;
         }
-    
-        // ПРЕФАБ ФИКС: Безопасное добавление компонентов в префаб
+
+        Undo.RecordObject(targetSpline.transform, "Set Spline Transform Y");
+        Vector3 splinePos = targetSpline.transform.position;
+        splinePos.y = settings.roadYCoordinate;
+        targetSpline.transform.position = splinePos;
+
+        if (zeroYCoordinates)
+        {
+            Undo.RecordObject(targetSpline, "Zero Spline Y Coordinates");
+            SplinePoint[] pts = targetSpline.GetPoints();
+            
+            for (int i = 0; i < pts.Length; i++)
+            {
+                pts[i].position = new Vector3(pts[i].position.x, 0f, pts[i].position.z);
+                pts[i].tangent = new Vector3(pts[i].tangent.x, 0f, pts[i].tangent.z);
+                pts[i].tangent2 = new Vector3(pts[i].tangent2.x, 0f, pts[i].tangent2.z);
+            }
+            
+            targetSpline.SetPoints(pts);
+        }
+		
         if (!targetSpline.TryGetComponent<RoadSegmentView>(out var roadView))
             roadView = Undo.AddComponent<RoadSegmentView>(targetSpline.gameObject);
     
@@ -188,7 +208,6 @@ public class RoadGeneratorWindow : EditorWindow
         else
             Debug.LogError("Spline Computer должен иметь MeshRenderer (создается вместе со SplineMesh)!");
     
-        // ПРЕФАБ ФИКС: Безопасное добавление SplineMesh
         if (!targetSpline.TryGetComponent<SplineMesh>(out var splineMesh))
             splineMesh = Undo.AddComponent<SplineMesh>(targetSpline.gameObject);
     
@@ -272,8 +291,7 @@ public class RoadGeneratorWindow : EditorWindow
         }
     
         splineMesh.Rebuild();
-    
-        // ПРЕФАБ ФИКС: Безопасное удаление старых дочерних объектов через Undo
+		
         List<GameObject> childrenToRemove = new List<GameObject>();
         foreach (Transform child in targetSpline.transform)
         {
@@ -376,8 +394,6 @@ public class RoadGeneratorWindow : EditorWindow
     
                 GameObject selectedPrefab = potholePool[Random.Range(0, potholePool.Count)];
     
-                // ПРЕФАБ ФИКС: Явно указываем targetSpline.transform как родителя при инстанцировании, 
-                // чтобы объект сразу создавался внутри иерархии префаба.
                 GameObject spawnedDecal = (GameObject)PrefabUtility.InstantiatePrefab(selectedPrefab, targetSpline.transform);
                 spawnedDecal.transform.position = spawnPosition;
                 
@@ -400,7 +416,6 @@ public class RoadGeneratorWindow : EditorWindow
         roadView.nextRoad = nextRoad;
         roadView.SetTopologyMap(roadTopologyMap);
         
-        // ПРЕФАБ ФИКС: Сообщаем редактору, что префаб был изменен (появится звездочка несохраненных изменений)
         EditorUtility.SetDirty(targetSpline.gameObject);
         EditorUtility.SetDirty(roadView);
         EditorUtility.SetDirty(splineMesh);
@@ -519,7 +534,6 @@ public class RoadGeneratorWindow : EditorWindow
         float offsetB = startOffset + (prefabLane * settings.laneWidth);
         Vector3 spawnPosition = sample.position + (sample.right * offsetB);
 
-        // ПРЕФАБ ФИКС: Явно указываем targetSpline.transform как родителя
         GameObject spawned = (GameObject)PrefabUtility.InstantiatePrefab(prefab, targetSpline.transform);
         spawned.transform.position = spawnPosition;
         spawned.transform.rotation = Quaternion.LookRotation(sample.forward, sample.up);
