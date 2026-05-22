@@ -1,34 +1,28 @@
 using System.Collections.Generic;
+using Enemies;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 public class TrackEnemySpawner : MonoBehaviour
 {
-    [Header("Типы врагов на этом сегменте")]
     public List<EnemySpawnEntry> enemyEntries = new();
 
-    [Header("Общий шанс появления врагов на сегменте (0–1)")]
     [Range(0f, 1f)]
     public float globalSpawnChance = 1f;
 
     private EnemySpawnPoint[] _spawnPoints;
     private readonly List<GameObject> _spawnedEnemies = new();
     private bool _hasSpawned;
-
-    #region VContainer
-    
     private LifetimeScope _parentScope;
-    
+
     [Inject]
     public void Construct(LifetimeScope parentScope)
     {
-       _parentScope = parentScope;
+        _parentScope = parentScope;
     }
-    
-    #endregion
-    
-    void Awake()
+
+    private void Awake()
     {
         _spawnPoints = GetComponentsInChildren<EnemySpawnPoint>();
 
@@ -57,13 +51,9 @@ public class TrackEnemySpawner : MonoBehaviour
             foreach (var point in picked)
             {
                 if (point.spawnOnTrigger)
-                {
                     point.ArmForAmbush(entry.prefab, this);
-                }
                 else
-                {
                     PerformSpawn(point, entry.prefab);
-                }
             }
         }
     }
@@ -82,24 +72,15 @@ public class TrackEnemySpawner : MonoBehaviour
         {
             using (LifetimeScope.EnqueueParent(_parentScope))
             {
-                enemy = Instantiate(
-                    prefab, 
-                    point.transform.position, 
-                    point.transform.rotation, 
-                    transform
-                );
+                enemy = Instantiate(prefab, point.transform.position, point.transform.rotation, transform);
             }
         }
         else
         {
             enemy = _parentScope.Container.Instantiate(
-                prefab, 
-                point.transform.position, 
-                point.transform.rotation, 
-                transform
-            );
+                prefab, point.transform.position, point.transform.rotation, transform);
         }
-                
+
         _spawnedEnemies.Add(enemy);
     }
 
@@ -107,14 +88,19 @@ public class TrackEnemySpawner : MonoBehaviour
     {
         foreach (var e in _spawnedEnemies)
         {
-            if (e != null) Destroy(e);
+            if (e == null) continue;
+
+            var bomber = e.GetComponent<BomberEnemy>();
+            if (bomber != null)
+                bomber.ForceDestroy();
+            else
+                Destroy(e);
         }
+
         _spawnedEnemies.Clear();
 
         foreach (var point in _spawnPoints)
-        {
             point.Disarm();
-        }
 
         _hasSpawned = false;
     }
