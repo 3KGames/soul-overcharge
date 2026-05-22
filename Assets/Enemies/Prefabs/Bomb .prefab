@@ -55,7 +55,7 @@ MonoBehaviour:
     m_Bits: 128
   groundLayer:
     serializedVersion: 2
-    m_Bits: 320
+    m_Bits: 98304
   indicatorPrefab: {fileID: 6522917859937953919, guid: e4652dcb4a44dba4caecc4eb5e1fdbcd, type: 3}
   indicatorOffsetY: 0.05
   bombAnimator: {fileID: 0}

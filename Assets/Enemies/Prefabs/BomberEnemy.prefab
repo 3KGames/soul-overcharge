@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5621192232961160959}
   - component: {fileID: 6993178676192772794}
   m_Layer: 0
-  m_Name: Frame_0
+  m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -60,7 +60,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 0e42301384f7d7247b7633ccedaaeb5f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -197,9 +197,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activationRadius: 40
   moveSpeed: 20
-  explosionRadius: 4
   explosionDamage: 15
-  explosionAnimDuration: 1
   physicsCollider: {fileID: 6040598982058835427}
   detectionTrigger: {fileID: 5621192232961160959}
 --- !u!1 &5445268406530489873
