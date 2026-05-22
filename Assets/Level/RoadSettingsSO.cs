@@ -1,8 +1,13 @@
 using UnityEngine;
+using NaughtyAttributes;
 
 [CreateAssetMenu(fileName = "NewRoadSettings", menuName = "Road Generator/Road Settings")]
 public class RoadSettingsSO : ScriptableObject
 {
+	[Header("Настройки слоя")]
+	[Layer]
+	public int roadLayer = 0;
+	
 	[Header("Настройки геометрии")]
 	public float laneWidth = 3.5f;
 	public float roadThickness = 1f;

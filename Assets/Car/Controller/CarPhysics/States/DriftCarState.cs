@@ -58,17 +58,19 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
-			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
-            
+			//CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal); 
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
-			
-			// Auto‑acceleration
-			float accel = _transmission.GetAcceleration(forwardSpeed  * 3.6f / _physicsData.DriftMaxSpeedCoefficient, inputData) 
-						  * inputData.TorqueMultiplier 
-						  * _physicsData.DriftAccelerationCoefficient;
-			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 
-			// Drift steering
+			float speedModifier = inputData.IsOffroad ? _physicsData.OffroadSpeedMultiplier : 1f;
+			float gripModifier  = inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f;
+    
+			float accel = _transmission.GetAcceleration(forwardSpeed  * 3.6f / _physicsData.DriftMaxSpeedCoefficient, inputData) 
+						  * inputData.TorqueMultiplier
+						  * _physicsData.DriftAccelerationCoefficient
+						  * speedModifier;
+			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
+			
+			// Steering
 			float t = (inputData.Steer * DriftDir + 1f) * 0.5f;              // -1 → 0, 0 → 0.5, 1 → 1
 			float driftAngleCoef = Mathf.Lerp(
 				_physicsData.MinDriftAngleCoefficient,
@@ -81,11 +83,9 @@ namespace Car.Controller.CarPhysics.States
 			
 			// Downforce
 			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
-			
-			// Lateral friction
-			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient);
-			
-			
+
+			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
+    
 			_driftTimer += dt;
 		}
 	}

@@ -22,7 +22,8 @@ namespace Level.Runtime.Scopes
 {
     public class LevelLifetimeScope : LifetimeScope
     {
-        [SerializeField] private LayerMask surfaceMask;
+        [SerializeField] private LayerMask roadMask;
+		[SerializeField] private LayerMask offroadMask;
 
         [Expandable]
         [SerializeField] private CarPhysicsData physicsData;
@@ -46,7 +47,7 @@ namespace Level.Runtime.Scopes
             builder.RegisterInstance(physicsData);
             builder.RegisterInstance(nitroData);
             builder.RegisterInstance(gearDataRpm);
-            builder.RegisterInstance(new RoadCheckService(surfaceMask));
+            builder.RegisterInstance(new RoadCheckService(roadMask, offroadMask));
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
 

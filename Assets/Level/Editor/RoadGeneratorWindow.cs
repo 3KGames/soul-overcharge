@@ -292,6 +292,16 @@ public class RoadGeneratorWindow : EditorWindow
     
         splineMesh.Rebuild();
 		
+		if (!targetSpline.TryGetComponent<MeshCollider>(out var meshCollider))
+		{
+			meshCollider = Undo.AddComponent<MeshCollider>(targetSpline.gameObject);
+		}
+        
+		if (targetSpline.TryGetComponent<MeshFilter>(out var meshFilter) && meshFilter.sharedMesh != null)
+		{
+			meshCollider.sharedMesh = meshFilter.sharedMesh;
+		}
+		
         List<GameObject> childrenToRemove = new List<GameObject>();
         foreach (Transform child in targetSpline.transform)
         {
@@ -415,6 +425,8 @@ public class RoadGeneratorWindow : EditorWindow
         roadView.previousRoad = previousRoad;
         roadView.nextRoad = nextRoad;
         roadView.SetTopologyMap(roadTopologyMap);
+		
+		SetLayerRecursively(targetSpline.gameObject, settings.roadLayer);
         
         EditorUtility.SetDirty(targetSpline.gameObject);
         EditorUtility.SetDirty(roadView);
@@ -558,4 +570,17 @@ public class RoadGeneratorWindow : EditorWindow
         }
         return false; 
     }
+	
+	private void SetLayerRecursively(GameObject obj, int newLayer)
+	{
+		if (obj == null) return;
+        
+		Undo.RecordObject(obj, "Set Layer");
+		obj.layer = newLayer;
+        
+		foreach (Transform child in obj.transform)
+		{
+			SetLayerRecursively(child.gameObject, newLayer);
+		}
+	}
 }

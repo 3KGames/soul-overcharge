@@ -45,16 +45,17 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
-			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
+			//CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
-			// Auto‑acceleration
-			float accel = _transmission.GetAcceleration(forwardSpeed * 3.6f, inputData) * inputData.TorqueMultiplier;
+
+			float speedModifier = inputData.IsOffroad ? _physicsData.OffroadSpeedMultiplier : 1f;
+			float gripModifier  = inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f;
+
+			float accel = _transmission.GetAcceleration(forwardSpeed * 3.6f, inputData) 
+						  * inputData.TorqueMultiplier 
+						  * speedModifier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
-			
-			// Debug.Log($"Speed: {forwardSpeed};   Accel: {accel}");
-			
-			// Debug.Log($"Steer {inputData.Steer}");
-			
+    
 			// Steering
 			float steerAngle = _transmission.GetGearData().MaxSteerAngle * inputData.Steer;
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
@@ -62,9 +63,8 @@ namespace Car.Controller.CarPhysics.States
 
 			// Downforce
 			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
-			
-			// Lateral friction
-			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.SideFrictionCoefficient);
+    
+			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.SideFrictionCoefficient * gripModifier);
 		}
 	}
 }

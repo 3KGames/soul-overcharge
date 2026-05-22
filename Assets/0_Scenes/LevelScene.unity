@@ -807,9 +807,12 @@ MonoBehaviour:
   - {fileID: 898400180}
   - {fileID: 1768508370}
   - {fileID: 1488523652}
-  surfaceMask:
+  roadMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 32768
+  offroadMask:
+    serializedVersion: 2
+    m_Bits: 65536
   physicsData: {fileID: 11400000, guid: 64494ce466f6a874f97066b5cbf971ea, type: 2}
   nitroData: {fileID: 11400000, guid: 411b366ec64d4c545b381290c7b4241e, type: 2}
   gearDataRpm: {fileID: 11400000, guid: 51417a27e12f11647a2989db851998e0, type: 2}
@@ -922,7 +925,7 @@ GameObject:
   - component: {fileID: 356033453}
   - component: {fileID: 356033455}
   - component: {fileID: 356033456}
-  m_Layer: 6
+  m_Layer: 16
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1016,7 +1019,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 1
+  m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!114 &356033456
@@ -1091,7 +1094,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 471
+    m_Bits: 98775
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1996,7 +1999,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 727
+    m_Bits: 99031
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 4cc81a0e19fc31948ae934ab3391c58a, type: 2}
   m_TargetDisplay: 0

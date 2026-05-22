@@ -104,7 +104,8 @@ GameObject:
   - component: {fileID: 4815013755577373017}
   - component: {fileID: 5959893875727246084}
   - component: {fileID: 7013857144453904707}
-  m_Layer: 0
+  - component: {fileID: 1112989369756430094}
+  m_Layer: 15
   m_Name: Generated_Road_Spline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,7 +121,7 @@ Transform:
   m_GameObject: {fileID: 8115547092018605647}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -553,14 +554,14 @@ MonoBehaviour:
     useClippedPercent: 0
     keys: []
   _clipFromSample:
-    position: {x: 0, y: 0.22856522, z: -49.9}
+    position: {x: 0, y: 0.12856522, z: -49.9}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0
   _clipToSample:
-    position: {x: -75, y: 0.22979504, z: 29.3}
+    position: {x: -75, y: 0.12979504, z: 29.3}
     up: {x: 0, y: 1, z: 0}
     forward: {x: -1, y: 0, z: 0}
     color: {r: 1, g: 1, b: 1, a: 1}
@@ -1466,6 +1467,28 @@ MonoBehaviour:
       blend: 1
       useClippedPercent: 0
       keys: []
+--- !u!64 &1112989369756430094
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8115547092018605647}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}
 --- !u!1 &8545565238388433368
 GameObject:
   m_ObjectHideFlags: 0
@@ -1537,6 +1560,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Generated_Decal_Lane_1_0
       objectReference: {fileID: 0}
+    - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
+      propertyPath: m_Layer
+      value: 15
+      objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5
@@ -1606,6 +1633,10 @@ PrefabInstance:
     - target: {fileID: 1838550014578707942, guid: 7f904a302e352c74c84bf1d49448c122, type: 3}
       propertyPath: m_Name
       value: Generated_Decal_Lane_2_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1838550014578707942, guid: 7f904a302e352c74c84bf1d49448c122, type: 3}
+      propertyPath: m_Layer
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 8810970593821228994, guid: 7f904a302e352c74c84bf1d49448c122, type: 3}
       propertyPath: m_LocalPosition.x

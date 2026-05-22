@@ -14,8 +14,9 @@ namespace Car.Controller
         public float   Steer            { get; }
         public Vector3 RoadNormal       { get; }
         public float   TorqueMultiplier { get; }
+		public bool    IsOffroad        { get; }
 
-        public CarPhysicsInput(float throttle, float brake, bool drift, float steer, Vector3 normal, float torqueMultiplier)
+        public CarPhysicsInput(float throttle, float brake, bool drift, float steer, Vector3 normal, float torqueMultiplier, bool isOffroad = false)
         {
             Throttle         = throttle;
             Brake            = brake;
@@ -23,6 +24,7 @@ namespace Car.Controller
             Steer            = steer;
             RoadNormal       = normal;
             TorqueMultiplier = torqueMultiplier;
+			IsOffroad        = isOffroad;
         }
     }
 
@@ -62,14 +64,18 @@ namespace Car.Controller
                 _nitro.TryActivate(_souls);
 
             _nitro.Tick(Time.fixedDeltaTime, _souls);
+			
+			var roadInfo = _road.GetRoadInfo(rb.position);
 
-            var inputData = new CarPhysicsInput(
-                _input.Throttle,
-                _input.Brake,
-                _input.DriftHeld,
-                _input.Steer,
-                _road.GetRoadNormal(rb.position),
-                _nitro.GetTorqueMultiplier());
+			var inputData = new CarPhysicsInput(
+				_input.Throttle,
+				_input.Brake,
+				_input.DriftHeld,
+				_input.Steer,
+				roadInfo.normal,
+				_nitro.GetTorqueMultiplier(),
+				roadInfo.isOffroad
+			);
 
             _physics.Tick(Time.fixedDeltaTime, rb, inputData);
             CurrentSpeed = CarPhysicsService.GetForwardSpeed(rb);
