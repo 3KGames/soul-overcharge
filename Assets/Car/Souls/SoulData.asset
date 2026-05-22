@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SoulData
   m_EditorClassIdentifier: 
   maxSouls: 800
-  startSouls: 400
+  startSouls: 100
   soulsPerKill: 10
   drainBySpeedCurve:
     serializedVersion: 2

@@ -2659,12 +2659,13 @@ MonoBehaviour:
   straightPrefabs:
   - {fileID: 8545565238388433368, guid: 6e2ce6e1e3a758e4d8c86c103f5facea, type: 3}
   - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
+  - {fileID: 8545565238388433368, guid: 5738880a3541ed047a667673bbb622ac, type: 3}
   turnLeftPrefabs: []
   turnRightPrefabs: []
   hillUpPrefabs: []
   hillDownPrefabs: []
   player: {fileID: 52702740}
-  segmentsAhead: 10
+  segmentsAhead: 2
   spawnDistanceThreshold: 60
   maxSameTurnInRow: 1
   maxHillsInRow: 2

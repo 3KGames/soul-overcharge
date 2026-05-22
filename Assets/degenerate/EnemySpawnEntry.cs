@@ -3,9 +3,11 @@ using UnityEngine;
 
 public enum EnemyTag
 {
-	None,
-	Tower,
-	Biker,
+    None,
+    Tower,
+    Biker,
+    Bomber,
+    SoulPickup,
 }
 
 [Serializable]
