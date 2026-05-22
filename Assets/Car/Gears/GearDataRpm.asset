@@ -17,52 +17,61 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.78
-      inSlope: 0.19042988
-      outSlope: 0.19042988
+      value: 0.40576926
+      inSlope: 0.32085773
+      outSlope: 0.32085773
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.3755868
+      outWeight: 0.37075564
+    - serializedVersion: 3
+      time: 0.3838288
+      value: 0.8139236
+      inSlope: 1.7236707
+      outSlope: 1.7236707
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.15088814
     - serializedVersion: 3
       time: 0.7
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 136
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0.8
-      inSlope: -1.9744971
-      outSlope: -1.9744971
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.1611634
+      inWeight: 0.100968145
+      outWeight: 0.28077462
+    - serializedVersion: 3
+      time: 1
+      value: 0.6980774
+      inSlope: -0.30896837
+      outSlope: -0.30896837
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.24896263
       outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  speedToRpmFactor: 318
+  speedToRpmFactor: 24.02
   rpmIdle: 1000
-  rpmRedline: 8000
-  engineBrakeFactor: 0.01
-  lowRpmBrakeFactor: 0.0003
+  rpmRedline: 7000
+  engineBrakeFactor: 0.004
+  lowRpmBrakeFactor: 0.002
   baseEngineDrag: 2
   highRpmDragMultiplier: 8
-  accelerationModifier: 5.3
-  speedShift: 1
-  accelerationGearRatioPow: 0.25
+  accelerationModifier: 2.02
+  speedShift: 11
+  accelerationGearRatioPow: 0.7
   gears:
-  - gearRatio: 3.2
-    maxSteerAngle: 51.1
-  - gearRatio: 2.022
+  - gearRatio: 7.75
     maxSteerAngle: 45
-  - gearRatio: 1.384
-    maxSteerAngle: 35
-  - gearRatio: 0.95
-    maxSteerAngle: 25
-  - gearRatio: 0.6
-    maxSteerAngle: 20
+  - gearRatio: 4.69
+    maxSteerAngle: 45
+  - gearRatio: 3.51
+    maxSteerAngle: 45
+  - gearRatio: 2.42
+    maxSteerAngle: 45
+  - gearRatio: 2.08
+    maxSteerAngle: 45

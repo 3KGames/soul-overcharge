@@ -14,6 +14,8 @@ namespace Car.Gears
 		public event Action<float> RpmChanged;
         
         public int SelectedGear { get; private set; }
+		
+		public bool IsAutoTransmission { get; set; } = true;
 
         public TransmissionService(CarPhysicsData carPhysicsData, GearDataRpm gearDataRpm)
         {
@@ -45,6 +47,31 @@ namespace Car.Gears
             SelectedGear--;
             GearChanged?.Invoke();
         }
+		
+		private void UpdateAutoShift(float speed)
+		{
+			if (!IsAutoTransmission) return;
+
+			float currentRpm = GetRpm(speed);
+			if (currentRpm >= 6000f && CanShiftUp())
+			{
+				ShiftUpSafe();
+				return;
+			}
+
+			if (CanShiftDown())
+			{
+				var prevGear = _gearDataRpm.GetGear(SelectedGear - 1);
+        
+				float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
+				float prevGearRpm = clampedSpeed * prevGear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
+
+				if (prevGearRpm < 5800f) 
+				{
+					ShiftDownSafe();
+				}
+			}
+		}
 
         public float GetRpm(float speed)
         {
@@ -58,9 +85,12 @@ namespace Car.Gears
 			if (speed < 0)
 				speed = 0;
 			
+			UpdateAutoShift(speed);
+			
             var gear = GetGearData();
             float clampedSpeed = speed < 0 ? _gearDataRpm.SpeedShift : speed + _gearDataRpm.SpeedShift;
             float rpm = clampedSpeed * gear.GearRatio * _gearDataRpm.SpeedToRpmFactor;
+			//Debug.Log($"Rpm: {rpm}");
 			RpmChanged?.Invoke(rpm);
 
             // Normalize RPM

@@ -8,7 +8,7 @@ namespace Car.Controller.CarPhysics
 	{
 		[Min(0f)]
 		[SerializeField] private float		downforce = 100f;
-		[Range(0f, 10f)]
+		[Range(0f, 50f)]
 		[SerializeField] private float		sideFrictionCoefficient = 5f;
 		[Header("Engine Braking")]
 		[Tooltip("Базовая сила торможения двигателем при отпущенном газе")]
@@ -17,16 +17,16 @@ namespace Car.Controller.CarPhysics
 		[SerializeField] private float		rpmBrakingMultiplier = 2f;
 		[Min(0f)]
 		[SerializeField] private float		brakeForce = 30f;
-		[Range(0f, 10f)]
+		[Range(0f, 50f)]
 		[SerializeField] private float		driftSideFrictionCoefficient = 5f;
 		[Range(0f, 50f)]
 		[SerializeField] private float		minSpeedForDrift      = 3f;      //Not sure if this is needed
 		[MinMaxSlider(0f, 3f), Tooltip("Minimal and maximal drift rotation angle coefficient")]	
 		[SerializeField] private Vector2	driftAngleCoefficient;
 		[SerializeField] private float		driftBrakeForce = 10f;
-		[Range(0f, 1f)]
+		[Range(0f, 2f)]
 		[SerializeField] private float		driftMaxSpeedCoefficient = 1/3f;
-		[Range(0f, 1f)]
+		[Range(0f, 2f)]
 		[SerializeField] private float		driftAccelerationCoefficient = 0.5f;
 		
 		

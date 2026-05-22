@@ -46,7 +46,8 @@ public class TachometerController : MonoBehaviour
     }
 
     private void UpdateTachometer(float rpm)
-    {
+	{
+		//rpm = 6000;
         //float rpm = _transmission.GetRpm(_car.CurrentSpeed);
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);

@@ -24,7 +24,7 @@ namespace Car.Gears
 		[SerializeField] private	float			highRpmDragMultiplier = 20f;
 		[Range(0f, 50f)]
         [SerializeField] private	float			accelerationModifier;
-		[Range(-10f, 10f), Tooltip("Desmos: m")] 
+		[Range(-100f, 100f), Tooltip("Desmos: m")] 
 		[SerializeField] private	float			speedShift = 1.3f;
 		[SerializeField] private	float			accelerationGearRatioPow = 1f;
         [SerializeField] private	Gear[]			gears;

@@ -63,7 +63,7 @@ namespace Car.Controller.CarPhysics.States
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 			
 			// Auto‑acceleration
-			float accel = _transmission.GetAcceleration(forwardSpeed / _physicsData.DriftMaxSpeedCoefficient, inputData) 
+			float accel = _transmission.GetAcceleration(forwardSpeed  * 3.6f / _physicsData.DriftMaxSpeedCoefficient, inputData) 
 						  * inputData.TorqueMultiplier 
 						  * _physicsData.DriftAccelerationCoefficient;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);

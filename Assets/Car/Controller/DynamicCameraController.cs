@@ -65,7 +65,7 @@ public class DynamicCameraController : MonoBehaviour
             return;
         }
 
-        float speedFactor = Mathf.Clamp01(_rb.linearVelocity.magnitude / _maxSpeed);
+        float speedFactor = Mathf.Clamp01(_rb.linearVelocity.magnitude / (_maxSpeed / 3.6f));
 
         ApplyFOV(speedFactor);
         ApplyFollowOffsetZ(speedFactor);

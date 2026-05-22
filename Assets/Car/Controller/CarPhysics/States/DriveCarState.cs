@@ -48,7 +48,7 @@ namespace Car.Controller.CarPhysics.States
 			CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal);
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 			// Auto‑acceleration
-			float accel = _transmission.GetAcceleration(forwardSpeed, inputData) * inputData.TorqueMultiplier;
+			float accel = _transmission.GetAcceleration(forwardSpeed * 3.6f, inputData) * inputData.TorqueMultiplier;
 			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 			
 			// Debug.Log($"Speed: {forwardSpeed};   Accel: {accel}");
