@@ -6,6 +6,7 @@ public class RoadSettingsSO : ScriptableObject
 	[Header("Настройки геометрии")]
 	public float laneWidth = 3.5f;
 	public float roadThickness = 1f;
+	public float roadYCoordinate = 0.1f;
 	public Mesh laneMesh;
 	public float textureRatio = 1f;
 	public int transitionLength = 8;
