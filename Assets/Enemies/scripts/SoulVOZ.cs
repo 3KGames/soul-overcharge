@@ -42,6 +42,10 @@ namespace Enemies
         private const float CollisionDuration = 0.4f;
 
         private Collider[] _ownColliders;
+		
+		public float MinSpeed => minMoveSpeed;
+		public float MaxSpeed => maxMoveSpeed;
+		public float CurSpeed => _moveSpeed;
 
         [Inject]
         public void Construct(PlayerTracker playerTracker, SoulService soulService)
