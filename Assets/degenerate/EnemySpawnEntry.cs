@@ -8,6 +8,7 @@ public enum EnemyTag
     Biker,
     Bomber,
     SoulPickup,
+    SoulVOZ,
 }
 
 [Serializable]

@@ -65,6 +65,12 @@ public class TrackEnemySpawner : MonoBehaviour
 
     private void PerformSpawn(EnemySpawnPoint point, GameObject prefab)
     {
+        if (_parentScope == null)
+        {
+            Debug.LogError("[TrackEnemySpawner] _parentScope is null — инжект не прошёл!");
+            return;
+        }
+
         GameObject enemy;
         var scopePrefab = prefab.GetComponent<LifetimeScope>();
 
@@ -72,13 +78,13 @@ public class TrackEnemySpawner : MonoBehaviour
         {
             using (LifetimeScope.EnqueueParent(_parentScope))
             {
-                enemy = Instantiate(prefab, point.transform.position, point.transform.rotation, transform);
+                enemy = Instantiate(prefab, point.transform.position, point.transform.rotation, null);
             }
         }
         else
         {
             enemy = _parentScope.Container.Instantiate(
-                prefab, point.transform.position, point.transform.rotation, transform);
+                prefab, point.transform.position, point.transform.rotation, null);
         }
 
         _spawnedEnemies.Add(enemy);
@@ -90,9 +96,9 @@ public class TrackEnemySpawner : MonoBehaviour
         {
             if (e == null) continue;
 
-            var bomber = e.GetComponent<BomberEnemy>();
-            if (bomber != null)
-                bomber.ForceDestroy();
+            var enemy = e.GetComponent<IEnemy>();
+            if (enemy != null)
+                enemy.ForceDestroy();
             else
                 Destroy(e);
         }
