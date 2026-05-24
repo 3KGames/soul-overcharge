@@ -30,6 +30,7 @@ public class AudioVolumeService
         PlayerPrefs.SetFloat(KeyMaster, value);
     }
 
+    public void SetMusic(float value)
     {
         MusicVolume = value;
         SetBusVolume(BusMusic, value);

@@ -3543,9 +3543,37 @@ MonoBehaviour:
   OverrideAttenuation: 0
   OverrideMinDistance: 1
   OverrideMaxDistance: 20
-<<<<<<< Updated upstream
 --- !u!114 &898400184
-=======
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898400180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CollisionTag: 
+  EventReference:
+    Guid:
+      Data1: -37711107
+      Data2: 1272633465
+      Data3: 1036724888
+      Data4: 507823060
+    Path: event:/Music
+  Event: 
+  EventPlayTrigger: 1
+  EventStopTrigger: 2
+  AllowFadeout: 1
+  TriggerOnce: 0
+  Preload: 0
+  NonRigidbodyVelocity: 0
+  Params: []
+  OverrideAttenuation: 0
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
 --- !u!1 &931982297
 GameObject:
   m_ObjectHideFlags: 0
@@ -3584,39 +3612,11 @@ RectTransform:
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &931982299
->>>>>>> Stashed changes
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-<<<<<<< Updated upstream
-  m_GameObject: {fileID: 898400180}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CollisionTag: 
-  EventReference:
-    Guid:
-      Data1: -37711107
-      Data2: 1272633465
-      Data3: 1036724888
-      Data4: 507823060
-    Path: event:/Music
-  Event: 
-  EventPlayTrigger: 1
-  EventStopTrigger: 2
-  AllowFadeout: 1
-  TriggerOnce: 0
-  Preload: 0
-  NonRigidbodyVelocity: 0
-  Params: []
-  OverrideAttenuation: 0
-  OverrideMinDistance: 1
-  OverrideMaxDistance: 20
-=======
   m_GameObject: {fileID: 931982297}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -3710,7 +3710,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 931982297}
   m_CullTransparentMesh: 1
->>>>>>> Stashed changes
 --- !u!1 &994938481
 GameObject:
   m_ObjectHideFlags: 0
@@ -5117,7 +5116,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   straightPrefabs:
-  - {fileID: 8545565238388433368, guid: 6e2ce6e1e3a758e4d8c86c103f5facea, type: 3}
   - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
   - {fileID: 8545565238388433368, guid: 5738880a3541ed047a667673bbb622ac, type: 3}
   turnLeftPrefabs: []
