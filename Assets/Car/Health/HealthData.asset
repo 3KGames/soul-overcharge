@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HealthData
   m_EditorClassIdentifier: 
   maxHealth: 100
-  minHealth: 5
+  minHealth: 10
   healthBySoulsCurve:
     serializedVersion: 2
     m_Curve:

@@ -12,5 +12,10 @@ namespace Car.Health
         {
             _healthService?.TakeDamage(amount);
         }
+
+        public void Heal(float amount)
+        {
+            _healthService?.Heal(amount);
+        }
     }
 }
