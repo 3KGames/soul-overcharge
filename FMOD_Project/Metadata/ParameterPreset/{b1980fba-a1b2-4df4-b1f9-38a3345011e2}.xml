@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{b1980fba-a1b2-4df4-b1f9-38a3345011e2}">
+		<property name="name">
+			<value>Slip</value>
+		</property>
+		<relationship name="folder">
+			<destination>{19dffb8d-851e-469d-9373-72a171fba952}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{5ccba791-7dee-4c68-b71d-6bc9c05f5620}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{5ccba791-7dee-4c68-b71d-6bc9c05f5620}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<relationship name="modulators">
+			<destination>{fb99209d-c22c-4613-afad-926ac9f0fcb0}</destination>
+		</relationship>
+	</object>
+	<object class="SeekModulator" id="{fb99209d-c22c-4613-afad-926ac9f0fcb0}">
+		<property name="nameOfPropertyBeingModulated">
+			<value>cursorPosition</value>
+		</property>
+		<property name="speedAscending">
+			<value>3</value>
+		</property>
+		<property name="speedDescending">
+			<value>3</value>
+		</property>
+		<property name="asymmetric">
+			<value>true</value>
+		</property>
+	</object>
+</objects>

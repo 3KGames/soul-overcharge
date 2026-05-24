@@ -456,7 +456,7 @@ MonoBehaviour:
   sourceProjectPath: ../../../Desktop/sdfsdfsdf/sdfsdfsdf.fspro
   sourceBankPath: FMOD_Project/Build/Desktop
   sourceBankPathUnformatted: 
-  BankRefreshCooldown: 5
+  BankRefreshCooldown: 1
   ShowBankRefreshWindow: 1
   AutomaticEventLoading: 1
   BankLoadType: 0

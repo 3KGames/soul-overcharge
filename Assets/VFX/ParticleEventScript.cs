@@ -102,6 +102,11 @@ public class ParticleEventScript : MonoBehaviour
 
 	public void EnableTrail()
 	{
+		if (_currentLeft != null || _currentRight != null)
+		{
+			DisableTrail(0f); 
+		}
+		
 		_currentLeft = Instantiate(trailPrefabLeft, pointLeft.position, pointLeft.rotation, pointLeft);
 		_currentRight = Instantiate(trailPrefabRight, pointRight.position, pointRight.rotation, pointRight);
         

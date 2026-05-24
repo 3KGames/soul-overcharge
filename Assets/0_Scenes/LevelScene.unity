@@ -2030,6 +2030,7 @@ GameObject:
   m_Component:
   - component: {fileID: 898400181}
   - component: {fileID: 898400182}
+  - component: {fileID: 898400183}
   m_Layer: 7
   m_Name: Audio
   m_TagString: Untagged
@@ -2071,6 +2072,45 @@ MonoBehaviour:
       Data3: 1645177264
       Data4: 173938420
     Path: event:/Engine
+  driftEvent:
+    Guid:
+      Data1: -346963132
+      Data2: 1164058763
+      Data3: -1006290498
+      Data4: 333997372
+    Path: event:/Drift
+  maxSlipSpeed: 10
+--- !u!114 &898400183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 898400180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a6610d2e704f1648819acc8d7460285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CollisionTag: 
+  EventReference:
+    Guid:
+      Data1: -1522295693
+      Data2: 1145692006
+      Data3: 1837688238
+      Data4: 1193200106
+    Path: event:/Sandstorm
+  Event: 
+  EventPlayTrigger: 1
+  EventStopTrigger: 2
+  AllowFadeout: 1
+  TriggerOnce: 0
+  Preload: 0
+  NonRigidbodyVelocity: 0
+  Params: []
+  OverrideAttenuation: 0
+  OverrideMinDistance: 1
+  OverrideMaxDistance: 20
 --- !u!1 &994938481
 GameObject:
   m_ObjectHideFlags: 0
