@@ -356,7 +356,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6793136447534164570}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -525,3 +525,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74515d030e68459ab878d626dc0c7dea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shotgunEvent1:
+    Guid:
+      Data1: -135052607
+      Data2: 1146315753
+      Data3: 579267969
+      Data4: 340929128
+    Path: event:/Shotgun 1
+  shotgunEvent2:
+    Guid:
+      Data1: -713233674
+      Data2: 1295380296
+      Data3: 515733163
+      Data4: -1497759435
+    Path: event:/Shotgun 2
