@@ -10,7 +10,6 @@ using Car.Health.Data;
 using Car.Health.Services;
 using Common.Runtime;
 using Car.Health;
-//using Car.Attack.Services;
 using Enemies;
 using NaughtyAttributes;
 using UI;
@@ -23,7 +22,7 @@ namespace Level.Runtime.Scopes
     public class LevelLifetimeScope : LifetimeScope
     {
         [SerializeField] private LayerMask roadMask;
-		[SerializeField] private LayerMask offroadMask;
+        [SerializeField] private LayerMask offroadMask;
 
         [Expandable]
         [SerializeField] private CarPhysicsData physicsData;
@@ -75,11 +74,8 @@ namespace Level.Runtime.Scopes
                 .AsImplementedInterfaces()
                 .AsSelf();
 
-            // ── Attack (заглушка) ─────────────────────────────────────────
-            //builder.Register<NullAttackService>(Lifetime.Singleton)
-            //    .As<IAttackService>();
-
             builder.Register<TargetRegistry>(Lifetime.Singleton);
+            builder.Register<AudioVolumeService>(Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<CarController>();
             builder.RegisterComponentInHierarchy<DynamicCameraController>();
@@ -89,7 +85,7 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<NitroBarController>();
             builder.Register<PlayerTracker>(Lifetime.Singleton);
             builder.RegisterComponentInHierarchy<PlayerInitializer>();
-            //builder.RegisterComponentInHierarchy<EnemyHealth>(); 
+            builder.RegisterComponentInHierarchy<SettingsUI>();
             builder.RegisterComponentInHierarchy<CarHealthBridge>();
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
 			builder.RegisterComponentInHierarchy<SoulDrainEffect>();
