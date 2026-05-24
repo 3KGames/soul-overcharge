@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Car.Health;
 using Common.Runtime;
@@ -7,7 +8,6 @@ using VContainer;
 namespace Enemies
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(Animator))]
     public class BomberEnemy : MonoBehaviour
     {
         private static readonly int ExplodeTrigger  = Animator.StringToHash("Explode");
@@ -18,15 +18,18 @@ namespace Enemies
         [SerializeField] private float explosionDamage = 30f;
         [SerializeField] private Collider physicsCollider;
         [SerializeField] private Collider detectionTrigger;
+		[SerializeField] private Animator  _animator;
 
         private Rigidbody _rb;
-        private Animator  _animator;
+	
         private Transform _player;
         private bool      _activated;
         private bool      _exploded;
         private Vector3   _moveDirection;
 
         private PlayerTracker _playerTracker;
+		
+		public Action OnExplode;
 
         [Inject]
         public void Construct(PlayerTracker playerTracker)
@@ -37,7 +40,6 @@ namespace Enemies
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
-            _animator = GetComponent<Animator>();
 
             _rb.isKinematic = false;
             _rb.useGravity  = true;
@@ -115,6 +117,7 @@ namespace Enemies
 
         private IEnumerator ExplodeRoutine(GameObject playerGO)
         {
+			OnExplode?.Invoke();
             _exploded = true;
 
             _rb.linearVelocity = Vector3.zero;

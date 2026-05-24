@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{5ed2e710-ba99-4f77-8316-1c97a3ed146d}">
+		<property name="assetPath">
+			<value>Churchbell Djent.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>240.024</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{7c2871f3-2260-4fb9-b8c6-f7301696ce40}</destination>
+		</relationship>
+	</object>
+</objects>

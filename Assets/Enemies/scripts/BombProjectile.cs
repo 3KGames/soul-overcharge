@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Car.Health;
 
@@ -17,6 +18,8 @@ public class BombProjectile : MonoBehaviour
 
     [Header("Анимация")]
     public Animator bombAnimator;
+	
+	public Action OnExplode;
 
     private bool       _exploded;
     private GameObject _indicator;
@@ -97,6 +100,7 @@ public class BombProjectile : MonoBehaviour
             hit.GetComponent<CarHealthBridge>()?.TakeDamage(damage);
 
         DestroyIndicator();
+		OnExplode?.Invoke();
 
         if (bombAnimator == null) Destroy(gameObject);
     }
@@ -122,7 +126,7 @@ public class BombProjectile : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.4f);
-        Gizmos.DrawWireSphere(transform.position, 0.3f);
+        Gizmos.DrawWireSphere(transform.position, explosionRadius);
 
         if (_hasGroundPoint)
         {
