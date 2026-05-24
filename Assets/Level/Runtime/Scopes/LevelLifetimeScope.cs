@@ -92,6 +92,7 @@ namespace Level.Runtime.Scopes
             //builder.RegisterComponentInHierarchy<EnemyHealth>(); 
             builder.RegisterComponentInHierarchy<CarHealthBridge>();
             builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
+			builder.RegisterComponentInHierarchy<SoulDrainEffect>();
         }
     }
 }

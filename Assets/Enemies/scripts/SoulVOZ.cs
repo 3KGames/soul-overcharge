@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
 using Car.Souls.Services;
 using Common.Runtime;
 using UnityEngine;
+using UnityEngine.Events;
 using VContainer;
+using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,6 +16,8 @@ namespace Enemies
     [RequireComponent(typeof(Rigidbody))]
     public class SoulVOZ : MonoBehaviour, IEnemy
     {
+		[SerializeField] private ParticleSystemForceField _forceField;
+		
         [Header("Movement")]
         [SerializeField] private float minMoveSpeed = 3f;
         [SerializeField] private float maxMoveSpeed = 7f;
@@ -32,6 +37,7 @@ namespace Enemies
 
         private SoulService   _soulService;
         private PlayerTracker _playerTracker;
+		private SoulDrainEffect _drainEffect;
 
         private bool      _isDead;
         private bool      _playerInRear;
@@ -47,11 +53,15 @@ namespace Enemies
 		public float MaxSpeed => maxMoveSpeed;
 		public float CurSpeed => _moveSpeed;
 
+		public Action OnDrainStart;
+		public Action OnDrainEnd;
+
         [Inject]
-        public void Construct(PlayerTracker playerTracker, SoulService soulService)
+        public void Construct(PlayerTracker playerTracker, SoulService soulService, SoulDrainEffect drainEffect)
         {
             _playerTracker = playerTracker;
             _soulService   = soulService;
+			_drainEffect   = drainEffect;
         }
 
         private void Awake()
@@ -137,6 +147,8 @@ namespace Enemies
             if (_isDead) return;
             if (!other.CompareTag("Player")) return;
 
+			_drainEffect.SetExternalForce(_forceField);
+			
             _playerInRear   = true;
             _drainCoroutine ??= StartCoroutine(DrainSoulsLoop());
         }
@@ -144,6 +156,9 @@ namespace Enemies
         private void OnTriggerExit(Collider other)
         {
             if (!other.CompareTag("Player")) return;
+			
+			_drainEffect.RemoveExternalForce(_forceField);
+			
             _playerInRear = false;
         }
 
@@ -162,6 +177,7 @@ namespace Enemies
             if (_isDead) return;
             _isDead = true;
             StopAllCoroutines();
+			_drainEffect.RemoveExternalForce(_forceField);
             Destroy(gameObject);
         }
 
