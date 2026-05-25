@@ -3,23 +3,42 @@ using Enemies;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Common.Runtime; // Добавлен неймспейс для PlayerTracker
 
 public class TrackEnemySpawner : MonoBehaviour
 {
+    // Структура для хранения заспавненного объекта и его тега
+    private struct SpawnedEnemyData
+    {
+        public GameObject Instance;
+        public EnemyTag Tag;
+    }
+
     public List<EnemySpawnEntry> enemyEntries = new();
 
     [Range(0f, 1f)]
     public float globalSpawnChance = 1f;
 
-    private EnemySpawnPoint[] _spawnPoints;
-    private readonly List<GameObject> _spawnedEnemies = new();
-    private bool _hasSpawned;
-    private LifetimeScope _parentScope;
+    [Header("Despawn Settings")]
+    [Tooltip("Дистанция от игрока, при превышении которой Biker и SoulVOZ будут деспавниться")]
+    public float despawnDistance = 150f;
+    
+    [Tooltip("Коллайдер этого сегмента дороги (для проверки, стоит ли враг всё ещё на нём)")]
+    public Collider segmentCollider;
 
+    private EnemySpawnPoint[] _spawnPoints;
+    private readonly List<SpawnedEnemyData> _spawnedEnemies = new();
+    private bool _hasSpawned;
+    
+    private LifetimeScope _parentScope;
+    private PlayerTracker _playerTracker;
+
+    // Инжектим PlayerTracker
     [Inject]
-    public void Construct(LifetimeScope parentScope)
+    public void Construct(LifetimeScope parentScope, PlayerTracker playerTracker)
     {
         _parentScope = parentScope;
+        _playerTracker = playerTracker;
     }
 
     private void Awake()
@@ -28,6 +47,9 @@ public class TrackEnemySpawner : MonoBehaviour
 
         if (_spawnPoints.Length == 0)
             Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} нет EnemySpawnPoint!", this);
+            
+        if (segmentCollider == null)
+            Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} не назначен segmentCollider! Проверка нахождения на дороге работать не будет.", this);
     }
 
     public void TrySpawnEnemies()
@@ -87,28 +109,84 @@ public class TrackEnemySpawner : MonoBehaviour
                 prefab, point.transform.position, point.transform.rotation, null);
         }
 
-        _spawnedEnemies.Add(enemy);
+        // Находим тег по префабу и сохраняем его вместе с инстансом
+        EnemyTag tag = GetTagForPrefab(prefab);
+        _spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy, Tag = tag });
     }
 
     public void DespawnEnemies()
     {
-        foreach (var e in _spawnedEnemies)
+        // Проходимся по списку с конца, так как будем удалять элементы
+        for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
         {
-            if (e == null) continue;
+            var data = _spawnedEnemies[i];
+            
+            if (data.Instance == null)
+            {
+                _spawnedEnemies.RemoveAt(i);
+                continue;
+            }
 
-            var enemy = e.GetComponent<IEnemy>();
-            if (enemy != null)
-                enemy.ForceDestroy();
-            else
-                Destroy(e);
+            bool shouldDespawn = true; // По умолчанию деспавним всех
+
+            // Исключения для Biker и SoulVOZ
+            if (data.Tag == EnemyTag.Biker || data.Tag == EnemyTag.SoulVOZ)
+            {
+                shouldDespawn = false;
+
+                // Условие 1: Слишком далеко от игрока
+                if (_playerTracker != null && _playerTracker.PlayerTransform != null)
+                {
+                    float distanceToPlayer = Vector3.Distance(data.Instance.transform.position, _playerTracker.PlayerTransform.position);
+                    if (distanceToPlayer > despawnDistance)
+                    {
+                        shouldDespawn = true;
+                    }
+                }
+
+                // Условие 2: Находятся на удаляемой дороге
+                if (!shouldDespawn && segmentCollider != null)
+                {
+                    // Проверяем, находится ли центр врага внутри границ коллайдера сегмента
+                    if (segmentCollider.bounds.Contains(data.Instance.transform.position))
+                    {
+                        shouldDespawn = true;
+                    }
+                }
+            }
+
+            if (shouldDespawn)
+            {
+                DestroyEnemy(data.Instance);
+            }
+            
+            // В любом случае убираем из списка. 
+            // Если враг выжил (уехал на другой сегмент), этот спавнер больше за него не отвечает.
+            _spawnedEnemies.RemoveAt(i);
         }
-
-        _spawnedEnemies.Clear();
 
         foreach (var point in _spawnPoints)
             point.Disarm();
 
         _hasSpawned = false;
+    }
+
+    private void DestroyEnemy(GameObject e)
+    {
+        var enemy = e.GetComponent<IEnemy>();
+        if (enemy != null)
+            enemy.ForceDestroy();
+        else
+            Destroy(e);
+    }
+
+    private EnemyTag GetTagForPrefab(GameObject prefab)
+    {
+        foreach (var entry in enemyEntries)
+        {
+            if (entry.prefab == prefab) return entry.enemyTag;
+        }
+        return EnemyTag.None;
     }
 
     private List<EnemySpawnPoint> GetValidPoints(EnemyTag enemyTag)
