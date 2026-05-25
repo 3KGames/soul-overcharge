@@ -6450,7 +6450,7 @@ MonoBehaviour:
   hillUpPrefabs: []
   hillDownPrefabs: []
   player: {fileID: 52702740}
-  segmentsAhead: 2
+  segmentsAhead: 1
   spawnDistanceThreshold: 60
   maxSameTurnInRow: 2
   maxHillsInRow: 2
