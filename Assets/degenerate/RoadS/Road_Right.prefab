@@ -2658,6 +2658,7 @@ GameObject:
   - component: {fileID: 488128056607879470}
   - component: {fileID: 5967029271708455266}
   - component: {fileID: 8449319828888195644}
+  - component: {fileID: 7252965371606098217}
   m_Layer: 0
   m_Name: Road_Right
   m_TagString: Untagged
@@ -2920,6 +2921,29 @@ MonoBehaviour:
     spawnCount: 50
     spawnChance: 1
   globalSpawnChance: 1
+  despawnDistance: 150
+  segmentCollider: {fileID: 7252965371606098217}
+--- !u!65 &7252965371606098217
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8545565238388433368}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 400, y: 1, z: 590}
+  m_Center: {x: -126.1, y: 0, z: 245.9}
 --- !u!1 &8687318017437957316
 GameObject:
   m_ObjectHideFlags: 0
