@@ -1,3 +1,4 @@
+using System.Collections;
 using Common.Runtime.StateMachine;
 using Level.Runtime;
 using UnityEngine;
@@ -55,7 +56,15 @@ namespace UI
 
         private void Quit()
         {
+            StartCoroutine(QuitRoutine());
+        }
+
+        private IEnumerator QuitRoutine()
+        {
             Time.timeScale = 1f;
+            
+            yield return new WaitForEndOfFrame();
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
