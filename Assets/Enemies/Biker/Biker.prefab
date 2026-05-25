@@ -134,7 +134,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5116335025019681561
 Transform:
   m_ObjectHideFlags: 0
@@ -169,7 +169,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4, y: 1, z: 1}
+  m_Size: {x: 6, y: 1, z: 6}
   m_Center: {x: 0, y: 0.52, z: 0}
 --- !u!114 &8455609143771366323
 MonoBehaviour:
@@ -247,7 +247,7 @@ MonoBehaviour:
   LaneChangeCooldown: 2
   MinTimeBetweenAttacks: 2
   MaxTimeBetweenAttacks: 4
-  AttackDamage: 15
+  AttackDamage: 3
   AttackZone: {fileID: 8455609143771366323}
   VisualModel: {fileID: 654057407076438615}
   MaxHealth: 10
