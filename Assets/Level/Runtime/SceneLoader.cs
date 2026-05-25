@@ -1,32 +1,25 @@
-using UnityEngine.SceneManagement;
 using Cysharp.Threading.Tasks;
+using UnityEngine.SceneManagement;
 
 namespace Level.Runtime
 {
     public sealed class SceneLoader
     {
-        //public LevelData DataToPass { get; private set; }
+        private const string LevelSceneName = "LevelScene";
 
-        public async UniTask LoadLevel(string levelName = "LevelData") // LevelData - ����������� ������� ��� ������������. ���� �� ������ ����, �� ����� ��������� ������ ��� ������
+        public async UniTask LoadLevel(string sceneName = LevelSceneName)
         {
-            /*DataToPass = Resources.Load<LevelData>(levelName);
-            Debug.Log($"Loaded {DataToPass}");*/
+            var existing = SceneManager.GetSceneByName(sceneName);
+            if (existing.isLoaded)
+            {
+                var unload = SceneManager.UnloadSceneAsync(sceneName);
+                await UniTask.WaitUntil(() => unload.isDone);
+            }
 
-			string sceneName = "LevelScene";
-			
-            var scene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-            await UniTask.WaitUntil(() => scene.isDone);
-			
-			Scene loadedScene = SceneManager.GetSceneByName(sceneName);
-			SceneManager.SetActiveScene(loadedScene);
+            var load = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            await UniTask.WaitUntil(() => load.isDone);
+
+            SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
         }
-        
-        /*public LevelData ConsumeAndClear()
-        {
-            var data = DataToPass;
-            DataToPass = null;
-            Debug.Log($"Consume {data} and clear");
-            return data;
-        }*/
     }
 }

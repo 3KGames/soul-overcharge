@@ -25,9 +25,18 @@ namespace Car.UI
 
         private void Start()
         {
-            UpdateView();
+            if (_souls == null || _health == null)
+            {
+                Debug.LogError("[DualBarController] Зависимости null — инжекция не произошла!");
+                return;
+            }
+
+            Debug.Log($"[DualBarController] Start | HP={_health.CurrentHealth}/{_health.TargetMaxHp} | Souls={_souls.Normalized}");
+
             _souls.SoulsChanged   += OnSoulsChanged;
             _health.HealthChanged += OnHealthChanged;
+
+            UpdateView();
         }
 
         private void OnDestroy()
@@ -36,22 +45,30 @@ namespace Car.UI
             if (_health != null) _health.HealthChanged -= OnHealthChanged;
         }
 
-        private void OnSoulsChanged(float current, float max)  => UpdateView();
-        private void OnHealthChanged(float current, float max) => UpdateView();
+        private void OnSoulsChanged(float current, float max)
+        {
+            //Debug.Log($"[DualBarController] SoulsChanged: {current}/{max}");
+            UpdateView();
+        }
+
+        private void OnHealthChanged(float current, float max)
+        {
+            //Debug.Log($"[DualBarController] HealthChanged: {current}/{max}");
+            UpdateView();
+        }
 
         private void UpdateView()
         {
             if (_souls == null || _health == null) return;
 
-            float soulsNorm = _souls.Normalized;
-
+            float soulsNorm  = _souls.Normalized;
             float normalZone = Mathf.Min(HP_ZONE_MAX, 1f - soulsNorm);
-
-            float minZone = _health.MaxHealth > 0f
+            float minZone    = _health.MaxHealth > 0f
                 ? _health.TargetMaxHp / _health.MaxHealth
                 : 0f;
-
             float hpZone = Mathf.Max(normalZone, minZone);
+
+            Debug.Log($"[DualBarController] UpdateView | soulsNorm={soulsNorm:0.00} | hpZone={hpZone:0.00} | HP={_health.CurrentHealth:0}/{_health.TargetMaxHp:0}");
 
             if (soulFill != null)
                 soulFill.fillAmount = Mathf.Min(soulsNorm, 1f - hpZone);
@@ -61,7 +78,6 @@ namespace Car.UI
                 float hpFraction = _health.TargetMaxHp > 0f
                     ? Mathf.Clamp01(_health.CurrentHealth / _health.TargetMaxHp)
                     : 0f;
-
                 hpFill.fillAmount = hpFraction * hpZone;
             }
         }

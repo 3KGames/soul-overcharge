@@ -9,8 +9,10 @@ using Car.UI;
 using Car.Health.Data;
 using Car.Health.Services;
 using Common.Runtime;
+using Common.Runtime.StateMachine;
 using Car.Health;
 using Enemies;
+using Level.Runtime.States;
 using NaughtyAttributes;
 using UI;
 using UnityEngine;
@@ -37,12 +39,7 @@ namespace Level.Runtime.Scopes
 
         protected override void Configure(IContainerBuilder builder)
         {
-            if (Parent == null)
-            {
-                Debug.LogError("LevelLifetimeScope: Parent container is null.");
-                return;
-            }
-
+            // Данные
             builder.RegisterInstance(physicsData);
             builder.RegisterInstance(nitroData);
             builder.RegisterInstance(gearDataRpm);
@@ -50,12 +47,14 @@ namespace Level.Runtime.Scopes
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
 
-            builder.Register<TransmissionService>(Lifetime.Singleton);
+            // Ввод
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<IInitializable>()
                 .As<IDisposable>();
 
+            // Машина
+            builder.Register<TransmissionService>(Lifetime.Singleton);
             builder.Register<DriveCarState>(Lifetime.Singleton)
                 .AsSelf()
                 .As<BaseCarState>();
@@ -66,6 +65,7 @@ namespace Level.Runtime.Scopes
             builder.Register<NitroService>(Lifetime.Singleton);
             builder.Register<CarService>(Lifetime.Singleton);
 
+            // Души и здоровье
             builder.Register<SoulService>(Lifetime.Singleton);
             builder.Register<SoulDrainService>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
@@ -74,21 +74,36 @@ namespace Level.Runtime.Scopes
                 .AsImplementedInterfaces()
                 .AsSelf();
 
-            builder.Register<TargetRegistry>(Lifetime.Singleton);
+            // Аудио
             builder.Register<AudioVolumeService>(Lifetime.Singleton);
 
+            // Game Over — после InputService и AudioVolumeService
+            builder.Register<GameOverService>(Lifetime.Singleton);
+
+            // Таймер
+            builder.Register<GameTimer>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .AsSelf();
+
+            // Прочие сервисы
+            builder.Register<TargetRegistry>(Lifetime.Singleton);
+            builder.Register<PlayerTracker>(Lifetime.Singleton);
+
+            // Компоненты на сцене
             builder.RegisterComponentInHierarchy<CarController>();
             builder.RegisterComponentInHierarchy<DynamicCameraController>();
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
             builder.RegisterComponentInHierarchy<TachometerController>();
             builder.RegisterComponentInHierarchy<DualBarController>();
             builder.RegisterComponentInHierarchy<NitroBarController>();
-            builder.Register<PlayerTracker>(Lifetime.Singleton);
             builder.RegisterComponentInHierarchy<PlayerInitializer>();
             builder.RegisterComponentInHierarchy<SettingsUI>();
             builder.RegisterComponentInHierarchy<CarHealthBridge>();
-            builder.RegisterComponentInHierarchy<DebugSoulHealthTester>();
-			builder.RegisterComponentInHierarchy<SoulDrainEffect>();
+            builder.RegisterComponentInHierarchy<SoulDrainEffect>();
+            builder.RegisterComponentInHierarchy<TimerUI>();
+            builder.RegisterComponentInHierarchy<RoadGenerator>();
+            builder.RegisterComponentInHierarchy<BossController>();
+            builder.RegisterComponentInHierarchy<GameOverUI>();
         }
     }
 }

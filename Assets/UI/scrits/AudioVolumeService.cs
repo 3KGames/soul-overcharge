@@ -44,6 +44,18 @@ public class AudioVolumeService
         PlayerPrefs.SetFloat(KeySFX, value);
     }
 
+    public void MuteAllExceptMusic()
+    {
+        SetBusVolume(BusSFX, 0f);
+        Debug.Log("[AudioVolumeService] SFX заглушены (смерть)");
+    }
+
+    public void RestoreAll()
+    {
+        SetBusVolume(BusSFX, SFXVolume);
+        Debug.Log("[AudioVolumeService] SFX восстановлены");
+    }
+
     private void Apply()
     {
         SetBusVolume(BusMaster, MasterVolume);
