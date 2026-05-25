@@ -29,6 +29,7 @@ namespace Enemies
 
         [Header("Safety")]
         [SerializeField] private float destroyBelowY = -10f;
+		[SerializeField] private float despawnDistance = 150f;
 
         private Rigidbody _rb;
         private Vector3   _moveDirection;
@@ -125,6 +126,12 @@ namespace Enemies
                 _rb.linearVelocity.y,
                 _moveDirection.z * _moveSpeed
             );
+			
+			float distanceToPlayer = Vector3.Distance(transform.position, _playerTracker.PlayerTransform.position);
+			if (distanceToPlayer > despawnDistance)
+			{
+				ForceDestroy();
+			}
         }
 
         private void OnCollisionEnter(Collision collision)
