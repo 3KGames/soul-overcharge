@@ -49,7 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fallSpeed: 15
   damage: 10
-  explosionRadius: 1
+  explosionRadius: 3
   autoDestroyTime: 5
   carLayer:
     serializedVersion: 2
