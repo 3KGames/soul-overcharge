@@ -15,8 +15,9 @@ namespace Car.Controller
         public Vector3 RoadNormal       { get; }
         public float   TorqueMultiplier { get; }
 		public bool    IsOffroad        { get; }
+		public bool    HasSouls         { get; }
 
-        public CarPhysicsInput(float throttle, float brake, bool drift, float steer, Vector3 normal, float torqueMultiplier, bool isOffroad = false)
+        public CarPhysicsInput(float throttle, float brake, bool drift, float steer, Vector3 normal, float torqueMultiplier, bool isOffroad = false, bool hasSouls = true)
         {
             Throttle         = throttle;
             Brake            = brake;
@@ -25,6 +26,7 @@ namespace Car.Controller
             RoadNormal       = normal;
             TorqueMultiplier = torqueMultiplier;
 			IsOffroad        = isOffroad;
+			HasSouls         = hasSouls;
         }
     }
 
@@ -66,6 +68,8 @@ namespace Car.Controller
             _nitro.Tick(Time.fixedDeltaTime, _souls);
 			
 			var roadInfo = _road.GetRoadInfo(rb.position);
+			
+			bool hasSouls = _souls != null && _souls.CurrentSouls > 0f;
 
 			var inputData = new CarPhysicsInput(
 				_input.Throttle,
@@ -74,7 +78,8 @@ namespace Car.Controller
 				_input.Steer,
 				roadInfo.normal,
 				_nitro.GetTorqueMultiplier(),
-				roadInfo.isOffroad
+				roadInfo.isOffroad,
+				hasSouls
 			);
 
             _physics.Tick(Time.fixedDeltaTime, rb, inputData);

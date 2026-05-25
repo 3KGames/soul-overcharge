@@ -58,34 +58,43 @@ namespace Car.Controller.CarPhysics.States
 
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
-			//CarPhysicsService.AlignToRoad(rb, inputData.RoadNormal); 
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 
-			float speedModifier = inputData.IsOffroad ? _physicsData.OffroadSpeedMultiplier : 1f;
-			float gripModifier  = inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f;
-    
-			float accel = _transmission.GetAcceleration(forwardSpeed  * 3.6f / _physicsData.DriftMaxSpeedCoefficient, inputData) 
+			float speedModifier = (inputData.IsOffroad ? _physicsData.OffroadSpeedMultiplier : 1f) *
+								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsSpeedMultiplier);
+                          
+			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+
+			float safeSpeedModifier = Mathf.Max(0.01f, speedModifier);
+
+			float fakeSpeedForTransmission = (forwardSpeed * 3.6f / _physicsData.DriftMaxSpeedCoefficient) / safeSpeedModifier;
+
+			float accel = _transmission.GetAcceleration(fakeSpeedForTransmission, inputData)
 						  * inputData.TorqueMultiplier
 						  * _physicsData.DriftAccelerationCoefficient
 						  * speedModifier;
-			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
 			
+			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
+
 			// Steering
-			float t = (inputData.Steer * DriftDir + 1f) * 0.5f;              // -1 → 0, 0 → 0.5, 1 → 1
+			float t = (inputData.Steer * DriftDir + 1f) * 0.5f;              
 			float driftAngleCoef = Mathf.Lerp(
 				_physicsData.MinDriftAngleCoefficient,
 				_physicsData.MaxDriftAngleCoefficient,
-				t
-			);
-			float steerAngle = _transmission.GetGearData().MaxSteerAngle * driftAngleCoef * DriftDir;
+				t);
+
+			// Применяем штраф к повороту в дрифте
+			float steerAngle = _transmission.GetGearData().MaxSteerAngle * driftAngleCoef * DriftDir * (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
 			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
 			rb.MoveRotation(rb.rotation * delta);
-			
+
 			// Downforce
 			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
 
+			// Боковое трение
 			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
-    
+
 			_driftTimer += dt;
 		}
 	}

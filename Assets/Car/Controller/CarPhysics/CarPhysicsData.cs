@@ -36,6 +36,12 @@ namespace Car.Controller.CarPhysics
 		[Range(0f, 1f)]
 		[Tooltip("Множитель бокового трения на бездорожье (машину будет сильнее заносить)")]
 		[SerializeField] private float offroadGripMultiplier = 0.4f;
+		[Range(0f, 1f)]
+		[Tooltip("Множитель скорости при отсутствии душ (например, 0.4 = 40% от обычной скорости)")]
+		[SerializeField] private float noSoulsSpeedMultiplier = 0.4f;
+		[Range(0f, 1f)]
+		[Tooltip("Множитель сцепления при отсутствии душ (например, 0.3 = сильное скольжение и плохой поворот)")]
+		[SerializeField] private float noSoulsGripMultiplier = 0.3f;
 		
 		public float Downforce						=> downforce;
 		public float SideFrictionCoefficient		=> sideFrictionCoefficient;
@@ -49,7 +55,9 @@ namespace Car.Controller.CarPhysics
 		public float DriftBrakeForce				=> driftBrakeForce;
 		public float DriftMaxSpeedCoefficient		=> driftMaxSpeedCoefficient;
 		public float DriftAccelerationCoefficient	=> driftAccelerationCoefficient;
-		public float OffroadSpeedMultiplier			=> offroadSpeedMultiplier;
+		public float  OffroadSpeedMultiplier			=> offroadSpeedMultiplier;
 		public float OffroadGripMultiplier			=> offroadGripMultiplier;
+		public float NoSoulsSpeedMultiplier => noSoulsSpeedMultiplier;
+		public float NoSoulsGripMultiplier => noSoulsGripMultiplier;
 	}
 }
