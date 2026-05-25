@@ -1,3 +1,4 @@
+using System;
 using Car.Health.Data;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ namespace Car.Health.Pickups
         [SerializeField] private HealthPickupData _data;
 
         private bool _collected;
+
+		public Action OnCollected;
 
         private void Awake()
         {
@@ -35,6 +38,8 @@ namespace Car.Health.Pickups
             _collected = true;
 
             bridge.Heal(_data.HealAmount);
+			OnCollected?.Invoke();
+			
             Debug.Log($"[HealthPickup] Подобран: +{_data.HealAmount} HP");
 
             Destroy(gameObject);

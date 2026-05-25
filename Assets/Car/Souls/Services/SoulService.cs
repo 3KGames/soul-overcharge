@@ -1,6 +1,7 @@
 using System;
 using Car.Souls.Data;
 using UnityEngine;
+using VContainer;
 
 namespace Car.Souls.Services
 {
@@ -15,7 +16,8 @@ namespace Car.Souls.Services
     {
         Shot,
         MotionDrain,
-        AbilityCost
+        AbilityCost,
+		Truck
     }
 
     public class SoulService
@@ -32,6 +34,8 @@ namespace Car.Souls.Services
 
         private bool _wasDepleted;
         private bool _wasFull;
+
+		[Inject] private SoulDrainEffect _drainEffect;
 
         public SoulService(SoulData data)
         {

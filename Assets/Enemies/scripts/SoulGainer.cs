@@ -9,16 +9,20 @@ namespace Pickups
     {
         [Tooltip("Сколько душ даёт подбор. -1 = брать значение из SoulData.SoulsPerKill")]
         [SerializeField] private float soulsAmount = -1f;
+		
+		[SerializeField] private Animator _animator;
 
         private SoulService _soulService;
         private SoulData    _soulData;
+		private SoulDrainEffect _drainEffect;
         private bool        _collected;
 
         [Inject]
-        public void Construct(SoulService soulService, SoulData soulData)
+        public void Construct(SoulService soulService, SoulData soulData, SoulDrainEffect drainEffect)
         {
             _soulService = soulService;
             _soulData    = soulData;
+			_drainEffect = drainEffect;
         }
 
         private void OnTriggerEnter(Collider other)
@@ -33,9 +37,16 @@ namespace Pickups
                 : _soulData.SoulsPerKill;
 
             _soulService.Add(amount, SoulSource.Pickup);
+			_drainEffect.SetExternalGainPos(transform.position);
+			_animator.SetTrigger("Dead");
 
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
+		
+		public void OnDeathAnimationComplete()
+		{
+			Destroy(gameObject);
+		}
 
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
