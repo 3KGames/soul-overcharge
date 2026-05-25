@@ -642,6 +642,74 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   allowedEnemyTags: 04000000
   spawnOnTrigger: 0
+--- !u!1 &4941063138355115112
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2301034507497320269}
+  - component: {fileID: 4271704019943999187}
+  - component: {fileID: 5289317406154555876}
+  m_Layer: 0
+  m_Name: Biker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2301034507497320269
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4941063138355115112}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.63, y: 0, z: 328.48}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5140732396890179212}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4271704019943999187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4941063138355115112}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allowedEnemyTags: 02000000
+  spawnOnTrigger: 1
+--- !u!65 &5289317406154555876
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4941063138355115112}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 16.66, y: 2.97, z: 5.5}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4951222385952847474
 GameObject:
   m_ObjectHideFlags: 0
@@ -966,6 +1034,7 @@ Transform:
   - {fileID: 2377613709419200730}
   - {fileID: 3294089808107604734}
   - {fileID: 7718870251937111584}
+  - {fileID: 2301034507497320269}
   m_Father: {fileID: 488128056607879470}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8375353981715666123
@@ -1852,6 +1921,10 @@ MonoBehaviour:
     prefab: {fileID: 5445268406530489873, guid: 5ad2dbefb24b908449f668d87e3282c7, type: 3}
     spawnCount: 2
     spawnChance: 0.805
+  - enemyTag: 2
+    prefab: {fileID: 4955545895787366916, guid: a46ce7e5fc0d96940ad64ba13dc08b85, type: 3}
+    spawnCount: 4
+    spawnChance: 1
   globalSpawnChance: 1
 --- !u!1 &9083077710964039010
 GameObject:
