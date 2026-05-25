@@ -649,7 +649,7 @@ MonoBehaviour:
   _forceField: {fileID: 4909053205912774356}
   minMoveSpeed: 10
   maxMoveSpeed: 20
-  soulsPerTick: 20
+  soulsPerTick: 40
   drainInterval: 0.5
   rearTrigger: {fileID: 4716381404561500224}
   destroyBelowY: -10
