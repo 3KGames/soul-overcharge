@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66ba619bbf2025049b2a3b841684e5f4, type: 3}
   m_Name: SoulData
   m_EditorClassIdentifier: 
-  maxSouls: 800
+  maxSouls: 400
   startSouls: 100
   soulsPerKill: 10
   drainBySpeedCurve:
@@ -39,11 +39,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxSpeedForCurve: 42
+  maxSpeedForCurve: 140
   gearDrainMultipliers:
-  - 1
-  - 1.15
-  - 1.25
-  - 1.35
-  - 1.5
+  - 3.6
+  - 4.14
+  - 4.5
+  - 4.86
+  - 5.4
   idleDrainPerSecond: 0

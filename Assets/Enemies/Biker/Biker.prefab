@@ -247,7 +247,7 @@ MonoBehaviour:
   LaneChangeCooldown: 2
   MinTimeBetweenAttacks: 2
   MaxTimeBetweenAttacks: 4
-  AttackDamage: 3
+  AttackDamage: 10
   AttackZone: {fileID: 8455609143771366323}
   VisualModel: {fileID: 654057407076438615}
   MaxHealth: 10

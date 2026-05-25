@@ -201,7 +201,7 @@ public class RoadGenerator : MonoBehaviour
 
     void RemoveOldSegment()
     {
-        while (activeSegments.Count > segmentsAhead + 3)
+        while (activeSegments.Count > segmentsAhead + 1)
         {
             activeSegments[0].GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
             Destroy(activeSegments[0].gameObject);

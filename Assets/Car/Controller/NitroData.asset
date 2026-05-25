@@ -57,4 +57,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   cooldownDuration: 5
-  soulDrainPerSecond: 5
+  soulDrainPerSecond: 10
