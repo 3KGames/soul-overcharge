@@ -213,6 +213,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Soul Gain Particles
       objectReference: {fileID: 0}
+    - target: {fileID: 2891891590185879808, guid: e8516e321587083479610eff1595d222, type: 3}
+      propertyPath: 'ExternalForcesModule.influenceList.Array.data[0]'
+      value: 
+      objectReference: {fileID: 504107504}
     - target: {fileID: 5881789122319406911, guid: e8516e321587083479610eff1595d222, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.48350957
