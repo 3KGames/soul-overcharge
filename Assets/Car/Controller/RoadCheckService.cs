@@ -29,7 +29,7 @@ namespace Car.Controller
 				Color rayColor = isOffroad ? Color.red : Color.green;
 				Debug.DrawRay(origin, direction * hit.distance, rayColor);
 
-				Debug.LogWarning(isOffroad ? "Offroad" : "Road", hit.collider.gameObject);
+				//Debug.LogWarning(isOffroad ? "Offroad" : "Road", hit.collider.gameObject);
 				return (hit.normal, isOffroad);
 			}
 

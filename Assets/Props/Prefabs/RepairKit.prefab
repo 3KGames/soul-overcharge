@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7559698564503452564}
   - component: {fileID: 6752969823599029605}
   - component: {fileID: 4127893066883021561}
+  - component: {fileID: 3119987120601672915}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -123,6 +124,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _data: {fileID: 11400000, guid: 8894dbb2bc7fe6d4383a0c7ea8710029, type: 2}
+--- !u!114 &3119987120601672915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7821398504406771405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 259feb0068244f208ad239d64686b6da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthPickupEvent:
+    Guid:
+      Data1: 1686687641
+      Data2: 1191621286
+      Data3: -114521158
+      Data4: 1886667937
+    Path: event:/Repair
+  _context: {fileID: 4127893066883021561}
 --- !u!1 &9004425134550142466
 GameObject:
   m_ObjectHideFlags: 0

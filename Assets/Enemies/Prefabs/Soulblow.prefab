@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2441038963015064512}
   - component: {fileID: 6857797182331816526}
   - component: {fileID: 2437355925266111789}
+  - component: {fileID: 2321493347639435363}
   m_Layer: 0
   m_Name: SoulGainerIdle_0
   m_TagString: Untagged
@@ -56,7 +57,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 0e42301384f7d7247b7633ccedaaeb5f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,7 +99,7 @@ Animator:
   m_GameObject: {fileID: 3350691815120158130}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: d7344b67a6d078d63914b5bd58ebf27a, type: 2}
+  m_Controller: {fileID: 9100000, guid: 832a8a4ac20fb1b4aa721712500a576b, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -110,6 +111,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2321493347639435363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3350691815120158130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5eec87966b4043d8a87f6c4cd20c6db5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soulGainerDeathEvent:
+    Guid:
+      Data1: 1487162626
+      Data2: 1193066916
+      Data3: 917661374
+      Data4: 1517584024
+    Path: event:/Soulgainer Death
 --- !u!1 &4510501827047496632
 GameObject:
   m_ObjectHideFlags: 0
@@ -157,6 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   soulsAmount: 25
+  _animator: {fileID: 2437355925266111789}
 --- !u!65 &6166884816030856022
 BoxCollider:
   m_ObjectHideFlags: 0

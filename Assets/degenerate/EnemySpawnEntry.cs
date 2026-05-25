@@ -21,7 +21,7 @@ public class EnemySpawnEntry
     public GameObject prefab;
 
     [Tooltip("Сколько штук заспавнить на сегменте")]
-    [Range(1, 10)]
+    [Range(1, 100)]
     public int spawnCount = 1;
 
     [Tooltip("Шанс что этот тип врага появится на сегменте (0–1)")]

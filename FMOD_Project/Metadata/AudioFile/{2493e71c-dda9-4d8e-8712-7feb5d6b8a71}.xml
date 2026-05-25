@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{2493e71c-dda9-4d8e-8712-7feb5d6b8a71}">
+		<property name="assetPath">
+			<value>345073__metrostock99__drill-gun-2x.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>2.1229931972789116</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{7c2871f3-2260-4fb9-b8c6-f7301696ce40}</destination>
+		</relationship>
+	</object>
+</objects>

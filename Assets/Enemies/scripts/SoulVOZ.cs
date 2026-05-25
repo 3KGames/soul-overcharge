@@ -147,7 +147,7 @@ namespace Enemies
             if (_isDead) return;
             if (!other.CompareTag("Player")) return;
 
-			_drainEffect.SetExternalForce(_forceField);
+			_drainEffect.SetExternalDrainForce(_forceField);
 			
             _playerInRear   = true;
             _drainCoroutine ??= StartCoroutine(DrainSoulsLoop());
@@ -157,7 +157,7 @@ namespace Enemies
         {
             if (!other.CompareTag("Player")) return;
 			
-			_drainEffect.RemoveExternalForce(_forceField);
+			_drainEffect.RemoveExternalDrainForce(_forceField);
 			
             _playerInRear = false;
         }
@@ -166,7 +166,7 @@ namespace Enemies
         {
             while (_playerInRear && !_isDead)
             {
-                _soulService?.Spend(soulsPerTick, SoulSpendReason.AbilityCost);
+                _soulService?.Spend(soulsPerTick, SoulSpendReason.Truck);
                 yield return new WaitForSeconds(drainInterval);
             }
             _drainCoroutine = null;
@@ -177,7 +177,7 @@ namespace Enemies
             if (_isDead) return;
             _isDead = true;
             StopAllCoroutines();
-			_drainEffect.RemoveExternalForce(_forceField);
+			_drainEffect.RemoveExternalDrainForce(_forceField);
             Destroy(gameObject);
         }
 
