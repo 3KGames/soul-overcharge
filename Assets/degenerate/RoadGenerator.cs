@@ -6,23 +6,19 @@ using static RoadSegment;
 
 public class RoadGenerator : MonoBehaviour
 {
-    [Header("Префабы сегментов")]
     public GameObject[] straightPrefabs;
     public GameObject[] turnLeftPrefabs;
     public GameObject[] turnRightPrefabs;
     public GameObject[] hillUpPrefabs;
     public GameObject[] hillDownPrefabs;
 
-    [Header("Настройки генерации")]
     public Transform player;
-    public int segmentsAhead = 10;
+    public int segmentsAhead = 20;
     public float spawnDistanceThreshold = 60f;
 
-    [Header("Ограничения чередования")]
     public int maxSameTurnInRow = 1;
     public int maxHillsInRow = 2;
 
-    [Header("Веса появления (0 = не появляется)")]
     [Range(0, 10)] public int weightStraight = 5;
     [Range(0, 10)] public int weightTurnLeft = 2;
     [Range(0, 10)] public int weightTurnRight = 2;
@@ -32,7 +28,6 @@ public class RoadGenerator : MonoBehaviour
     private List<RoadSegment> activeSegments = new List<RoadSegment>();
     private Transform lastExitPoint;
     private int lastExitLanes = -1;
-
     private SegmentType lastSpawnedType = SegmentType.Straight;
     private int sameTurnCount = 0;
     private int hillCount = 0;
@@ -50,7 +45,6 @@ public class RoadGenerator : MonoBehaviour
     {
         lastExitPoint = this.transform;
         lastExitLanes = -1;
-
         for (int i = 0; i < segmentsAhead; i++)
             SpawnSegment();
     }
@@ -58,10 +52,8 @@ public class RoadGenerator : MonoBehaviour
     void Update()
     {
         if (activeSegments.Count == 0) return;
-
         RoadSegment lastSeg = activeSegments[activeSegments.Count - 1];
         float distToEnd = Vector3.Distance(player.position, lastSeg.exitPoint.transform.position);
-
         if (distToEnd < spawnDistanceThreshold)
         {
             SpawnSegment();
@@ -79,7 +71,6 @@ public class RoadGenerator : MonoBehaviour
         }
 
         GameObject go = _resolver.Instantiate(prefab);
-        
         RoadSegment seg = go.GetComponent<RoadSegment>();
 
         if (seg == null)
@@ -89,41 +80,32 @@ public class RoadGenerator : MonoBehaviour
             return;
         }
 
-       if (activeSegments.Count > 0)
-       {
-          seg.roadView.previousRoad = activeSegments[^1].roadView;
-          activeSegments[^1].roadView.nextRoad = seg.roadView;
-       }
+        if (activeSegments.Count > 0)
+        {
+            seg.roadView.previousRoad = activeSegments[^1].roadView;
+            activeSegments[^1].roadView.nextRoad = seg.roadView;
+        }
 
         AlignSegment(seg, lastExitPoint);
-
         activeSegments.Add(seg);
         lastExitPoint = seg.exitPoint.transform;
         lastExitLanes = seg.exitPoint.NumLanes;
         lastSpawnedType = seg.segmentType;
-
         seg.GetComponent<TrackEnemySpawner>()?.TrySpawnEnemies();
     }
 
     GameObject PickPrefab()
     {
         var candidates = FilterByLanes(BuildCandidateList());
-
         if (candidates.Count == 0)
-        {
-            Debug.LogWarning($"Нет кандидатов с {lastExitLanes} линиями при текущих ограничениях. Снимаем ограничения.");
             candidates = FilterByLanes(BuildCandidateListNoRestrictions());
-        }
-
         if (candidates.Count == 0) return null;
-
         return WeightedRandomPrefab(candidates);
     }
 
     List<(GameObject prefab, SegmentType type, int weight)> BuildCandidateList()
     {
         var list = new List<(GameObject, SegmentType, int)>();
-
         bool blockLeft     = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
         bool blockRight    = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
         bool blockHills    = hillCount >= maxHillsInRow;
@@ -135,7 +117,6 @@ public class RoadGenerator : MonoBehaviour
         if (!blockRight)    AddToList(list, turnRightPrefabs, SegmentType.TurnRight, weightTurnRight);
         if (!blockHillUp)   AddToList(list, hillUpPrefabs,    SegmentType.HillUp,    weightHillUp);
         if (!blockHillDown) AddToList(list, hillDownPrefabs,  SegmentType.HillDown,  weightHillDown);
-
         return list;
     }
 
@@ -161,18 +142,14 @@ public class RoadGenerator : MonoBehaviour
         List<(GameObject prefab, SegmentType type, int weight)> candidates)
     {
         if (lastExitLanes == -1) return candidates;
-
         var filtered = new List<(GameObject, SegmentType, int)>();
-
         foreach (var (prefab, type, weight) in candidates)
         {
             RoadSegment seg = prefab.GetComponent<RoadSegment>();
             if (seg == null) continue;
-
             if (seg.entryPoint.NumLanes == lastExitLanes)
                 filtered.Add((prefab, type, weight));
         }
-
         return filtered;
     }
 
@@ -180,10 +157,8 @@ public class RoadGenerator : MonoBehaviour
     {
         int total = 0;
         foreach (var c in candidates) total += c.weight;
-
         int roll = Random.Range(0, total);
         int cumulative = 0;
-
         foreach (var (prefab, type, weight) in candidates)
         {
             cumulative += weight;
@@ -193,7 +168,6 @@ public class RoadGenerator : MonoBehaviour
                 return prefab;
             }
         }
-
         UpdateCounters(candidates[0].type);
         return candidates[0].prefab;
     }
@@ -221,7 +195,6 @@ public class RoadGenerator : MonoBehaviour
     {
         Quaternion rotationDiff = targetExit.rotation * Quaternion.Inverse(seg.entryPoint.transform.rotation);
         seg.transform.rotation = rotationDiff * seg.transform.rotation;
-
         Vector3 posDiff = targetExit.position - seg.entryPoint.transform.position;
         seg.transform.position += posDiff;
     }
@@ -244,15 +217,25 @@ public class RoadGenerator : MonoBehaviour
             seg.GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
             Destroy(seg.gameObject);
         }
-
         activeSegments.Clear();
         lastExitPoint = this.transform;
         lastExitLanes = -1;
         lastSpawnedType = SegmentType.Straight;
         sameTurnCount = 0;
         hillCount = 0;
-
         for (int i = 0; i < segmentsAhead; i++)
             SpawnSegment();
+    }
+
+    public RoadSegmentView GetFirstSegmentView()
+    {
+        if (activeSegments.Count == 0) return null;
+        return activeSegments[0].roadView;
+    }
+
+    public RoadSegmentView GetSegmentBehindPlayer(int segmentsBehind)
+    {
+        if (activeSegments.Count < 2) return null;
+        return activeSegments[0].roadView;
     }
 }
