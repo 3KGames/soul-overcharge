@@ -437,7 +437,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 189.98999, y: -108.58002}
+  m_AnchoredPosition: {x: 189.98999, y: -108.58}
   m_SizeDelta: {x: 229.97, y: 217.151}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &55792923
@@ -6592,9 +6592,9 @@ MonoBehaviour:
   spawnDistanceThreshold: 60
   maxSameTurnInRow: 2
   maxHillsInRow: 2
-  weightStraight: 7
-  weightTurnLeft: 4
-  weightTurnRight: 5
+  weightStraight: 6
+  weightTurnLeft: 5
+  weightTurnRight: 6
   weightHillUp: 0
   weightHillDown: 0
 --- !u!4 &1488523654
