@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66ba619bbf2025049b2a3b841684e5f4, type: 3}
   m_Name: SoulData
   m_EditorClassIdentifier: 
-  maxSouls: 400
-  startSouls: 100
+  maxSouls: 4000
+  startSouls: 3000
   soulsPerKill: 10
   drainBySpeedCurve:
     serializedVersion: 2

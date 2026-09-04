@@ -6,11 +6,8 @@ using static RoadSegment;
 
 public class RoadGenerator : MonoBehaviour
 {
-    public GameObject[] straightPrefabs;
-    public GameObject[] turnLeftPrefabs;
-    public GameObject[] turnRightPrefabs;
-    public GameObject[] hillUpPrefabs;
-    public GameObject[] hillDownPrefabs;
+    [Header("Биомы")]
+    public List<RoadBiomeDefinition> biomes = new List<RoadBiomeDefinition>();
 
     public Transform player;
     public int segmentsAhead = 20;
@@ -19,12 +16,6 @@ public class RoadGenerator : MonoBehaviour
     public int maxSameTurnInRow = 1;
     public int maxHillsInRow = 2;
 
-    [Range(0, 10)] public int weightStraight = 5;
-    [Range(0, 10)] public int weightTurnLeft = 2;
-    [Range(0, 10)] public int weightTurnRight = 2;
-    [Range(0, 10)] public int weightHillUp = 1;
-    [Range(0, 10)] public int weightHillDown = 1;
-
     private List<RoadSegment> activeSegments = new List<RoadSegment>();
     private Transform lastExitPoint;
     private int lastExitLanes = -1;
@@ -32,6 +23,10 @@ public class RoadGenerator : MonoBehaviour
     private int sameTurnCount = 0;
     private int hillCount = 0;
     private bool lastHillWasUp = false;
+
+    private RoadBiomeDefinition currentBiome;
+
+    public BiomeTag CurrentBiomeTag => currentBiome != null ? currentBiome.biomeTag : BiomeTag.None;
 
     private IObjectResolver _resolver;
 
@@ -45,6 +40,7 @@ public class RoadGenerator : MonoBehaviour
     {
         lastExitPoint = this.transform;
         lastExitLanes = -1;
+        currentBiome = WeightedRandomBiome(biomes);
         for (int i = 0; i < segmentsAhead; i++)
             SpawnSegment();
     }
@@ -63,10 +59,12 @@ public class RoadGenerator : MonoBehaviour
 
     void SpawnSegment()
     {
+        UpdateBiomeState();
+
         GameObject prefab = PickPrefab();
         if (prefab == null)
         {
-            Debug.LogError($"Не найден подходящий префаб с {lastExitLanes} линиями на входе!");
+            Debug.LogError($"Не найден подходящий префаб с {lastExitLanes} линиями на входе ни в одном биоме!");
             return;
         }
 
@@ -94,82 +92,161 @@ public class RoadGenerator : MonoBehaviour
         seg.GetComponent<TrackEnemySpawner>()?.TrySpawnEnemies();
     }
 
+    void UpdateBiomeState()
+    {
+        if (biomes == null || biomes.Count == 0)
+        {
+            Debug.LogError("[RoadGenerator] Список biomes пуст — добавьте хотя бы один биом!");
+            currentBiome = null;
+            return;
+        }
+
+        if (currentBiome == null)
+        {
+            currentBiome = WeightedRandomBiome(biomes);
+            return;
+        }
+
+        if (Random.value < currentBiome.exitChance)
+        {
+            var previousBiome = currentBiome;
+            var next = PickNextBiome(new HashSet<RoadBiomeDefinition> { currentBiome });
+            if (next != null)
+            {
+                currentBiome = next;
+                Debug.Log($"[RoadGenerator] Вышел из биома {previousBiome.biomeTag} \u2192 новый биом: {currentBiome.biomeTag}");
+            }
+        }
+    }
+
+    RoadBiomeDefinition PickNextBiome(ICollection<RoadBiomeDefinition> exclude)
+    {
+        var candidates = new List<RoadBiomeDefinition>(biomes.Count);
+        foreach (var b in biomes)
+            if (!exclude.Contains(b)) candidates.Add(b);
+
+        if (candidates.Count == 0) return null;
+        return WeightedRandomBiome(candidates);
+    }
+
+    RoadBiomeDefinition WeightedRandomBiome(List<RoadBiomeDefinition> pool)
+    {
+        if (pool == null || pool.Count == 0) return null;
+
+        float total = 0f;
+        foreach (var b in pool) total += Mathf.Max(0f, b.weight);
+
+        if (total <= 0f) return pool[Random.Range(0, pool.Count)];
+
+        float roll = Random.Range(0f, total);
+        float cumulative = 0f;
+        foreach (var b in pool)
+        {
+            cumulative += Mathf.Max(0f, b.weight);
+            if (roll < cumulative) return b;
+        }
+        return pool[pool.Count - 1];
+    }
+
+    List<(SegmentType type, int weight, List<GameObject> prefabs)> ForceBiomeSwitchAndRetry()
+    {
+        var tried = new HashSet<RoadBiomeDefinition> { currentBiome };
+
+        for (int i = 0; i < biomes.Count; i++)
+        {
+            var next = PickNextBiome(tried);
+            if (next == null) break;
+
+            tried.Add(next);
+            currentBiome = next;
+
+            var candidates = BuildTypeCandidates(true);
+            if (candidates.Count == 0)
+                candidates = BuildTypeCandidates(false);
+
+            if (candidates.Count > 0) return candidates;
+        }
+
+        return new List<(SegmentType, int, List<GameObject>)>();
+    }
+
     GameObject PickPrefab()
     {
-        var candidates = FilterByLanes(BuildCandidateList());
+        if (currentBiome == null) return null;
+
+        var candidates = BuildTypeCandidates(true);
         if (candidates.Count == 0)
-            candidates = FilterByLanes(BuildCandidateListNoRestrictions());
+            candidates = BuildTypeCandidates(false);
+        if (candidates.Count == 0)
+            candidates = ForceBiomeSwitchAndRetry();
+
         if (candidates.Count == 0) return null;
-        return WeightedRandomPrefab(candidates);
+        return PickFromTypeCandidates(candidates);
     }
 
-    List<(GameObject prefab, SegmentType type, int weight)> BuildCandidateList()
+    List<(SegmentType type, int weight, List<GameObject> prefabs)> BuildTypeCandidates(bool respectBlocks)
     {
-        var list = new List<(GameObject, SegmentType, int)>();
-        bool blockLeft     = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
-        bool blockRight    = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
-        bool blockHills    = hillCount >= maxHillsInRow;
-        bool blockHillUp   = blockHills || lastSpawnedType == SegmentType.HillDown;
-        bool blockHillDown = blockHills || lastSpawnedType == SegmentType.HillUp;
+        var list = new List<(SegmentType, int, List<GameObject>)>();
 
-        AddToList(list, straightPrefabs,  SegmentType.Straight,  weightStraight);
-        if (!blockLeft)     AddToList(list, turnLeftPrefabs,  SegmentType.TurnLeft,  weightTurnLeft);
-        if (!blockRight)    AddToList(list, turnRightPrefabs, SegmentType.TurnRight, weightTurnRight);
-        if (!blockHillUp)   AddToList(list, hillUpPrefabs,    SegmentType.HillUp,    weightHillUp);
-        if (!blockHillDown) AddToList(list, hillDownPrefabs,  SegmentType.HillDown,  weightHillDown);
+        bool blockLeft = false, blockRight = false, blockHillUp = false, blockHillDown = false;
+        if (respectBlocks)
+        {
+            blockLeft     = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
+            blockRight    = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
+            bool blockHills = hillCount >= maxHillsInRow;
+            blockHillUp   = blockHills || lastSpawnedType == SegmentType.HillDown;
+            blockHillDown = blockHills || lastSpawnedType == SegmentType.HillUp;
+        }
+
+        AddTypeCandidate(list, currentBiome.straightPrefabs,  SegmentType.Straight,  currentBiome.weightStraight);
+        if (!blockLeft)     AddTypeCandidate(list, currentBiome.turnLeftPrefabs,  SegmentType.TurnLeft,  currentBiome.weightTurnLeft);
+        if (!blockRight)    AddTypeCandidate(list, currentBiome.turnRightPrefabs, SegmentType.TurnRight, currentBiome.weightTurnRight);
+        if (!blockHillUp)   AddTypeCandidate(list, currentBiome.hillUpPrefabs,    SegmentType.HillUp,    currentBiome.weightHillUp);
+        if (!blockHillDown) AddTypeCandidate(list, currentBiome.hillDownPrefabs,  SegmentType.HillDown,  currentBiome.weightHillDown);
+
         return list;
     }
 
-    List<(GameObject prefab, SegmentType type, int weight)> BuildCandidateListNoRestrictions()
-    {
-        var list = new List<(GameObject, SegmentType, int)>();
-        AddToList(list, straightPrefabs,  SegmentType.Straight,  weightStraight);
-        AddToList(list, turnLeftPrefabs,  SegmentType.TurnLeft,  weightTurnLeft);
-        AddToList(list, turnRightPrefabs, SegmentType.TurnRight, weightTurnRight);
-        AddToList(list, hillUpPrefabs,    SegmentType.HillUp,    weightHillUp);
-        AddToList(list, hillDownPrefabs,  SegmentType.HillDown,  weightHillDown);
-        return list;
-    }
-
-    void AddToList(List<(GameObject, SegmentType, int)> list, GameObject[] prefabs, SegmentType type, int weight)
+    void AddTypeCandidate(List<(SegmentType, int, List<GameObject>)> list, GameObject[] prefabs, SegmentType type, int weight)
     {
         if (prefabs == null || prefabs.Length == 0 || weight == 0) return;
+
+        var valid = new List<GameObject>();
         foreach (var p in prefabs)
-            if (p != null) list.Add((p, type, weight));
-    }
-
-    List<(GameObject prefab, SegmentType type, int weight)> FilterByLanes(
-        List<(GameObject prefab, SegmentType type, int weight)> candidates)
-    {
-        if (lastExitLanes == -1) return candidates;
-        var filtered = new List<(GameObject, SegmentType, int)>();
-        foreach (var (prefab, type, weight) in candidates)
         {
-            RoadSegment seg = prefab.GetComponent<RoadSegment>();
-            if (seg == null) continue;
-            if (seg.entryPoint.NumLanes == lastExitLanes)
-                filtered.Add((prefab, type, weight));
+            if (p == null) continue;
+            if (lastExitLanes != -1)
+            {
+                RoadSegment seg = p.GetComponent<RoadSegment>();
+                if (seg == null || seg.entryPoint.NumLanes != lastExitLanes) continue;
+            }
+            valid.Add(p);
         }
-        return filtered;
+
+        if (valid.Count == 0) return;
+        list.Add((type, weight, valid));
     }
 
-    GameObject WeightedRandomPrefab(List<(GameObject prefab, SegmentType type, int weight)> candidates)
+    GameObject PickFromTypeCandidates(List<(SegmentType type, int weight, List<GameObject> prefabs)> candidates)
     {
         int total = 0;
         foreach (var c in candidates) total += c.weight;
+
         int roll = Random.Range(0, total);
         int cumulative = 0;
-        foreach (var (prefab, type, weight) in candidates)
+        foreach (var c in candidates)
         {
-            cumulative += weight;
+            cumulative += c.weight;
             if (roll < cumulative)
             {
-                UpdateCounters(type);
-                return prefab;
+                UpdateCounters(c.type);
+                return c.prefabs[Random.Range(0, c.prefabs.Count)];
             }
         }
-        UpdateCounters(candidates[0].type);
-        return candidates[0].prefab;
+
+        var last = candidates[candidates.Count - 1];
+        UpdateCounters(last.type);
+        return last.prefabs[Random.Range(0, last.prefabs.Count)];
     }
 
     void UpdateCounters(SegmentType chosen)
@@ -223,6 +300,7 @@ public class RoadGenerator : MonoBehaviour
         lastSpawnedType = SegmentType.Straight;
         sameTurnCount = 0;
         hillCount = 0;
+        currentBiome = WeightedRandomBiome(biomes);
         for (int i = 0; i < segmentsAhead; i++)
             SpawnSegment();
     }

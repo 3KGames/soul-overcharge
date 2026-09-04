@@ -6578,25 +6578,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 285ab124a10d6d54e83bf2d1b5be2022, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  straightPrefabs:
-  - {fileID: 8545565238388433368, guid: 648daca52c5a4b843b411ed5c114b537, type: 3}
-  - {fileID: 8545565238388433368, guid: 38221f30010695fe7b61d9b091e22b7c, type: 3}
-  turnLeftPrefabs:
-  - {fileID: 8545565238388433368, guid: 95f50849e6beed64b8833f935780dd27, type: 3}
-  turnRightPrefabs:
-  - {fileID: 8545565238388433368, guid: f65c06aff2920af46895a2ba8ce40709, type: 3}
-  hillUpPrefabs: []
-  hillDownPrefabs: []
+  biomes:
+  - biomeTag: 1
+    weight: 2
+    exitChance: 0.1
+    weightStraight: 5
+    weightTurnLeft: 2
+    weightTurnRight: 2
+    weightHillUp: 1
+    weightHillDown: 1
+    straightPrefabs:
+    - {fileID: 8545565238388433368, guid: 5738880a3541ed047a667673bbb622ac, type: 3}
+    turnLeftPrefabs: []
+    turnRightPrefabs: []
+    hillUpPrefabs: []
+    hillDownPrefabs: []
+  - biomeTag: 2
+    weight: 3
+    exitChance: 0.1
+    weightStraight: 5
+    weightTurnLeft: 2
+    weightTurnRight: 2
+    weightHillUp: 1
+    weightHillDown: 1
+    straightPrefabs:
+    - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
+    turnLeftPrefabs: []
+    turnRightPrefabs: []
+    hillUpPrefabs: []
+    hillDownPrefabs: []
   player: {fileID: 52702740}
-  segmentsAhead: 1
+  segmentsAhead: 2
   spawnDistanceThreshold: 60
   maxSameTurnInRow: 1
   maxHillsInRow: 1
-  weightStraight: 6
-  weightTurnLeft: 5
-  weightTurnRight: 6
-  weightHillUp: 0
-  weightHillDown: 0
 --- !u!4 &1488523654
 Transform:
   m_ObjectHideFlags: 0
