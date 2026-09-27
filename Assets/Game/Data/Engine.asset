@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2fe088a8bc5453581e09e454005c82e, type: 3}
+  m_Name: Engine
+  m_EditorClassIdentifier: 
+  blockMass: 40
+  volume: 1.6
+  cylinderNum: 4
+  cylinderMass: 0.2
+  pistonStroke: 0.08
+  pistonMaxSpeed: 0.02
+  throttlePow: 1.2
+  inertiaCoef: 0.08
+  turboCoef: 1
+  volumetricEfficiency: 0.85
+  airToFuelRatio: 14.7
+  thermalEfficiency: 0.36
+  fuelEnergy: 34000000
+  a: 1
+  b: 1.2
+  c: -1.3
+  frictionC0: 2
+  frictionC1: 0.035
+  frictionC2: 0.000034
+  idleRPM: 750
+  idleThrottleGain: 0.08
+  stallRPM: 500
+  revLimiterCutTime: 0.06

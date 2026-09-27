@@ -3,7 +3,7 @@ using Common.Runtime.StateMachine;
 using VContainer;
 
 namespace Car.Controller.CarPhysics.States
-{    
+{
     public class CarStateFactory : IStateFactory<CarState>
     {
         private readonly IObjectResolver _resolver;

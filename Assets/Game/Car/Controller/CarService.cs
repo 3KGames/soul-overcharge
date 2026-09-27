@@ -1,7 +1,7 @@
 using System;
 using Car.Controller.CarPhysics;
-using Car.Gears;
 using Car.Souls.Services;
+using Car.Controller.CarPhysics.Transmission;
 using UnityEngine;
 
 namespace Car.Controller
@@ -66,9 +66,9 @@ namespace Car.Controller
                 _nitro.TryActivate(_souls);
 
             _nitro.Tick(Time.fixedDeltaTime, _souls);
-			
+
 			var roadInfo = _road.GetRoadInfo(rb.position);
-			
+
 			bool hasSouls = _souls != null && _souls.CurrentSouls > 0f;
 
 			var inputData = new CarPhysicsInput(

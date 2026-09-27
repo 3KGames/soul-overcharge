@@ -1,8 +1,10 @@
 using System;
 using Car.Controller;
 using Car.Controller.CarPhysics;
+using Car.Controller.CarPhysics.Drivetrain;
+using Car.Controller.CarPhysics.Engine;
 using Car.Controller.CarPhysics.States;
-using Car.Gears;
+using Car.Controller.CarPhysics.Transmission;
 using Car.Souls.Services;
 using Car.Health.Data;
 using Common.Runtime;
@@ -27,12 +29,14 @@ namespace Level.Runtime.Scopes
         [SerializeField] private LayerMask roadMask;
         [SerializeField] private LayerMask offroadMask;
 
-        [Expandable]
+        [Header("Car physics")]
         [SerializeField] private CarPhysicsData physicsData;
+        [SerializeField] private EngineSO       engineSO;
+        [SerializeField] private TransmissionSO transmissionSO;
+        [SerializeField] private DrivetrainSO   drivetrainSO;
+
         [Expandable]
         [SerializeField] private NitroData nitroData;
-        [Expandable]
-        [SerializeField] private GearDataRpm gearDataRpm;
 
         [Header("Souls / Health")]
         [SerializeField] private SoulData   soulData;
@@ -43,7 +47,9 @@ namespace Level.Runtime.Scopes
             // Данные
             builder.RegisterInstance(physicsData);
             builder.RegisterInstance(nitroData);
-            builder.RegisterInstance(gearDataRpm);
+            builder.RegisterInstance(ResolveOrDefault(engineSO, nameof(engineSO)));
+            builder.RegisterInstance(ResolveOrDefault(transmissionSO, nameof(transmissionSO)));
+            builder.RegisterInstance(ResolveOrDefault(drivetrainSO, nameof(drivetrainSO)));
             builder.RegisterInstance(new RoadCheckService(roadMask, offroadMask));
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
@@ -54,7 +60,14 @@ namespace Level.Runtime.Scopes
                 .As<IInitializable>()
                 .As<IDisposable>();
 
+            // Модели читают настройки из SO один раз при создании
+            builder.Register<EngineModel>(Lifetime.Singleton);
+            builder.Register<TransmissionModel>(Lifetime.Singleton);
+            builder.Register<DrivetrainModel>(Lifetime.Singleton);
+
             // Машина
+            builder.Register<EngineService>(Lifetime.Singleton);
+            builder.Register<DrivetrainService>(Lifetime.Singleton);
             builder.Register<TransmissionService>(Lifetime.Singleton);
             builder.Register<DriveCarState>(Lifetime.Singleton)
                 .AsSelf()
@@ -105,6 +118,27 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<RoadGenerator>();
             builder.RegisterComponentInHierarchy<BossController>();
             builder.RegisterComponentInHierarchy<GameOverUI>();
+        }
+
+        /// <summary>
+        /// Если ассет не назначен в инспекторе, создаём временный экземпляр с
+        /// дефолтными значениями, чтобы уровень не падал на пустом SO. Факт
+        /// подмены логируется — молча брать дефолты нельзя, иначе настройки
+        /// будут выглядеть применёнными, хотя их никто не задавал.
+        /// </summary>
+        private T ResolveOrDefault<T>(T current, string fieldName) where T : ScriptableObject
+        {
+            if (current != null) return current;
+
+            T created = ScriptableObject.CreateInstance<T>();
+
+            Debug.LogWarning(
+                $"[LevelLifetimeScope] {typeof(T).Name} ({fieldName}) не назначен в инспекторе. " +
+                "Используется временный экземпляр с дефолтными значениями: настройки " +
+                "не сохраняются между запусками. Создайте ассет и назначьте его.",
+                this);
+
+            return created;
         }
     }
 }
