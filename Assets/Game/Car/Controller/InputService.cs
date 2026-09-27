@@ -49,7 +49,6 @@ namespace Car.Controller
             _actions.Car.Throttle.performed  += _onThrottleUpdate;
             _actions.Car.Throttle.canceled   += _onThrottleUpdate;
 
-
             var nitroAction = _actions.asset.FindActionMap("Car")?.FindAction("Nitro");
             if (nitroAction != null)
             {

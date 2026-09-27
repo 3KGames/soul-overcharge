@@ -613,8 +613,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   physicsData: {fileID: 11400000, guid: 64494ce466f6a874f97066b5cbf971ea, type: 2}
+  engineSO: {fileID: 11400000, guid: 3146d8897b574e77bc28e5aee9c219cc, type: 2}
+  transmissionSO: {fileID: 11400000, guid: 657e1899f3aa4706a13f71f7965af787, type: 2}
+  drivetrainSO: {fileID: 11400000, guid: ecc38a69d00c4a0ba6244599ebb343b4, type: 2}
   nitroData: {fileID: 11400000, guid: 411b366ec64d4c545b381290c7b4241e, type: 2}
-  gearDataRpm: {fileID: 11400000, guid: 51417a27e12f11647a2989db851998e0, type: 2}
   soulData: {fileID: 11400000, guid: 8e516168edd34a94f955459a00a20a13, type: 2}
   healthData: {fileID: 11400000, guid: 0d1801af5e973714e8ae5f6557841def, type: 2}
 --- !u!4 &320111563

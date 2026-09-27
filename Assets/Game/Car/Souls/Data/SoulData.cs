@@ -8,7 +8,7 @@ namespace Car.Souls.Data
     {
         [Min(1f)]
         [SerializeField] private float maxSouls = 100f;
-        
+
         [Min(0f)]
         [SerializeField] private float startSouls = 0f;
 

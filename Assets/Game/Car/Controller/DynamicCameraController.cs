@@ -14,7 +14,7 @@ public class DynamicCameraController : MonoBehaviour
     [SerializeField] private Vector2 _minMaxFOV = new (70f, 100);
 
     [Header("Follow Offset Z (Distance)")]
-    
+
 	[MinMaxSlider(-30f, 30f)]
 	[SerializeField] private Vector2 _minMaxOffsetZ = new (-8f, -2.96f);
 
@@ -42,7 +42,6 @@ public class DynamicCameraController : MonoBehaviour
 
         if (_vcam == null)
         {
-            // Debug.LogError("[DynamicCameraController] CinemachineCamera не найдена!", this);
             enabled = false;
             return;
         }
@@ -52,7 +51,6 @@ public class DynamicCameraController : MonoBehaviour
 
         if (_follow == null)
         {
-            // Debug.LogError("[DynamicCameraController] CinemachineFollow не найден!", this);
             enabled = false;
         }
     }
@@ -74,13 +72,6 @@ public class DynamicCameraController : MonoBehaviour
     private void ApplyFOV(float speedFactor)
     {
         float target = Mathf.Lerp(_minMaxFOV.x, _minMaxFOV.y, speedFactor);
-
-        /*_vcam.Lens.OrthographicSize = Mathf.SmoothDamp(
-            _vcam.Lens.OrthographicSize,
-            target,
-            ref _orthoSizeVelocity,
-            _smoothTime
-        );*/
 
 		target = Camera.HorizontalToVerticalFieldOfView(target, Camera.main.aspect);
 

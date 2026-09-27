@@ -2,7 +2,6 @@ using UnityEngine;
 using VContainer;
 using FMODUnity;
 using FMOD.Studio;
-using Car.Gears;
 using Enemies;
 
 public class TruckEngineSound : MonoBehaviour

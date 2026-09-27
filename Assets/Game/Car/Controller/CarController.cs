@@ -1,6 +1,5 @@
 using Car.Controller.CarPhysics;
 using Car.Controller.CarPhysics.States;
-using Car.Gears;
 using DG.Tweening;
 using NaughtyAttributes;
 using Unity.Mathematics.Geometry;
@@ -17,17 +16,15 @@ namespace Car.Controller
 		private static readonly int DriftDir = Animator.StringToHash("DriftDir");
 
 		[Inject] private CarService _carService;
-		/// Field only for unsubscription
 		[Inject] private DriftCarState _driftState;
 		[Inject] private InputService _input;
-		
+
 		[SerializeField] private Transform body;
 		[SerializeField] private Animator animator;
 		[SerializeField] private SpriteRenderer spriteRenderer;
-		
+
         private Rigidbody _rb;
-		
-		// Drift rotation
+
 		private Tween		_driftTween;
 		private const float DriftAngle  = 45f;
 		private const float DriftTime   = 0.25f;
@@ -37,7 +34,7 @@ namespace Car.Controller
 		private int _driftDir;
 
 		public Rigidbody RB => _rb;
-		public bool IsDrifting => _isDrifting; 
+		public bool IsDrifting => _isDrifting;
 
 		private void Start()
 		{
@@ -45,25 +42,22 @@ namespace Car.Controller
 
 			_driftState.OnDriftStarted	+= DriftStarted;
 			_driftState.OnDriftEnded	+= DriftEnded;
-			
-			//_driftState.OnDriftEnded	+= _nitro.DriftEnded;
+
 		}
 
 		private void OnDestroy()
 		{
 			_driftState.OnDriftStarted	-= DriftStarted;
 			_driftState.OnDriftEnded	-= DriftEnded;
-			
-			//_driftState.OnDriftEnded	-= _nitro.DriftEnded;
+
 		}
 
 		private void Update()
 		{
 			animator.SetBool("IsDrifting", _isDrifting);
-			//spriteRenderer.flipX = _isDrifting ? _driftDir > 0 : _input.Steer > 0f;
 			if (_isDrifting)
 			{
-				animator.SetInteger(SpriteN, _driftDir /** _input.Steer*/);
+				animator.SetInteger(SpriteN, _driftDir );
 			}
 			else
 			{
@@ -73,7 +67,6 @@ namespace Car.Controller
 				else
 					dir = (int)Mathf.Sign(_input.Steer);
 				animator.SetInteger(SpriteN, dir);
-				//Debug.Log(dir);
 			}
 		}
 
@@ -102,7 +95,7 @@ namespace Car.Controller
 
 			_isDrifting = false;
 			Vector3 endRot = new Vector3(0f, 0f, 0f);
-			
+
 			_driftTween = body.DOLocalRotate(endRot, RecoverTime)
 				.SetEase(Ease.OutQuad);
 		}

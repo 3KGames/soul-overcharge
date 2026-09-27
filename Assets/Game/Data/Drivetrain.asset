@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95bc2211198c452f8f6f391494085eb5, type: 3}
+  m_Name: Drivetrain
+  m_EditorClassIdentifier: 
+  wheelRadius: 0.288
+  wheelbase: 2.63
+  tireStiffness: 5000
+  tireSubsteps: 10
+  wheelInertia: 1.1
+  wheelInternalFriction: 0.05
+  maxLongitudinalGrip: 26000
+  maxSteerAngleLowSpeed: 20
+  maxSteerAngleHighSpeed: 5
+  highSpeedThreshold: 110
+  steerAngleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.030165344
+      outSlope: 0.030165344
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.1938633
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2.0288596
+      outSlope: 2.0288596
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.04323578
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

@@ -1,24 +1,23 @@
 using System.Collections.Generic;
 using Car.Controller.CarPhysics.States;
-using Car.Gears;
 using Common.Runtime.StateMachine;
 using UnityEngine;
 
 namespace Car.Controller.CarPhysics
 {
 	public enum CarState { Drive, Drift }
-	
+
     public class CarPhysicsService
     {
 		private readonly CarPhysicsData _physicsData;
-		
+
 		private Dictionary<CarState, BaseCarState> _states = new();
 		private CarState _currentState;
-		
+
 		public CarPhysicsService(CarPhysicsData physicsData, IEnumerable<BaseCarState> states)
 		{
 			_physicsData = physicsData;
-			
+
 			foreach (var s in states)
 				_states[s.Kind] = s;
 
@@ -34,7 +33,7 @@ namespace Car.Controller.CarPhysics
 
 			_states[_currentState].Tick(dt, rb, inputData);
 		}
-		
+
 		private void Switch(ITransition transition)
 		{
 			_states[_currentState].Exit();
@@ -51,7 +50,7 @@ namespace Car.Controller.CarPhysics
 		{
 			return Vector3.Dot(rb.linearVelocity, rb.transform.forward);
 		}
-		
+
         public static void AlignToRoad(Rigidbody rb, Vector3 roadNormal)
         {
             if (roadNormal == Vector3.zero) return;

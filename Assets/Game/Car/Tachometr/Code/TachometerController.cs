@@ -1,6 +1,6 @@
 using System;
 using Car.Controller;
-using Car.Gears;
+using Car.Controller.CarPhysics.Transmission;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -12,10 +12,9 @@ public class TachometerController : MonoBehaviour
 {
 	[SerializeField] private float MIN_RPM = 0;
 	[SerializeField] private float MAX_RPM = 9000;
-	
+
 	[MinMaxSlider(-360f, 360f)]
 	[SerializeField] private Vector2 minMaxAngle = new (-45f, -247f);
-	
 
     [SerializeField] private RectTransform       arrow;
     [SerializeField] private TextMeshProUGUI     tachometerText;
@@ -29,26 +28,23 @@ public class TachometerController : MonoBehaviour
         _car = car;
         _transmission = tr;
     }
-    
+
     void Start()
     {
         tachometerText.text = "1";
         arrow.transform.rotation = Quaternion.Euler(new Vector3(0, 0, -45));
         _transmission.GearChanged += UpdateGearDisplay;
 		_transmission.RpmChanged += UpdateTachometer;
-		//_car.PhysicsUpdated += UpdateTachometer;
 	}
 
     private void UpdateGearDisplay()
     {
         tachometerText.text = (_transmission.SelectedGear + 1).ToString();
-        //UpdateTachometer();
     }
 
     private void UpdateTachometer(float rpm)
 	{
-		//rpm = 6000;
-        //float rpm = _transmission.GetRpm(_car.CurrentSpeed);
+		Debug.Log(rpm);
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);
 

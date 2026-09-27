@@ -1,5 +1,8 @@
 using System;
-using Car.Gears;
+using Car.Controller.CarPhysics.Drivetrain;
+using Car.Controller.CarPhysics.Engine;
+using Car.Controller.CarPhysics.Transmission;
+using Common.Runtime;
 using UnityEngine;
 
 namespace Car.Controller.CarPhysics.States
@@ -7,36 +10,40 @@ namespace Car.Controller.CarPhysics.States
 	public class DriveCarState: BaseCarState
 	{
 		private CarPhysicsData _physicsData;
+		private readonly EngineService _engine;
+
 		private TransmissionService _transmission;
-		
+		private readonly DrivetrainService _drivetrain;
+
 		public override CarState Kind => CarState.Drive;
 
-		public DriveCarState(CarPhysicsData physicsData, TransmissionService transmission)
+		public DriveCarState(CarPhysicsData physicsData, EngineService engine, DrivetrainService drivetrain, TransmissionService transmission)
 		{
 			_transmission = transmission;
+			_engine = engine;
+			_drivetrain = drivetrain;
 			_physicsData = physicsData;
 		}
-		
+
 		public override void Enter()
 		{
-			
+
 		}
 
 		public override void Exit()
 		{
-			
+
 		}
 
 		public override ITransition EvaluateTransition(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
 			float speed = CarPhysicsService.GetForwardSpeed(rb);
-			
+
 			if (inputData.Drift
 				&& speed > _physicsData.MinSpeedForDrift
 				&& Mathf.Abs(inputData.Steer) > 0.1f)
 			{
 				int driftDir = inputData.Steer > 0 ? 1 : -1;
-				//rb.AddForce(-rb.transform.forward * 10f, ForceMode.Acceleration);
 				return new Transition<int>(CarState.Drift, driftDir);
 			}
 
@@ -47,31 +54,57 @@ namespace Car.Controller.CarPhysics.States
 		{
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 
-			// Высчитываем модификаторы, комбинируя бездорожье и штраф за отсутствие душ
-			float speedModifier = (inputData.IsOffroad ? _physicsData.OffroadSpeedMultiplier : 1f) *
-								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsSpeedMultiplier);
+			// TODO: Change name
+			float omegaWheels = _drivetrain.DrivenWheelsOmega;
+
+			_transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
+			float engagement = _transmission.Engagement;
+
+			bool fuelCut = _engine.UpdateRevLimiter(dt, inputData.Throttle);
+			float engineTorque = _engine.CalculateTorque(inputData.Throttle);
+			if (fuelCut) engineTorque = 0f;
+			float engineFriction = _engine.CalculateFriction();
+			float clutchTorque = _transmission.CalculateClutchTorque(omegaWheels, _engine.AngularSpeed, engagement);
+			float torqueEffective = engineTorque - engineFriction - clutchTorque;
+			_engine.UpdateAngularSpeed(dt, torqueEffective);
+			float torqueDrive = _transmission.CalculateDriveTorque(clutchTorque);
+
+			float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
+			float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed);
+
+			float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed); // TODO (?): Not forward speed
+
+			/*// TODO (later): Add Brakes, add tire grip
 			
-			float safeSpeedModifier = Mathf.Max(0.01f, speedModifier);
+			_drivetrain.ApplyTorque(dt, torqueDrive);
+			
+			// TODO (learn): Why 1/R
+			float effMassC = _transmission.CurGearRatio / _drivetrain.WheelR;
+			float effMass = _physicsData.BaseMass + _engine.EngineMass + _engine.Inertia * (effMassC * effMassC);
+			
+			float forceDrive = torqueDrive / _drivetrain.WheelR;
+			
+			float acceleration = (forceDrive - forceDrag) / effMass;
 
-			float fakeSpeedForTransmission = (forwardSpeed * 3.6f) / safeSpeedModifier;
-                          
-			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
-								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+			rb.AddForce(rb.transform.forward * acceleration, ForceMode.Acceleration);*/
 
-			float accel = _transmission.GetAcceleration(fakeSpeedForTransmission, inputData)
-						  * inputData.TorqueMultiplier
-						  * speedModifier;
-			rb.AddForce(rb.transform.forward * accel, ForceMode.Acceleration);
+			float effMass = _physicsData.BaseMass + _engine.EngineMass;
+			float acceleration = (tireForce - forceDrag) / effMass;
+			rb.AddForce(rb.transform.forward * acceleration, ForceMode.Acceleration);
 
-			// Ухудшаем управляемость (руль становится "ватным"), умножая максимальный угол поворота на gripModifier
-			float steerAngle = _transmission.GetGearData().MaxSteerAngle * inputData.Steer * (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
-			Quaternion delta = Quaternion.Euler(0f, steerAngle * Time.fixedDeltaTime, 0f);
-			rb.MoveRotation(rb.rotation * delta);
+			float turnRadius = _drivetrain.GetTurnRadius(forwardSpeed);
+			float turnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
 
-			// Downforce
+			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
+			rb.MoveRotation(rb.rotation * deltaRotation);
+
 			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
 
-			// Сниженное боковое трение приведет к сильному скольжению
+			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
 			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.SideFrictionCoefficient * gripModifier);
-		}	}
+
+			_transmission.EndStep();
+		}
+	}
 }

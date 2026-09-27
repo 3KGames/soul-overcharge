@@ -47,13 +47,11 @@ namespace Car.UI
 
         private void OnSoulsChanged(float current, float max)
         {
-            //Debug.Log($"[DualBarController] SoulsChanged: {current}/{max}");
             UpdateView();
         }
 
         private void OnHealthChanged(float current, float max)
         {
-            //Debug.Log($"[DualBarController] HealthChanged: {current}/{max}");
             UpdateView();
         }
 
@@ -67,8 +65,6 @@ namespace Car.UI
                 ? _health.TargetMaxHp / _health.MaxHealth
                 : 0f;
             float hpZone = Mathf.Max(normalZone, minZone);
-
-            Debug.Log($"[DualBarController] UpdateView | soulsNorm={soulsNorm:0.00} | hpZone={hpZone:0.00} | HP={_health.CurrentHealth:0}/{_health.TargetMaxHp:0}");
 
             if (soulFill != null)
                 soulFill.fillAmount = Mathf.Min(soulsNorm, 1f - hpZone);

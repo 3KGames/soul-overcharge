@@ -16,12 +16,17 @@ MonoBehaviour:
   sideFrictionCoefficient: 25
   baseEngineBrakingForce: 10
   rpmBrakingMultiplier: 2
-  brakeForce: 30
+  brakeTorqueNm: 12000
   driftSideFrictionCoefficient: 5
   minSpeedForDrift: 3
   driftAngleCoefficient: {x: 0.6171136, y: 1.4039216}
-  driftBrakeForce: 10
+  driftBrakeTorqueNm: 4000
   driftMaxSpeedCoefficient: 1.2
   driftAccelerationCoefficient: 1.5
   offroadSpeedMultiplier: 0.5
   offroadGripMultiplier: 0.4
+  noSoulsSpeedMultiplier: 0.4
+  noSoulsGripMultiplier: 0.3
+  baseMass: 880
+  aeroEfficiency: 0.28
+  frontArea: 2.19

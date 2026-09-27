@@ -1,6 +1,6 @@
+using Car.Controller.CarPhysics.Transmission;
 using UnityEngine;
 using UnityEngine.UI;
-using Car.Gears;
 using VContainer;
 
 public class SettingsUI : MonoBehaviour
