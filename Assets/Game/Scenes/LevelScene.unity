@@ -6589,12 +6589,14 @@ MonoBehaviour:
     weightTurnRight: 2
     weightHillUp: 1
     weightHillDown: 1
+    weightFork: 0
     straightPrefabs:
     - {fileID: 8545565238388433368, guid: 5738880a3541ed047a667673bbb622ac, type: 3}
     turnLeftPrefabs: []
     turnRightPrefabs: []
     hillUpPrefabs: []
     hillDownPrefabs: []
+    forkPrefabs: []
   - biomeTag: 2
     weight: 3
     exitChance: 0.1
@@ -6603,17 +6605,24 @@ MonoBehaviour:
     weightTurnRight: 2
     weightHillUp: 1
     weightHillDown: 1
+    weightFork: 0
     straightPrefabs:
     - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
     turnLeftPrefabs: []
     turnRightPrefabs: []
     hillUpPrefabs: []
     hillDownPrefabs: []
+    forkPrefabs: []
   player: {fileID: 52702740}
   segmentsAhead: 2
-  spawnDistanceThreshold: 60
+  keepSegmentsBehind: 2
+  maxSpawnsPerFrame: 2
+  cellSize: 50
+  allowBackward: 1
   maxSameTurnInRow: 1
   maxHillsInRow: 1
+  minSegmentsBetweenForks: 8
+  pruneAfterSegments: 2
 --- !u!4 &1488523654
 Transform:
   m_ObjectHideFlags: 0

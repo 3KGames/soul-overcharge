@@ -11,24 +11,95 @@ namespace Game.Level.Runtime
 		[Header("Биомы")]
 		public List<RoadBiomeDefinition> biomes = new List<RoadBiomeDefinition>();
 
+		[Tooltip("Трансформ машины игрока")]
 		public Transform player;
-		public int segmentsAhead = 20;
-		public float spawnDistanceThreshold = 60f;
 
-		public int maxSameTurnInRow = 1;
-		public int maxHillsInRow = 2;
+		[Header("Генерация")]
+		[Tooltip("Сколько сегментов держать впереди игрока на каждой ветке")]
+		[Min(1)] public int segmentsAhead = 3;
+		[Tooltip("Сколько сегментов оставлять позади игрока")]
+		[Min(0)] public int keepSegmentsBehind = 2;
+		[Tooltip("Максимум новых сегментов за кадр")]
+		[Min(1)] public int maxSpawnsPerFrame = 2;
 
-		private List<RoadSegment> activeSegments = new List<RoadSegment>();
-		private Transform lastExitPoint;
-		private int lastExitLanes = -1;
-		private SegmentType lastSpawnedType = SegmentType.Straight;
-		private int sameTurnCount = 0;
-		private int hillCount = 0;
-		private bool lastHillWasUp = false;
+		[Header("Сетка")]
+		[Tooltip("Размер клетки в метрах. Должен совпадать с cellSize у всех префабов")]
+		[Min(0.01f)] public float cellSize = 40f;
 
-		private RoadBiomeDefinition currentBiome;
+		[Header("Развороты")]
+		[Tooltip("Разрешить дороге поворачивать назад (змейка, петли). " +
+		         "Без тупиков только при segmentsAhead + keepSegmentsBehind ≤ 5")]
+		public bool allowBackward = true;
 
-		public BiomeTag CurrentBiomeTag => currentBiome != null ? currentBiome.biomeTag : BiomeTag.None;
+		[Header("Чередование")]
+		[Tooltip("Максимум одинаковых поворотов подряд")]
+		[Min(1)] public int maxSameTurnInRow = 1;
+		[Tooltip("Максимум холмов подряд")]
+		[Min(1)] public int maxHillsInRow = 2;
+
+		[Header("Развилки")]
+		[Tooltip("Минимум сегментов между развилками")]
+		[Min(0)] public int minSegmentsBetweenForks = 8;
+		[Tooltip("Через сколько сегментов после выбора ветки удалять остальные. Не больше keepSegmentsBehind")]
+		[Min(1)] public int pruneAfterSegments = 2;
+
+		private const int DirForward = 0, DirRight = 1, DirBack = 2, DirLeft = 3;
+		private const int MaxWindowForBackward = 5;
+
+		private struct GenState
+		{
+			public RoadBiomeDefinition biome;
+			public SegmentType lastType;
+			public int sameTurnCount;
+			public int hillCount;
+			public int sinceFork;
+		}
+
+		private class RoadNode
+		{
+			public RoadSegment segment;
+			public RoadNode parent;
+			public RoadNode[] children;
+			public readonly List<Vector2Int> cells = new List<Vector2Int>();
+			public int depth;
+			public BiomeTag biome;
+		}
+
+		private class BranchCursor
+		{
+			public RoadNode owner;
+			public int exitIndex;
+			public Transform exitTransform;
+			public int lanes = -1;
+			public Vector2Int cell;
+			public int heading;
+			public int corridorHeading = -1;
+			public int latMin = int.MinValue;
+			public int latMax = int.MaxValue;
+			public int depth;
+			public GenState state;
+			public bool stuck;
+		}
+
+		private readonly Dictionary<Vector2Int, RoadNode> _occupied = new Dictionary<Vector2Int, RoadNode>();
+		private readonly List<BranchCursor> _open = new List<BranchCursor>();
+		private readonly HashSet<GameObject> _warnedPrefabs = new HashSet<GameObject>();
+
+		private RoadNode _root;
+		private RoadNode _playerNode;
+		private RoadNode _pendingFork;
+		private RoadNode _chosenBranch;
+		private int _nodeCount;
+		private bool _warnedNoResolver;
+
+		private Vector3 _gridPos;
+		private Quaternion _gridRot;
+
+		public BiomeTag CurrentBiomeTag =>
+			_playerNode != null ? _playerNode.biome : _root != null ? _root.biome : BiomeTag.None;
+
+		public RoadSegmentView PlayerSegmentView =>
+			_playerNode != null && _playerNode.segment != null ? _playerNode.segment.roadView : null;
 
 		private IObjectResolver _resolver;
 
@@ -40,83 +111,419 @@ namespace Game.Level.Runtime
 
 		void Start()
 		{
-			lastExitPoint = this.transform;
-			lastExitLanes = -1;
-			currentBiome = WeightedRandomBiome(biomes);
-			for (int i = 0; i < segmentsAhead; i++)
-				SpawnSegment();
+			ValidateSetup();
+			StartGeneration();
 		}
 
 		void Update()
 		{
-			if (activeSegments.Count == 0) return;
-			RoadSegment lastSeg = activeSegments[activeSegments.Count - 1];
-			float distToEnd = Vector3.Distance(player.position, lastSeg.exitPoint.transform.position);
-			if (distToEnd < spawnDistanceThreshold)
+			if (_root == null && _open.Count == 0) return;
+			UpdatePlayerNode();
+			GenerateAhead(maxSpawnsPerFrame);
+		}
+
+		void OnValidate()
+		{
+			if (allowBackward && segmentsAhead + keepSegmentsBehind > MaxWindowForBackward)
+				Debug.LogWarning($"[RoadGenerator] Развороты включены, но segmentsAhead + keepSegmentsBehind = " +
+				                 $"{segmentsAhead + keepSegmentsBehind} > {MaxWindowForBackward}. Дорога может запереть сама себя. " +
+				                 "Уменьшите окно или выключите allowBackward.", this);
+
+			if (allowBackward && pruneAfterSegments > keepSegmentsBehind)
+				Debug.LogWarning("[RoadGenerator] pruneAfterSegments больше keepSegmentsBehind: развилка будет держать лишние клетки, " +
+				                 "и гарантия разворотов ослабнет.", this);
+		}
+
+		void StartGeneration()
+		{
+			_gridPos = transform.position;
+			_gridRot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+
+			_open.Add(new BranchCursor
 			{
-				SpawnSegment();
-				RemoveOldSegment();
+				exitTransform = transform,
+				heading = DirForward,
+				state = new GenState { biome = WeightedRandomBiome(biomes), lastType = SegmentType.Straight },
+			});
+
+			GenerateAhead(10000);
+		}
+
+		void GenerateAhead(int budget)
+		{
+			for (int i = 0; i < budget; i++)
+			{
+				var cursor = NextCursorToExtend();
+				if (cursor == null) return;
+				Extend(cursor);
 			}
 		}
 
-		void SpawnSegment()
+		BranchCursor NextCursorToExtend()
 		{
-			UpdateBiomeState();
+			int playerDepth = _playerNode != null ? _playerNode.depth : _root != null ? _root.depth : 0;
+			BranchCursor best = null;
+			foreach (var c in _open)
+			{
+				if (c.stuck || c.depth - playerDepth >= segmentsAhead) continue;
+				if (best == null || c.depth < best.depth) best = c;
+			}
+			return best;
+		}
 
-			GameObject prefab = PickPrefab();
+		void Extend(BranchCursor c)
+		{
+			UpdateBiomeState(ref c.state);
+
+			GameObject prefab = PickPrefab(c);
 			if (prefab == null)
 			{
-				Debug.LogError($"Не найден подходящий префаб с {lastExitLanes} линиями на входе ни в одном биоме!");
+				Debug.LogError($"[RoadGenerator] Ветка остановлена: ни один префаб не помещается " +
+				               $"(полос на входе: {c.lanes}, клетка: {c.cell}, направление: {c.heading}). " +
+				               "Проверьте, что в биомах есть однаклеточная прямая с таким числом полос.", this);
+				c.stuck = true;
 				return;
 			}
 
-			GameObject go = _resolver.Instantiate(prefab);
-			RoadSegment seg = go.GetComponent<RoadSegment>();
-
-			if (seg == null)
+			GameObject go = InstantiateSegment(prefab);
+			if (!go.TryGetComponent(out RoadSegment seg))
 			{
-				Debug.LogError($"Префаб {prefab.name} не имеет компонента RoadSegment!");
+				Debug.LogError($"[RoadGenerator] Префаб {prefab.name} не имеет компонента RoadSegment!", this);
 				Destroy(go);
+				c.stuck = true;
 				return;
 			}
 
-			if (activeSegments.Count > 0)
+			AlignSegment(seg, c.exitTransform);
+
+			var node = new RoadNode
 			{
-				seg.roadView.previousRoad = activeSegments[^1].roadView;
-				activeSegments[^1].roadView.nextRoad = seg.roadView;
+				segment = seg,
+				parent = c.owner,
+				depth = c.depth,
+				children = new RoadNode[seg.exits.Length],
+				biome = c.state.biome != null ? c.state.biome.biomeTag : BiomeTag.None,
+			};
+
+			foreach (var local in seg.cells)
+			{
+				var cell = c.cell + Rot(local, c.heading);
+				node.cells.Add(cell);
+				_occupied[cell] = node;
 			}
 
-			AlignSegment(seg, lastExitPoint);
-			activeSegments.Add(seg);
-			lastExitPoint = seg.exitPoint.transform;
-			lastExitLanes = seg.exitPoint.NumLanes;
-			lastSpawnedType = seg.segmentType;
-			seg.GetComponent<TrackEnemySpawner>()?.TrySpawnEnemies();
+			LinkViews(c, node, seg);
+
+			if (c.owner == null)
+				_root = node;
+
+			_open.Remove(c);
+			_nodeCount++;
+
+			bool isFork = seg.exits.Length > 1;
+			c.state.sinceFork = isFork ? 0 : c.state.sinceFork + 1;
+
+			var created = new List<BranchCursor>(seg.exits.Length);
+			for (int i = 0; i < seg.exits.Length; i++)
+			{
+				var exit = seg.exits[i];
+				created.Add(new BranchCursor
+				{
+					owner = node,
+					exitIndex = i,
+					exitTransform = exit.point.transform,
+					lanes = exit.point.NumLanes,
+					cell = c.cell + Rot(exit.nextCell, c.heading),
+					heading = (c.heading + exit.turn) & 3,
+					corridorHeading = c.corridorHeading,
+					latMin = c.latMin,
+					latMax = c.latMax,
+					depth = c.depth + 1,
+					state = c.state,
+				});
+			}
+
+			if (isFork)
+				SplitCorridors(created, node, c.heading);
+
+			_open.AddRange(created);
+
+			if (seg.TryGetComponent(out TrackEnemySpawner spawner))
+				spawner.TrySpawnEnemies();
 		}
 
-		void UpdateBiomeState()
+		GameObject InstantiateSegment(GameObject prefab)
+		{
+			if (_resolver != null)
+				return _resolver.Instantiate(prefab);
+
+			if (!_warnedNoResolver)
+			{
+				_warnedNoResolver = true;
+				Debug.LogWarning("[RoadGenerator] IObjectResolver не заинжекчен (VContainer). Сегменты создаются без инъекции, " +
+				                 "враги на них не заспавнятся. Добавьте генератор в Auto Inject Game Objects у LifetimeScope.", this);
+			}
+			return Instantiate(prefab);
+		}
+
+		void LinkViews(BranchCursor c, RoadNode node, RoadSegment seg)
+		{
+			var view = seg.roadView;
+			if (view != null)
+			{
+				var first = new int[seg.exits.Length];
+				var count = new int[seg.exits.Length];
+				for (int i = 0; i < seg.exits.Length; i++)
+				{
+					first[i] = seg.exits[i].point.FirstEntryLane;
+					count[i] = seg.exits[i].point.NumLanes;
+				}
+				view.SetExitLanes(first, count);
+			}
+
+			if (c.owner == null) return;
+
+			c.owner.children[c.exitIndex] = node;
+			var prevView = c.owner.segment != null ? c.owner.segment.roadView : null;
+			if (prevView != null && view != null)
+			{
+				prevView.SetNextRoad(c.exitIndex, c.owner.children.Length, view);
+				view.previousRoad = prevView;
+			}
+		}
+
+		void SplitCorridors(List<BranchCursor> branches, RoadNode fork, int forkHeading)
+		{
+			branches.Sort((a, b) => Lateral(a.cell, forkHeading).CompareTo(Lateral(b.cell, forkHeading)));
+			for (int i = 0; i < branches.Count; i++)
+			{
+				int lat = Lateral(branches[i].cell, forkHeading);
+				branches[i].corridorHeading = forkHeading;
+				if (i > 0) branches[i].latMin = lat;
+				if (i < branches.Count - 1) branches[i].latMax = lat;
+			}
+			_pendingFork = fork;
+		}
+
+		static int Lateral(Vector2Int cell, int heading)
+		{
+			var right = Rot(new Vector2Int(1, 0), heading);
+			return cell.x * right.x + cell.y * right.y;
+		}
+
+		bool CanPlace(RoadSegment seg, BranchCursor c)
+		{
+			if (!IsBaked(seg)) return false;
+
+			if (seg.exits.Length > 1 && (_pendingFork != null || c.state.sinceFork < minSegmentsBetweenForks))
+				return false;
+
+			foreach (var local in seg.cells)
+			{
+				var cell = c.cell + Rot(local, c.heading);
+				if (!InCorridor(cell, c) || IsBlocked(cell, c)) return false;
+			}
+
+			foreach (var exit in seg.exits)
+			{
+				int h = (c.heading + exit.turn) & 3;
+				if (h == DirBack && !allowBackward) return false;
+
+				if (c.corridorHeading >= 0)
+				{
+					if (h == ((c.corridorHeading + 1) & 3) && c.latMax != int.MaxValue) return false;
+					if (h == ((c.corridorHeading + 3) & 3) && c.latMin != int.MinValue) return false;
+				}
+
+				var next = c.cell + Rot(exit.nextCell, c.heading);
+				if (!InCorridor(next, c) || IsBlocked(next, c)) return false;
+			}
+
+			return true;
+		}
+
+		static bool InCorridor(Vector2Int cell, BranchCursor c)
+		{
+			if (c.corridorHeading < 0) return true;
+			int lat = Lateral(cell, c.corridorHeading);
+			return lat >= c.latMin && lat <= c.latMax;
+		}
+
+		bool IsBlocked(Vector2Int cell, BranchCursor self)
+		{
+			if (_occupied.ContainsKey(cell)) return true;
+			foreach (var other in _open)
+				if (other != self && other.cell == cell) return true;
+			return false;
+		}
+
+		bool IsBaked(RoadSegment seg)
+		{
+			string problem = null;
+			if (seg.cells == null || seg.cells.Length == 0 || seg.exits == null || seg.exits.Length == 0)
+				problem = "не запечён (Bake grid)";
+			else if (!Mathf.Approximately(seg.cellSize, cellSize))
+				problem = $"cellSize {seg.cellSize} не совпадает с генератором ({cellSize})";
+			else if (seg.entryPoint == null)
+				problem = "не назначен entryPoint";
+			else
+				foreach (var e in seg.exits)
+					if (e.point == null) { problem = "у выхода не назначен ConnectionPoint"; break; }
+
+			if (problem == null) return true;
+			if (_warnedPrefabs.Add(seg.gameObject))
+				Debug.LogWarning($"[RoadGenerator] Префаб {seg.name} пропущен: {problem}", seg);
+			return false;
+		}
+
+		static Vector2Int Rot(Vector2Int v, int heading)
+		{
+			switch (heading & 3)
+			{
+				case DirRight: return new Vector2Int(v.y, -v.x);
+				case DirBack:  return new Vector2Int(-v.x, -v.y);
+				case DirLeft:  return new Vector2Int(-v.y, v.x);
+				default:       return v;
+			}
+		}
+
+		void UpdatePlayerNode()
+		{
+			if (player == null) return;
+
+			Vector3 local = Quaternion.Inverse(_gridRot) * (player.position - _gridPos);
+			var cell = new Vector2Int(Mathf.RoundToInt(local.x / cellSize), Mathf.FloorToInt(local.z / cellSize));
+
+			if (!_occupied.TryGetValue(cell, out var node) || node == _playerNode) return;
+
+			_playerNode = node;
+			OnPlayerEnteredNode(node);
+		}
+
+		void OnPlayerEnteredNode(RoadNode node)
+		{
+			if (_pendingFork != null && node.depth > _pendingFork.depth)
+			{
+				RoadNode branch = node;
+				while (branch != null && branch.parent != _pendingFork)
+					branch = branch.parent;
+
+				if (branch != null)
+				{
+					if (_chosenBranch == null)
+						CommitBranch(branch);
+
+					if (branch == _chosenBranch && node.depth - _pendingFork.depth >= pruneAfterSegments)
+						ResolveFork();
+				}
+			}
+
+			RemoveNodesBehind();
+		}
+
+		void CommitBranch(RoadNode branch)
+		{
+			_chosenBranch = branch;
+			_open.RemoveAll(c => !IsInSubtree(c.owner, branch));
+		}
+
+		void ResolveFork()
+		{
+			var fork = _pendingFork;
+			for (int i = 0; i < fork.children.Length; i++)
+			{
+				var child = fork.children[i];
+				if (child == null || child == _chosenBranch) continue;
+
+				DestroySubtree(child);
+				fork.children[i] = null;
+				if (fork.segment != null && fork.segment.roadView != null)
+					fork.segment.roadView.ClearNextRoad(i);
+			}
+
+			foreach (var c in _open)
+			{
+				c.corridorHeading = -1;
+				c.latMin = int.MinValue;
+				c.latMax = int.MaxValue;
+			}
+
+			_pendingFork = null;
+			_chosenBranch = null;
+		}
+
+		void RemoveNodesBehind()
+		{
+			while (_root != null && _playerNode != null && _root != _pendingFork
+			       && _playerNode.depth - _root.depth > keepSegmentsBehind)
+			{
+				RoadNode next = null;
+				foreach (var ch in _root.children)
+					if (ch != null) { next = ch; break; }
+				if (next == null) break;
+
+				DestroyNode(_root);
+				next.parent = null;
+				_root = next;
+			}
+		}
+
+		static bool IsInSubtree(RoadNode node, RoadNode root)
+		{
+			for (var n = node; n != null; n = n.parent)
+				if (n == root) return true;
+			return false;
+		}
+
+		void DestroySubtree(RoadNode node)
+		{
+			foreach (var ch in node.children)
+				if (ch != null) DestroySubtree(ch);
+			DestroyNode(node);
+		}
+
+		void DestroyNode(RoadNode node)
+		{
+			foreach (var cell in node.cells)
+				if (_occupied.TryGetValue(cell, out var n) && n == node)
+					_occupied.Remove(cell);
+
+			_open.RemoveAll(c => c.owner == node);
+			if (_playerNode == node) _playerNode = null;
+
+			if (node.segment != null)
+			{
+				if (node.segment.TryGetComponent(out TrackEnemySpawner spawner))
+					spawner.DespawnEnemies();
+				Destroy(node.segment.gameObject);
+			}
+
+			_nodeCount--;
+		}
+
+		void UpdateBiomeState(ref GenState s)
 		{
 			if (biomes == null || biomes.Count == 0)
 			{
-				Debug.LogError("[RoadGenerator] Список biomes пуст — добавьте хотя бы один биом!");
-				currentBiome = null;
+				Debug.LogError("[RoadGenerator] Список biomes пуст — добавьте хотя бы один биом!", this);
+				s.biome = null;
 				return;
 			}
 
-			if (currentBiome == null)
+			if (s.biome == null)
 			{
-				currentBiome = WeightedRandomBiome(biomes);
+				s.biome = WeightedRandomBiome(biomes);
 				return;
 			}
 
-			if (Random.value < currentBiome.exitChance)
+			if (Random.value < s.biome.exitChance)
 			{
-				var previousBiome = currentBiome;
-				var next = PickNextBiome(new HashSet<RoadBiomeDefinition> { currentBiome });
+				var previous = s.biome;
+				var next = PickNextBiome(new HashSet<RoadBiomeDefinition> { previous });
 				if (next != null)
 				{
-					currentBiome = next;
-					Debug.Log($"[RoadGenerator] Вышел из биома {previousBiome.biomeTag} \u2192 новый биом: {currentBiome.biomeTag}");
+					s.biome = next;
+					Debug.Log($"[RoadGenerator] Вышел из биома {previous.biomeTag} → новый биом: {next.biomeTag}");
 				}
 			}
 		}
@@ -150,9 +557,24 @@ namespace Game.Level.Runtime
 			return pool[pool.Count - 1];
 		}
 
-		List<(SegmentType type, int weight, List<GameObject> prefabs)> ForceBiomeSwitchAndRetry()
+		GameObject PickPrefab(BranchCursor c)
 		{
-			var tried = new HashSet<RoadBiomeDefinition> { currentBiome };
+			if (c.state.biome == null) return null;
+
+			var candidates = BuildTypeCandidates(c, true);
+			if (candidates.Count == 0)
+				candidates = BuildTypeCandidates(c, false);
+			if (candidates.Count == 0)
+				candidates = ForceBiomeSwitchAndRetry(c);
+
+			if (candidates.Count == 0) return null;
+			return PickFromTypeCandidates(c, candidates);
+		}
+
+		List<(SegmentType type, int weight, List<GameObject> prefabs)> ForceBiomeSwitchAndRetry(BranchCursor c)
+		{
+			var original = c.state.biome;
+			var tried = new HashSet<RoadBiomeDefinition> { original };
 
 			for (int i = 0; i < biomes.Count; i++)
 			{
@@ -160,114 +582,98 @@ namespace Game.Level.Runtime
 				if (next == null) break;
 
 				tried.Add(next);
-				currentBiome = next;
+				c.state.biome = next;
 
-				var candidates = BuildTypeCandidates(true);
+				var candidates = BuildTypeCandidates(c, true);
 				if (candidates.Count == 0)
-					candidates = BuildTypeCandidates(false);
+					candidates = BuildTypeCandidates(c, false);
 
 				if (candidates.Count > 0) return candidates;
 			}
 
+			c.state.biome = original;
 			return new List<(SegmentType, int, List<GameObject>)>();
 		}
 
-		GameObject PickPrefab()
-		{
-			if (currentBiome == null) return null;
-
-			var candidates = BuildTypeCandidates(true);
-			if (candidates.Count == 0)
-				candidates = BuildTypeCandidates(false);
-			if (candidates.Count == 0)
-				candidates = ForceBiomeSwitchAndRetry();
-
-			if (candidates.Count == 0) return null;
-			return PickFromTypeCandidates(candidates);
-		}
-
-		List<(SegmentType type, int weight, List<GameObject> prefabs)> BuildTypeCandidates(bool respectBlocks)
+		List<(SegmentType type, int weight, List<GameObject> prefabs)> BuildTypeCandidates(BranchCursor c, bool respectBlocks)
 		{
 			var list = new List<(SegmentType, int, List<GameObject>)>();
+			var b = c.state.biome;
+			if (b == null) return list;
 
 			bool blockLeft = false, blockRight = false, blockHillUp = false, blockHillDown = false;
 			if (respectBlocks)
 			{
-				blockLeft     = lastSpawnedType == SegmentType.TurnLeft  && sameTurnCount >= maxSameTurnInRow;
-				blockRight    = lastSpawnedType == SegmentType.TurnRight && sameTurnCount >= maxSameTurnInRow;
-				bool blockHills = hillCount >= maxHillsInRow;
-				blockHillUp   = blockHills || lastSpawnedType == SegmentType.HillDown;
-				blockHillDown = blockHills || lastSpawnedType == SegmentType.HillUp;
+				var s = c.state;
+				blockLeft     = s.lastType == SegmentType.TurnLeft  && s.sameTurnCount >= maxSameTurnInRow;
+				blockRight    = s.lastType == SegmentType.TurnRight && s.sameTurnCount >= maxSameTurnInRow;
+				bool blockHills = s.hillCount >= maxHillsInRow;
+				blockHillUp   = blockHills || s.lastType == SegmentType.HillDown;
+				blockHillDown = blockHills || s.lastType == SegmentType.HillUp;
 			}
 
-			AddTypeCandidate(list, currentBiome.straightPrefabs,  SegmentType.Straight,  currentBiome.weightStraight);
-			if (!blockLeft)     AddTypeCandidate(list, currentBiome.turnLeftPrefabs,  SegmentType.TurnLeft,  currentBiome.weightTurnLeft);
-			if (!blockRight)    AddTypeCandidate(list, currentBiome.turnRightPrefabs, SegmentType.TurnRight, currentBiome.weightTurnRight);
-			if (!blockHillUp)   AddTypeCandidate(list, currentBiome.hillUpPrefabs,    SegmentType.HillUp,    currentBiome.weightHillUp);
-			if (!blockHillDown) AddTypeCandidate(list, currentBiome.hillDownPrefabs,  SegmentType.HillDown,  currentBiome.weightHillDown);
+			AddTypeCandidate(list, c, b.straightPrefabs, SegmentType.Straight, b.weightStraight);
+			if (!blockLeft)     AddTypeCandidate(list, c, b.turnLeftPrefabs,  SegmentType.TurnLeft,  b.weightTurnLeft);
+			if (!blockRight)    AddTypeCandidate(list, c, b.turnRightPrefabs, SegmentType.TurnRight, b.weightTurnRight);
+			if (!blockHillUp)   AddTypeCandidate(list, c, b.hillUpPrefabs,    SegmentType.HillUp,    b.weightHillUp);
+			if (!blockHillDown) AddTypeCandidate(list, c, b.hillDownPrefabs,  SegmentType.HillDown,  b.weightHillDown);
+			AddTypeCandidate(list, c, b.forkPrefabs, SegmentType.Fork, b.weightFork);
 
 			return list;
 		}
 
-		void AddTypeCandidate(List<(SegmentType, int, List<GameObject>)> list, GameObject[] prefabs, SegmentType type, int weight)
+		void AddTypeCandidate(List<(SegmentType, int, List<GameObject>)> list, BranchCursor c,
+			GameObject[] prefabs, SegmentType type, int weight)
 		{
-			if (prefabs == null || prefabs.Length == 0 || weight == 0) return;
+			if (prefabs == null || prefabs.Length == 0 || weight <= 0) return;
 
 			var valid = new List<GameObject>();
 			foreach (var p in prefabs)
 			{
-				if (p == null) continue;
-				if (lastExitLanes != -1)
-				{
-					RoadSegment seg = p.GetComponent<RoadSegment>();
-					if (seg == null || seg.entryPoint.NumLanes != lastExitLanes) continue;
-				}
+				if (p == null || !p.TryGetComponent(out RoadSegment seg)) continue;
+				if (c.lanes != -1 && (seg.entryPoint == null || seg.entryPoint.NumLanes != c.lanes)) continue;
+				if (!CanPlace(seg, c)) continue;
 				valid.Add(p);
 			}
 
-			if (valid.Count == 0) return;
-			list.Add((type, weight, valid));
+			if (valid.Count > 0)
+				list.Add((type, weight, valid));
 		}
 
-		GameObject PickFromTypeCandidates(List<(SegmentType type, int weight, List<GameObject> prefabs)> candidates)
+		GameObject PickFromTypeCandidates(BranchCursor c, List<(SegmentType type, int weight, List<GameObject> prefabs)> candidates)
 		{
 			int total = 0;
-			foreach (var c in candidates) total += c.weight;
+			foreach (var cand in candidates) total += cand.weight;
 
 			int roll = Random.Range(0, total);
 			int cumulative = 0;
-			foreach (var c in candidates)
+			foreach (var cand in candidates)
 			{
-				cumulative += c.weight;
+				cumulative += cand.weight;
 				if (roll < cumulative)
 				{
-					UpdateCounters(c.type);
-					return c.prefabs[Random.Range(0, c.prefabs.Count)];
+					UpdateCounters(ref c.state, cand.type);
+					return cand.prefabs[Random.Range(0, cand.prefabs.Count)];
 				}
 			}
 
 			var last = candidates[candidates.Count - 1];
-			UpdateCounters(last.type);
+			UpdateCounters(ref c.state, last.type);
 			return last.prefabs[Random.Range(0, last.prefabs.Count)];
 		}
 
-		void UpdateCounters(SegmentType chosen)
+		void UpdateCounters(ref GenState s, SegmentType chosen)
 		{
-			if (chosen == lastSpawnedType &&
-				(chosen == SegmentType.TurnLeft || chosen == SegmentType.TurnRight))
-				sameTurnCount++;
+			bool isTurn = chosen == SegmentType.TurnLeft || chosen == SegmentType.TurnRight;
+			if (isTurn)
+				s.sameTurnCount = chosen == s.lastType ? s.sameTurnCount + 1 : 1;
 			else
-				sameTurnCount = 0;
+				s.sameTurnCount = 0;
 
-			if (chosen == SegmentType.HillUp || chosen == SegmentType.HillDown)
-			{
-				hillCount++;
-				lastHillWasUp = chosen == SegmentType.HillUp;
-			}
-			else
-			{
-				hillCount = 0;
-			}
+			bool isHill = chosen == SegmentType.HillUp || chosen == SegmentType.HillDown;
+			s.hillCount = isHill ? s.hillCount + 1 : 0;
+
+			s.lastType = chosen;
 		}
 
 		void AlignSegment(RoadSegment seg, Transform targetExit)
@@ -278,45 +684,110 @@ namespace Game.Level.Runtime
 			seg.transform.position += posDiff;
 		}
 
-		void RemoveOldSegment()
+		void ValidateSetup()
 		{
-			while (activeSegments.Count > segmentsAhead + 1)
+			if (player == null)
+				Debug.LogWarning("[RoadGenerator] Не назначен player — генератор не узнает, где машина, и дорога не будет расти.", this);
+
+			if (Vector3.Angle(transform.up, Vector3.up) > 0.1f)
+				Debug.LogWarning("[RoadGenerator] Трансформ генератора повёрнут не только по Y. Сетка плоская: оставьте X и Z поворота нулевыми.", this);
+
+			if (biomes == null || biomes.Count == 0)
 			{
-				activeSegments[0].GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
-				Destroy(activeSegments[0].gameObject);
-				activeSegments.RemoveAt(0);
+				Debug.LogError("[RoadGenerator] Список biomes пуст — добавьте хотя бы один биом!", this);
+				return;
+			}
+
+			var laneCounts = new HashSet<int>();
+			foreach (var b in biomes)
+				foreach (var p in AllPrefabs(b))
+					if (p != null && p.TryGetComponent(out RoadSegment s) && s.exits != null)
+						foreach (var e in s.exits)
+							if (e.point != null) laneCounts.Add(e.point.NumLanes);
+
+			foreach (int lanes in laneCounts)
+			{
+				var missing = new List<BiomeTag>();
+				foreach (var b in biomes)
+					if (!HasOneCellStraight(b, lanes)) missing.Add(b.biomeTag);
+
+				if (missing.Count == biomes.Count)
+					Debug.LogError($"[RoadGenerator] Ни в одном биоме нет однаклеточной прямой на {lanes} полос. " +
+					               "Дорога может остановиться.", this);
+				else if (missing.Count > 0)
+					Debug.LogWarning($"[RoadGenerator] Нет однаклеточной прямой на {lanes} полос в биомах: {string.Join(", ", missing)}. " +
+					                 "В тесных местах генератор будет переключать биом.", this);
+			}
+		}
+
+		static bool HasOneCellStraight(RoadBiomeDefinition b, int lanes)
+		{
+			if (b.straightPrefabs == null || b.weightStraight <= 0) return false;
+			foreach (var p in b.straightPrefabs)
+			{
+				if (p == null || !p.TryGetComponent(out RoadSegment s)) continue;
+				if (s.entryPoint != null && s.entryPoint.NumLanes == lanes
+				    && s.cells != null && s.cells.Length == 1
+				    && s.exits != null && s.exits.Length == 1 && s.exits[0].turn == 0)
+					return true;
+			}
+			return false;
+		}
+
+		static IEnumerable<GameObject> AllPrefabs(RoadBiomeDefinition b)
+		{
+			var arrays = new[] { b.straightPrefabs, b.turnLeftPrefabs, b.turnRightPrefabs, b.hillUpPrefabs, b.hillDownPrefabs, b.forkPrefabs };
+			foreach (var arr in arrays)
+			{
+				if (arr == null) continue;
+				foreach (var p in arr) yield return p;
 			}
 		}
 
 		public void ResetGenerator()
 		{
-			foreach (var seg in activeSegments)
-			{
-				if (seg == null) continue;
-				seg.GetComponent<TrackEnemySpawner>()?.DespawnEnemies();
-				Destroy(seg.gameObject);
-			}
-			activeSegments.Clear();
-			lastExitPoint = this.transform;
-			lastExitLanes = -1;
-			lastSpawnedType = SegmentType.Straight;
-			sameTurnCount = 0;
-			hillCount = 0;
-			currentBiome = WeightedRandomBiome(biomes);
-			for (int i = 0; i < segmentsAhead; i++)
-				SpawnSegment();
+			if (_root != null) DestroySubtree(_root);
+
+			_occupied.Clear();
+			_open.Clear();
+			_root = _playerNode = _pendingFork = _chosenBranch = null;
+			_nodeCount = 0;
+
+			StartGeneration();
 		}
 
 		public RoadSegmentView GetFirstSegmentView()
 		{
-			if (activeSegments.Count == 0) return null;
-			return activeSegments[0].roadView;
+			return _root != null && _root.segment != null ? _root.segment.roadView : null;
 		}
 
 		public RoadSegmentView GetSegmentBehindPlayer(int segmentsBehind)
 		{
-			if (activeSegments.Count < 2) return null;
-			return activeSegments[0].roadView;
+			if (_nodeCount < 2) return null;
+			return GetFirstSegmentView();
 		}
+
+#if UNITY_EDITOR
+		void OnDrawGizmosSelected()
+		{
+			if (!Application.isPlaying) return;
+
+			Matrix4x4 oldMatrix = Gizmos.matrix;
+			Gizmos.matrix = Matrix4x4.TRS(_gridPos, _gridRot, Vector3.one);
+			var size = new Vector3(cellSize * 0.9f, 0.1f, cellSize * 0.9f);
+
+			Gizmos.color = new Color(0f, 0.7f, 1f, 0.6f);
+			foreach (var cell in _occupied.Keys)
+				Gizmos.DrawWireCube(CellCenterLocal(cell), size);
+
+			Gizmos.color = Color.yellow;
+			foreach (var c in _open)
+				Gizmos.DrawWireCube(CellCenterLocal(c.cell), size);
+
+			Gizmos.matrix = oldMatrix;
+		}
+
+		Vector3 CellCenterLocal(Vector2Int c) => new Vector3(c.x * cellSize, 0f, (c.y + 0.5f) * cellSize);
+#endif
 	}
 }

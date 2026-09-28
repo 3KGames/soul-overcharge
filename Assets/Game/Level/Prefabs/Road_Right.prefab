@@ -557,6 +557,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLanes: 3
+  firstEntryLane: 0
 --- !u!1 &4411894123258576171
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,6 +1152,9 @@ MonoBehaviour:
   spline: {fileID: 0}
   previousRoad: {fileID: 0}
   nextRoad: {fileID: 0}
+  nextRoads: []
+  exitFirstLane: 
+  exitLaneCount: 
   laneCount: 4
   roadLength: 662.99274
   serializedTopology:
@@ -2233,6 +2237,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLanes: 3
+  firstEntryLane: 0
 --- !u!1 &5123144598198150858
 GameObject:
   m_ObjectHideFlags: 0
@@ -2901,8 +2906,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roadView: {fileID: 1849247303989109245}
   entryPoint: {fileID: 4809232966473440453}
-  exitPoint: {fileID: 8031121093109698144}
+  exitPoints:
+  - {fileID: 8031121093109698144}
+  legacyExitPoint: {fileID: 8031121093109698144}
   segmentType: 2
+  cellSize: 40
+  manualCells: 0
+  cells:
+  - {x: 0, y: 0}
+  - {x: 0, y: 1}
+  - {x: 0, y: 2}
+  - {x: 0, y: 3}
+  - {x: 0, y: 4}
+  - {x: 1, y: 0}
+  - {x: 1, y: 1}
+  - {x: 1, y: 2}
+  - {x: 1, y: 3}
+  - {x: 1, y: 4}
+  exits:
+  - point: {fileID: 8031121093109698144}
+    nextCell: {x: 2, y: 4}
+    turn: 1
 --- !u!114 &8449319828888195644
 MonoBehaviour:
   m_ObjectHideFlags: 0
