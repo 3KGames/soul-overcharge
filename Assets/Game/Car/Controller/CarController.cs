@@ -27,8 +27,8 @@ namespace Car.Controller
 
 		private Tween		_driftTween;
 		private const float DriftAngle  = 45f;
-		private const float DriftTime   = 0.25f;
-		private const float RecoverTime = 0.35f;
+		private const float DriftTime   = 0.45f;
+		private const float RecoverTime = 0.515f;
 
 		private bool _isDrifting;
 		private int _driftDir;

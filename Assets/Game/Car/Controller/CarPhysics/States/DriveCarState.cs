@@ -90,15 +90,15 @@ namespace Car.Controller.CarPhysics.States
 
 			float effMass = _physicsData.BaseMass + _engine.EngineMass;
 			float acceleration = (tireForce - forceDrag) / effMass;
-			rb.AddForce(rb.transform.forward * acceleration, ForceMode.Acceleration);
+			Vector3 check = rb.transform.forward;
+			check.y = 0;
+			rb.AddForce(check * acceleration, ForceMode.Acceleration);
 
 			float turnRadius = _drivetrain.GetTurnRadius(forwardSpeed);
 			float turnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
 
 			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
 			rb.MoveRotation(rb.rotation * deltaRotation);
-
-			rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
 
 			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
 								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);

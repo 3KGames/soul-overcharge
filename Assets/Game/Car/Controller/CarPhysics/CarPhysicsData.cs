@@ -6,8 +6,6 @@ namespace Car.Controller.CarPhysics
 	[CreateAssetMenu(menuName = "ArcadeCar/CarPhysicsData")]
 	public class CarPhysicsData : ScriptableObject
 	{
-		[Min(0f)]
-		[SerializeField] private float		downforce = 100f;
 		[Range(0f, 50f)]
 		[SerializeField] private float		sideFrictionCoefficient = 5f;
 		[Header("Brakes")]
@@ -46,8 +44,6 @@ namespace Car.Controller.CarPhysics
 
 		[SerializeField] private float aeroEfficiency = 0.35f;
 		[SerializeField] private float frontArea = 2f;
-
-		public float Downforce						=> downforce;
 
 		public float SideFrictionCoefficient		=> sideFrictionCoefficient;
 		public float BrakeTorqueNm					=> brakeTorqueNm;

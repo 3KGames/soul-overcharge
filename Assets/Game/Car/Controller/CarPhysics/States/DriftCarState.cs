@@ -110,8 +110,6 @@ namespace Car.Controller.CarPhysics.States
             Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
             rb.MoveRotation(rb.rotation * deltaRotation);
 
-            rb.AddForce(-rb.transform.up * _physicsData.Downforce, ForceMode.Acceleration);
-
             CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
 
             _driftTimer += dt;
