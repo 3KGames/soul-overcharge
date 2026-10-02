@@ -1,3 +1,5 @@
+#if UNITY_EDITOR
+
 using Game.Level.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -31,3 +33,5 @@ public static class RoadSegmentBakeMenu
 		Debug.Log($"[RoadSegmentBake] Готово: {baked}, с ошибками: {failed}");
 	}
 }
+
+#endif
