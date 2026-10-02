@@ -107,10 +107,13 @@ namespace Car.Controller.CarPhysics.States
 
             float turnRate = (rb.linearVelocity.magnitude / safeTurnRadius) * driftAngleCoef * DriftDir * (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
 
-            Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
-            rb.MoveRotation(rb.rotation * deltaRotation);
+			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
+			//rb.MoveRotation(rb.rotation * deltaRotation);
+			Vector3 currentAngular = rb.angularVelocity;
+			currentAngular.y = turnRate;
+			rb.angularVelocity = currentAngular;  
 
-            CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
+			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
 
             _driftTimer += dt;
 

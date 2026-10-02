@@ -98,7 +98,10 @@ namespace Car.Controller.CarPhysics.States
 			float turnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
 
 			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
-			rb.MoveRotation(rb.rotation * deltaRotation);
+			//rb.MoveRotation(rb.rotation * deltaRotation);
+			Vector3 currentAngular = rb.angularVelocity;
+			currentAngular.y = turnRate;
+			rb.angularVelocity = currentAngular;  
 
 			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
 								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
