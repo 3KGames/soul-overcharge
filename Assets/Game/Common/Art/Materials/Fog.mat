@@ -34,17 +34,17 @@ Material:
     m_Ints: []
     m_Floats:
     - _DensityNoise: 0.01
-    - _DitherStrength: 0.4
+    - _DitherStrength: 0.3
     - _FogDensity: 0.05
     - _FogFalloff: 0.2
-    - _FogSharpness: 7
-    - _Height: 8
+    - _FogSharpness: 4.58
+    - _Height: 12.5
     - _HeightNoise: 2
     - _NoiseScale: 0.005
     - _StepsNum: 6
     m_Colors:
     - _FogColor: {r: 0.8, g: 0.51794064, b: 0.2, a: 1}
-    - _FogMinMaxDist: {r: 10, g: 0, b: 0, a: 0}
+    - _FogMinMaxDist: {r: 11.21, g: 0, b: 0, a: 0}
     - _WindSpeed: {r: 0.05, g: 0, b: 0.03, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
