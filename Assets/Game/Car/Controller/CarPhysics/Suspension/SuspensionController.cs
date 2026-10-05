@@ -24,6 +24,25 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 		[SerializeField] private Mesh bumpStopMesh;
 		[SerializeField] private PhysicsMaterial bumpStopPhysicMaterial;
 
+
+		[Header("Pitch/Roll")] 
+		[SerializeField, Range(0f, 15f)] private float maxRollDeg = 8f;
+		[SerializeField, Range(0f, 15f)] private float maxPitchDeg = 4f;
+		
+		[SerializeField, Range(0f, 3f)] private float rollDegPerAccel  = 0.86f;
+		[SerializeField, Range(0f, 3f)] private float pitchDegPerAccel = 0.60f;
+		
+		[SerializeField] private bool flipRoll;
+		[SerializeField] private bool flipPitch;
+		
+		[SerializeField] private float tiltResponse = 1f;
+		
+		private float _rollStiffness;
+		private float _pitchStiffness;
+		private Vector3 _prevVelocity;
+		private Vector3 _roadNormal = Vector3.up;
+		public int GroundedCount { get; private set; }
+
 		private float _steerDeg;
 
 		private float[] _massPerWheel;
@@ -41,6 +60,8 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 			ValidateWheels();
 			CalculateWeightDistibution();
 			SpawnBumpStopColliders();
+			CalculateTiltStiffness();
+			_prevVelocity = rb.linearVelocity;
 		}
 
 		private void SpawnBumpStopColliders()
@@ -94,6 +115,35 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 					Debug.LogWarning($"\u005BDrivetrainView\u005D Wheel {i}: hub isn't assigned", this);
 			}
 		}
+		
+		private void CalculateTiltStiffness()
+		{
+			_rollStiffness = 0f;
+			_pitchStiffness = 0f;
+
+			if (rb == null || wheels == null || _massPerWheel == null) return;
+
+			Vector3 coM = rb.worldCenterOfMass;
+
+			for (int i = 0; i < wheels.Length; i++)
+			{
+				WheelAnchor anchor = wheels[i];
+				SuspensionSO s = anchor != null ? anchor.Settings : null;
+				if (s == null) continue;
+
+				Vector3 arm = anchor.MountWorld - coM;
+				float dx = Vector3.Dot(arm, rb.transform.right);
+				float dz = Vector3.Dot(arm, rb.transform.forward);
+
+				float k = s.SpringCoeff * _massPerWheel[i];
+				_rollStiffness  += k * dx * dx;
+				_pitchStiffness += k * dz * dz;
+			}
+
+			_rollStiffness  = Mathf.Max(_rollStiffness,  1f);
+			_pitchStiffness = Mathf.Max(_pitchStiffness, 1f);
+		}
+
 
 		private void FixedUpdate()
 		{
@@ -148,6 +198,50 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 
 			float targetSteer = _inputService.Steer * _drivetrainService.GetSteeringAngle(forwardSpeed);
 			_steerDeg = Mathf.MoveTowards(_steerDeg, targetSteer, steerRate * dt);
+			
+			ApplyBodyTilt(dt);
+		}
+		
+		private void ApplyBodyTilt(float dt)
+		{
+		    Transform t = rb.transform;
+		    Vector3 n = Vector3.up; // TODO: Road check
+		    _roadNormal = n.sqrMagnitude > 0.001f ? n.normalized : Vector3.up;
+		
+		    float currentRoll  = Vector3.SignedAngle(_roadNormal, t.up,  t.forward) * Mathf.Deg2Rad;
+		    float currentPitch = Vector3.SignedAngle(_roadNormal, t.up,  t.right)   * Mathf.Deg2Rad;
+		
+			// TODO: Maybe calculate via rb.GetForce
+		    Vector3 v = rb.linearVelocity;
+		    Vector3 accel = (v - _prevVelocity) / dt - Physics.gravity;
+		    _prevVelocity = v;
+		
+		    Vector3 localAccel = t.InverseTransformVector(accel);
+		    const float aLimit = 40f;
+		    localAccel.x = Mathf.Clamp(localAccel.x, -aLimit, aLimit);
+		    localAccel.z = Mathf.Clamp(localAccel.z, -aLimit, aLimit);
+		
+			float targetRoll  = -rollDegPerAccel * Mathf.Deg2Rad * localAccel.x;
+			float targetPitch = -pitchDegPerAccel * Mathf.Deg2Rad * localAccel.z;
+			
+		    float maxRoll  = maxRollDeg  * Mathf.Deg2Rad;
+		    float maxPitch = maxPitchDeg * Mathf.Deg2Rad;
+		    targetRoll  = Mathf.Clamp(targetRoll,  -maxRoll,  maxRoll);
+		    targetPitch = Mathf.Clamp(targetPitch, -maxPitch, maxPitch);
+		
+		    float rollSign  = flipRoll  ? -1f : 1f;
+		    float pitchSign = flipPitch ? -1f : 1f;
+		
+		    float rollErr  = Mathf.Clamp(targetRoll - currentRoll,  -maxRoll,  maxRoll);
+		    float pitchErr = Mathf.Clamp(targetPitch - currentPitch, -maxPitch, maxPitch);
+		
+		    float groundScale = /*wheels.Length > 0 ? (float)GroundedCount / wheels.Length :*/ 1f;
+			
+		    Vector3 torque =
+		        t.forward * (_rollStiffness  * tiltResponse * rollErr  * rollSign  * groundScale)
+		      + t.right   * (_pitchStiffness * tiltResponse * pitchErr * pitchSign * groundScale);
+		
+		    rb.AddTorque(torque, ForceMode.Force);
 		}
 
 		private void LateUpdate()
