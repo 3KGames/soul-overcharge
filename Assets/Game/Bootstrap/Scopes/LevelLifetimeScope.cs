@@ -14,6 +14,7 @@ using Car.Health.Services;
 using Car.Souls.Data;
 using Car.UI;
 using Enemies;
+using Game.Car.VFX;
 using Game.Level.Runtime;
 using Level.Runtime.States;
 using NaughtyAttributes;
@@ -105,6 +106,7 @@ namespace Level.Runtime.Scopes
 
             // Компоненты на сцене
             builder.RegisterComponentInHierarchy<CarController>();
+			builder.RegisterComponentInHierarchy<WheelVfxController>();
             builder.RegisterComponentInHierarchy<DynamicCameraController>();
             builder.RegisterComponentInHierarchy<GearDisplayUI>();
             builder.RegisterComponentInHierarchy<TachometerController>();

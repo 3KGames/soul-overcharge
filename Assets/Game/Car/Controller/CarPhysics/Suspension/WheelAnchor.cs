@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace Game.Car.Controller.CarPhysics.Suspension
 {
+	// TODO: Clean this file
 	public class WheelAnchor : MonoBehaviour
 	{
 		[Header("Wheel")]
 		[SerializeField] private Transform wheelMesh;
 		[SerializeField] private Transform steerPivot;
 		[SerializeField] private Transform hub;
+		[SerializeField] private Transform spinPivot;
 
 		[Header("Setup")]
 		public SuspensionSO settings;
@@ -31,14 +33,18 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 		public SuspensionSO Settings => settings;
 		public bool Driven => driven;
 		public Transform Hub => hub;
-
 		public Vector3 MountWorld => transform.position;
+		
+		public bool IsGrounded  { get; set; }
+		public Vector3 GroundPoint { get; set; }
+		public Vector3 GroundNormal { get; set; } = Vector3.up;
+		public int GroundLayer { get; set; } = -1;
 
 		private void Awake()
 		{
-			if (hub != null && wheelMesh != null)
+			if (spinPivot != null && wheelMesh != null)
 			{
-				wheelMesh.SetParent(hub, false);
+				wheelMesh.SetParent(spinPivot, false);
 				wheelMesh.localPosition = Vector3.zero;
 			}
 			else if (wheelMesh == null)
@@ -49,7 +55,7 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 
 		public void ApplyPose(Vector3 axis, float steerDeg)
 		{
-			Transform pivot = steerable && steerPivot != null ? steerPivot : hub;
+			Transform pivot = steerPivot;
 			if (pivot == null)
 				return;
 
@@ -58,8 +64,8 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 			if (steerable && steerPivot != null)
 				steerPivot.localRotation = Quaternion.AngleAxis(steerDeg, steerAxisLocal);
 
-			if (hub != null)
-				hub.localRotation = Quaternion.AngleAxis(SpinDeg, spinAxisLocal);
+			if (spinPivot != null)
+				spinPivot.localRotation = Quaternion.AngleAxis(SpinDeg, spinAxisLocal);
 		}
 
 		private DropdownList<Vector3> GetSpinAxisOptions()

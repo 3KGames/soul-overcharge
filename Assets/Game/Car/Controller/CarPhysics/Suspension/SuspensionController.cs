@@ -167,6 +167,20 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 				float maxCastDist = s.MaxLength + s.WheelRadius + probeRadius + 0.05f;
 				bool hit = Physics.SphereCast(mountWorld, probeRadius, -axis, out RaycastHit hitInfo, maxCastDist, groundMask);
 
+				anchor.IsGrounded = hit;
+				if (hit)
+				{
+					anchor.GroundPoint = hitInfo.point;
+					anchor.GroundNormal = hitInfo.normal;
+					anchor.GroundLayer = hitInfo.collider.gameObject.layer;
+				}
+				else
+				{
+					anchor.GroundPoint = mountWorld - axis * (s.MaxLength - s.MinLength);
+					anchor.GroundNormal = Vector3.up;
+					anchor.GroundLayer = -1;
+				}
+				
 				float groundDist = hit
 					? hitInfo.distance + probeRadius
 					: float.PositiveInfinity;

@@ -35,5 +35,13 @@ namespace Car.Controller
 
 			return (Vector3.up, false);
 		}
+
+		public bool IsOffroad(int layer)
+		{
+			if (layer < 0 || layer >= 31)
+				return false;
+			
+			return (_offroadMask & (1 << layer)) != 0;
+		}
 	}
 }
