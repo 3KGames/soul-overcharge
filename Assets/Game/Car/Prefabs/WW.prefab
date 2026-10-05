@@ -15150,9 +15150,35 @@ MonoBehaviour:
   rateIdle: 0.35
   rateOffroad: 40
   rateDrift: 16
-  speedForMaxRate: 50
+  minSpeedForDust: 10
+  speedForMaxRate: 100
+  dustCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 23.399548
+      outSlope: 23.399548
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0
+      outWeight: 0.0432357
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.004721809
+      outSlope: 0.004721809
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.8256625
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   roadSmoke: {r: 1, g: 1, b: 1, a: 1}
   offroadSmoke: {r: 0.7372549, g: 0.54509807, b: 0.29803923, a: 1}
+  colorLerpTime: 0.15
 --- !u!1 &8434709246295275692
 GameObject:
   m_ObjectHideFlags: 0

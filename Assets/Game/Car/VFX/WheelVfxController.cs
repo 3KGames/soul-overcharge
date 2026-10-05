@@ -1,6 +1,8 @@
 using System;
 using Car.Controller;
+using DG.Tweening;
 using Game.Car.Controller.CarPhysics.Suspension;
+using NaughtyAttributes;
 using UnityEngine;
 using VContainer;
 
@@ -11,10 +13,14 @@ namespace Game.Car.VFX
 		[SerializeField] private float rateIdle = 0.35f;
 		[SerializeField] private float rateOffroad = 40f;
 		[SerializeField] private float rateDrift = 16f;
+		[SerializeField] private float minSpeedForDust = 20;
 		[SerializeField] private float speedForMaxRate = 50;
+		[CurveRange(0f, 0f, 1f, 1f)]
+		[SerializeField] private AnimationCurve dustCurve;
 
 		[SerializeField] private Color roadSmoke = Color.white;
 		[SerializeField] private Color offroadSmoke = Color.yellow;
+		[SerializeField] private float colorLerpTime = 0.15f;
 
 		[Inject] private CarController _car;
 		[Inject] private CarService _carService;
@@ -27,7 +33,13 @@ namespace Game.Car.VFX
 			_vfxs = GetComponentsInChildren<WheelVfxView>(true);
 			
 			for (int i = 0; i < _vfxs.Length; i++)
-				_vfxs[i].Initialize();
+			{
+				WheelVfxView vfx = _vfxs[i];
+				vfx.Initialize();
+
+				vfx.DustColor = roadSmoke;
+				ApplyDustColor(vfx, roadSmoke);
+			}
 		}
 
 		private void OnDisable()
@@ -35,6 +47,12 @@ namespace Game.Car.VFX
 			for (int i = 0; i < _vfxs.Length; i++)
 			{
 				WheelVfxView vfx = _vfxs[i];
+
+				if (vfx.DustColorTween != null)
+				{
+					vfx.DustColorTween.Kill(false);
+					vfx.DustColorTween = null;
+				}
 
 				if (vfx.Dust != null)
 				{
@@ -76,8 +94,8 @@ namespace Game.Car.VFX
 			float target = 0f;
 			if (want)
 			{
-				float t = Mathf.Clamp01(speed / speedForMaxRate);
-				target = (offroad ? rateOffroad : rateDrift) * Mathf.Lerp(rateIdle, 1f, t);
+				float t = Mathf.InverseLerp(minSpeedForDust, speedForMaxRate, speed);
+				target = (offroad ? rateOffroad : rateDrift) * dustCurve.Evaluate(t);
 			}
 			
 			if (!ps.isPlaying)
@@ -90,10 +108,41 @@ namespace Game.Car.VFX
 			if (tint != vfx.OffroadTint)
 			{
 				vfx.OffroadTint = tint;
-				
-				ParticleSystem.MainModule main = ps.main;
-				main.startColor = tint ? offroadSmoke : roadSmoke;
+
+				TweenDustColor(vfx, tint ? offroadSmoke : roadSmoke);
 			}
+		}
+
+		private void TweenDustColor(WheelVfxView vfx, Color target)
+		{
+			if (vfx.DustColorTween != null)
+			{
+				vfx.DustColorTween.Kill(false);
+				vfx.DustColorTween = null;
+			}
+
+			if (vfx.Dust == null)
+				return;
+			
+			vfx.DustColorTween = DOTween.To(
+					() => vfx.DustColor,
+					(Color color) =>
+					{
+						vfx.DustColor = color;
+						ApplyDustColor(vfx, color);
+					},
+					target,
+					colorLerpTime)
+				.SetEase(Ease.OutQuad);
+		}
+
+		private static void ApplyDustColor(WheelVfxView vfx, Color color)
+		{
+			if (vfx.Dust == null)
+				return;
+
+			ParticleSystem.MainModule main = vfx.Dust.main;
+			main.startColor = color;
 		}
 
 		private void TickTrail(WheelVfxView vfx, bool want)

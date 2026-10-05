@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Game.Car.Controller.CarPhysics.Suspension;
 using UnityEngine;
 
@@ -17,6 +18,8 @@ namespace Game.Car.VFX
 		
 		public float SmoothedRate { get; set; }
 		public bool OffroadTint { get; set; }
+		public Color DustColor { get; set; }
+		public Tween DustColorTween { get; set; }
 
 		public void Initialize()
 		{
