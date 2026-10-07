@@ -45,6 +45,8 @@ namespace Car.Controller.CarPhysics
 		[SerializeField] private float aeroEfficiency = 0.35f;
 		[SerializeField] private float frontArea = 2f;
 
+		[SerializeField] private float steeringPower;
+
 		public float SideFrictionCoefficient		=> sideFrictionCoefficient;
 		public float BrakeTorqueNm					=> brakeTorqueNm;
 		public float DriftSideFrictionCoefficient	=> driftSideFrictionCoefficient;
@@ -61,5 +63,7 @@ namespace Car.Controller.CarPhysics
 		public float BaseMass						=> baseMass;
 		public float AeroEfficiency					=> aeroEfficiency;
 		public float FrontArea						=> frontArea;
+		
+		public float SteeringPower					=> steeringPower;
 	}
 }

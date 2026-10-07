@@ -12,16 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62f383ddb95c4cae8dd00a2ec4cdb324, type: 3}
   m_Name: CarPhysicsData
   m_EditorClassIdentifier: 
-  downforce: 0
   sideFrictionCoefficient: 25
-  baseEngineBrakingForce: 10
-  rpmBrakingMultiplier: 2
   brakeTorqueNm: 12000
-  driftSideFrictionCoefficient: 5
+  driftSideFrictionCoefficient: 0.2
   minSpeedForDrift: 3
   driftAngleCoefficient: {x: 0.6171136, y: 1.4039216}
   driftBrakeTorqueNm: 4000
-  driftMaxSpeedCoefficient: 1.2
   driftAccelerationCoefficient: 1.5
   offroadSpeedMultiplier: 0.5
   offroadGripMultiplier: 0.4
@@ -30,3 +26,4 @@ MonoBehaviour:
   baseMass: 880
   aeroEfficiency: 0.28
   frontArea: 2.19
+  steeringPower: 5

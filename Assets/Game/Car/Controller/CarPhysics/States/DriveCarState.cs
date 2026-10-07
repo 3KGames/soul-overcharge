@@ -71,37 +71,21 @@ namespace Car.Controller.CarPhysics.States
 
 			float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
 			float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed);
-
 			float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed); // TODO (?): Not forward speed
-
-			/*// TODO (later): Add Brakes, add tire grip
 			
-			_drivetrain.ApplyTorque(dt, torqueDrive);
-			
-			// TODO (learn): Why 1/R
-			float effMassC = _transmission.CurGearRatio / _drivetrain.WheelR;
-			float effMass = _physicsData.BaseMass + _engine.EngineMass + _engine.Inertia * (effMassC * effMassC);
-			
-			float forceDrive = torqueDrive / _drivetrain.WheelR;
-			
-			float acceleration = (forceDrive - forceDrag) / effMass;
-
-			rb.AddForce(rb.transform.forward * acceleration, ForceMode.Acceleration);*/
-
 			float effMass = _physicsData.BaseMass + _engine.EngineMass;
 			float acceleration = (tireForce - forceDrag) / effMass;
 			Vector3 check = rb.transform.forward;
 			check.y = 0;
 			rb.AddForce(check * acceleration, ForceMode.Acceleration);
 
-			float turnRadius = _drivetrain.GetTurnRadius(forwardSpeed);
-			float turnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
+			float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(forwardSpeed));
+			float targetTurnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
+			float currentTurnRate = rb.angularVelocity.y;
+			float turnError = targetTurnRate - currentTurnRate;
 
-			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
-			//rb.MoveRotation(rb.rotation * deltaRotation);
-			Vector3 currentAngular = rb.angularVelocity;
-			currentAngular.y = turnRate;
-			rb.angularVelocity = currentAngular;  
+			
+			rb.AddRelativeTorque(0f, turnError * _physicsData.SteeringPower, 0f, ForceMode.Acceleration);
 
 			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
 								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);

@@ -15,6 +15,8 @@ namespace Car.Controller.CarPhysics.States
         private readonly DrivetrainService _drivetrain;
 
         private float _driftTimer;
+		private float _targetSlipAngle;
+		private float _lastSlipAngle;
 
         public int DriftDir { get; private set; }
 
@@ -95,23 +97,31 @@ namespace Car.Controller.CarPhysics.States
             float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
                                  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
 
-            float t = (inputData.Steer * DriftDir + 1f) * 0.5f;
-            float driftAngleCoef = Mathf.Lerp(
-                _physicsData.MinDriftAngleCoefficient,
-                _physicsData.MaxDriftAngleCoefficient,
-                t);
+			{
+				Vector3 localVelocity = rb.transform.InverseTransformDirection(rb.linearVelocity);
+				float currentSlipAngle = -Mathf.Atan2(localVelocity.x, localVelocity.z) * Mathf.Rad2Deg;
 
-            float turnRadius = _drivetrain.GetTurnRadius(forwardSpeed);
+				float stickSensitivity = 100f; 
+				_targetSlipAngle += inputData.Steer * stickSensitivity * dt;
 
-            float safeTurnRadius = Mathf.Max(0.1f, turnRadius);
+				float maxAngleLimit = 80f;
+				_targetSlipAngle = Mathf.Clamp(_targetSlipAngle, -maxAngleLimit, maxAngleLimit);
 
-            float turnRate = (rb.linearVelocity.magnitude / safeTurnRadius) * driftAngleCoef * DriftDir * (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+				float slipRate = Mathf.DeltaAngle(_lastSlipAngle, currentSlipAngle) / dt;
+				_lastSlipAngle = currentSlipAngle;
 
-			Quaternion deltaRotation = Quaternion.Euler(0f, turnRate * Mathf.Rad2Deg * dt, 0f);
-			//rb.MoveRotation(rb.rotation * deltaRotation);
-			Vector3 currentAngular = rb.angularVelocity;
-			currentAngular.y = turnRate;
-			rb.angularVelocity = currentAngular;  
+				float angleError = Mathf.DeltaAngle(_targetSlipAngle, currentSlipAngle);
+    
+				float pPower = 1.5f;
+				float dPower = 0.5f; 
+
+				float appliedTorque = -(angleError * pPower) - (slipRate * dPower);
+
+				float maxTorqueLimit = 50f;
+				appliedTorque = Mathf.Clamp(appliedTorque, -maxTorqueLimit, maxTorqueLimit);
+
+				rb.AddRelativeTorque(0f, appliedTorque, 0f, ForceMode.Acceleration);				
+			}
 
 			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
 
