@@ -12,16 +12,11 @@ namespace Car.Controller
 	[RequireComponent(typeof(Rigidbody))]
 	public class CarController : MonoBehaviour
 	{
-		private static readonly int SpriteN = Animator.StringToHash("SpriteN");
-		private static readonly int DriftDir = Animator.StringToHash("DriftDir");
-
 		[Inject] private CarService _carService;
 		[Inject] private DriftCarState _driftState;
 		[Inject] private InputService _input;
 
 		[SerializeField] private Transform body;
-		[SerializeField] private Animator animator;
-		[SerializeField] private SpriteRenderer spriteRenderer;
 
         private Rigidbody _rb;
 
@@ -54,10 +49,10 @@ namespace Car.Controller
 
 		private void Update()
 		{
-			animator.SetBool("IsDrifting", _isDrifting);
+			//animator.SetBool("IsDrifting", _isDrifting);
 			if (_isDrifting)
 			{
-				animator.SetInteger(SpriteN, _driftDir );
+				//animator.SetInteger(SpriteN, _driftDir );
 			}
 			else
 			{
@@ -66,7 +61,7 @@ namespace Car.Controller
 					dir = 0;
 				else
 					dir = (int)Mathf.Sign(_input.Steer);
-				animator.SetInteger(SpriteN, dir);
+				//animator.SetInteger(SpriteN, dir);
 			}
 		}
 
@@ -77,27 +72,13 @@ namespace Car.Controller
 
 		private void DriftStarted(int dir)
 		{
-			_driftTween.Kill();
-
 			_isDrifting = true;
 			_driftDir = dir;
-			animator.SetInteger(DriftDir, dir);
-			float targetY  = DriftAngle * dir;
-			Vector3 endRot = new Vector3(0f, targetY, 0f);
-
-			_driftTween = body.DOLocalRotate(endRot, DriftTime)
-				.SetEase(Ease.OutQuad);
 		}
 
 		private void DriftEnded(float duration)
 		{
-			_driftTween.Kill();
-
 			_isDrifting = false;
-			Vector3 endRot = new Vector3(0f, 0f, 0f);
-
-			_driftTween = body.DOLocalRotate(endRot, RecoverTime)
-				.SetEase(Ease.OutQuad);
 		}
     }
 }
