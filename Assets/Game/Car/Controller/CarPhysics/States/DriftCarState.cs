@@ -46,6 +46,8 @@ namespace Car.Controller.CarPhysics.States
         public override void Enter()
         {
             _driftTimer = 0f;
+			_targetSlipAngle = 0f;
+			_lastSlipAngle = 0f;
             OnDriftStarted?.Invoke(DriftDir);
         }
 
