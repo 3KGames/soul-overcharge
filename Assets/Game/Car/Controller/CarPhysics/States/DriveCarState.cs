@@ -83,9 +83,9 @@ namespace Car.Controller.CarPhysics.States
 			float targetTurnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
 			float currentTurnRate = rb.angularVelocity.y;
 			float turnError = targetTurnRate - currentTurnRate;
-
+			float torque = turnError * _physicsData.SteeringPower - currentTurnRate * _physicsData.SteeringDamping;
 			
-			rb.AddRelativeTorque(0f, turnError * _physicsData.SteeringPower, 0f, ForceMode.Acceleration);
+			rb.AddRelativeTorque(0f, torque, 0f, ForceMode.Acceleration);
 
 			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
 								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);

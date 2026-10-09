@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sideFrictionCoefficient: 25
   brakeTorqueNm: 12000
-  driftSideFrictionCoefficient: 0.2
+  driftSideFrictionCoefficient: 0.4
   minSpeedForDrift: 3
   driftAngleCoefficient: {x: 0.6171136, y: 1.4039216}
   driftBrakeTorqueNm: 4000
@@ -26,4 +26,5 @@ MonoBehaviour:
   baseMass: 880
   aeroEfficiency: 0.28
   frontArea: 2.19
-  steeringPower: 5
+  steeringPower: 1
+  steeringDamping: 1

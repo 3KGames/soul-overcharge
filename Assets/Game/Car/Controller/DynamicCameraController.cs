@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Cinemachine;
 using VContainer;
 using Car.Controller;
+using Game.Car.Controller;
 using NaughtyAttributes;
 
 public class DynamicCameraController : MonoBehaviour
@@ -25,7 +26,7 @@ public class DynamicCameraController : MonoBehaviour
     private Rigidbody _rb;
 
     private CinemachineCamera _vcam;
-    private CinemachineFollow _follow;
+    private CinemachineCarFollow _follow;
 
     private float _orthoSizeVelocity;
     private float _zOffsetVelocity;
@@ -47,7 +48,7 @@ public class DynamicCameraController : MonoBehaviour
         }
 
         _follow = _vcam.GetCinemachineComponent(CinemachineCore.Stage.Body)
-            as CinemachineFollow;
+            as CinemachineCarFollow;
 
         if (_follow == null)
         {
@@ -82,13 +83,13 @@ public class DynamicCameraController : MonoBehaviour
     {
         float targetZ = Mathf.Lerp(_minMaxOffsetZ.y, _minMaxOffsetZ.x, speedFactor);
 
-        Vector3 offset = _follow.FollowOffset;
+        Vector3 offset = _follow.offset;
         offset.z = Mathf.SmoothDamp(
             offset.z,
             targetZ,
             ref _zOffsetVelocity,
             _smoothTime
         );
-        _follow.FollowOffset = offset;
+        _follow.offset = offset;
     }
 }
