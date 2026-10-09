@@ -1,4 +1,3 @@
-using System;
 using Car.Controller;
 using DG.Tweening;
 using Game.Car.Controller.CarPhysics.Suspension;
@@ -6,7 +5,7 @@ using NaughtyAttributes;
 using UnityEngine;
 using VContainer;
 
-namespace Game.Car.VFX
+namespace Game.Car.VFX.Wheel.Runtime
 {
 	public class WheelVfxController : MonoBehaviour
 	{

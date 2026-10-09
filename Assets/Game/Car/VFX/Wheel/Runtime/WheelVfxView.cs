@@ -2,7 +2,7 @@ using DG.Tweening;
 using Game.Car.Controller.CarPhysics.Suspension;
 using UnityEngine;
 
-namespace Game.Car.VFX
+namespace Game.Car.VFX.Wheel.Runtime
 {
 	public class WheelVfxView : MonoBehaviour
 	{
