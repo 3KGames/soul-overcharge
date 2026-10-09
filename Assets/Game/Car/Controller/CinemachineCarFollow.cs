@@ -1,3 +1,4 @@
+using Car.Controller;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -29,7 +30,7 @@ namespace Game.Car.Controller
 		[Tooltip("Camera inertia (0-1")]
 		public Vector3 momentum = new Vector3(1f, 0.5f, 1f);
 
-        private Rigidbody _targetRb;
+		private CarController _targetCarController;
         private bool _isInitialized;
 		private Vector3 _currentPosition;
 		private Vector3 _currentVelocity;
@@ -44,7 +45,7 @@ namespace Game.Car.Controller
 			if (_prevTarget != FollowTarget)
 			{
 				_prevTarget = FollowTarget;
-				_targetRb = FollowTarget.GetComponent<Rigidbody>();
+				_targetCarController = FollowTarget.GetComponent<CarController>();
         
 				Vector3 targetWorldPos = FollowTarget.position + (FollowTarget.rotation * offset);
 				ForceCameraPosition(targetWorldPos, state.RawOrientation);
@@ -57,7 +58,7 @@ namespace Game.Car.Controller
 				return;
 
             Transform car = FollowTarget;
-			Vector3 carVelocity = _targetRb.linearVelocity;
+			Vector3 carVelocity = _targetCarController.LinearVelocity;
 			
 			// Offset lerp
 			Quaternion referenceRotation = car.rotation;
@@ -116,9 +117,9 @@ namespace Game.Car.Controller
 
 			_currentPosition = pos;
             
-			if (_targetRb != null)
+			if (_targetCarController != null)
 			{
-				_currentVelocity = _targetRb.linearVelocity;
+				_currentVelocity = _targetCarController.LinearVelocity;
 			}
 			else
 			{

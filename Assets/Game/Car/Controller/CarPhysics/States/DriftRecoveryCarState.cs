@@ -17,6 +17,11 @@ namespace Car.Controller.CarPhysics.States
         private const float AlignmentThreshold = 3.0f; 
 
         public override CarState Kind => CarState.DriftRecovery; 
+		
+		public event Action OnDriftRecoveryStarted;
+		public event Action OnDriftRecoveryEnded;
+		
+		public float VirtualYawRate { get; private set; }
 
         public DriftRecoveryCarState(CarPhysicsData physicsData, EngineService engine, DrivetrainService drivetrain, TransmissionService transmission)
         {
@@ -31,7 +36,11 @@ namespace Car.Controller.CarPhysics.States
 			
         }
 
-        public override void Enter() { }
+		public override void Enter()
+		{
+			OnDriftRecoveryStarted?.Invoke();
+		}
+		
         public override void Exit() { }
 
 		public override ITransition EvaluateTransition(float dt, Rigidbody rb, CarPhysicsInput inputData)
@@ -48,11 +57,13 @@ namespace Car.Controller.CarPhysics.States
 
 			if (flatVel.sqrMagnitude < 1f || (slipAngle <= AlignmentThreshold && turnRate < 10f))
 			{
+				OnDriftRecoveryEnded?.Invoke();
 				return new Transition<NoPayload>(CarState.Drive, new NoPayload());
 			}
 
 			if (inputData.Drift && flatVel.magnitude > _physicsData.MinSpeedForDrift && Mathf.Abs(inputData.Steer) > 0.1f)
 			{
+				OnDriftRecoveryEnded?.Invoke();
 				int driftDir = inputData.Steer > 0 ? 1 : -1;
 				return new Transition<int>(CarState.Drift, driftDir);
 			}
@@ -88,10 +99,13 @@ namespace Car.Controller.CarPhysics.States
 		
 		    // Virtual handling
 		    Vector3 virtualForward = currentSpeed > 0.1f ? flatVelocity.normalized : rb.transform.forward;
+			VirtualYawRate = 0f;
 		    if (currentSpeed > 1f && Mathf.Abs(inputData.Steer) > 0.01f)
 		    {
 		        float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(currentSpeed));
-		        float turnAngle = (currentSpeed / turnRadius) * inputData.Steer * Mathf.Rad2Deg * dt;
+				
+				VirtualYawRate = (currentSpeed / turnRadius) * inputData.Steer;
+		        float turnAngle = VirtualYawRate * Mathf.Rad2Deg * dt;
 		        
 		        virtualForward = Quaternion.Euler(0, turnAngle, 0) * virtualForward;
 		    }

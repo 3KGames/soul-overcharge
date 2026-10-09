@@ -1,3 +1,4 @@
+using Car.Controller;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace Game.Car.Controller
         private Vector3 _smoothedLinearVelocity;
         private Vector3 _dampingLinearVelocity;
 		
-        private Rigidbody _targetRb;
+		private CarController _targetCarController;
         private Transform _prevTarget;
 
         public override void PrePipelineMutateCameraState(ref CameraState state, float deltaTime)
@@ -44,7 +45,7 @@ namespace Game.Car.Controller
             if (_prevTarget != LookAtTarget)
             {
                 _prevTarget = LookAtTarget;
-                _targetRb = LookAtTarget.GetComponent<Rigidbody>();
+				_targetCarController = LookAtTarget.GetComponent<CarController>();
                 
                 ResetSmoothingState();
             }
@@ -60,7 +61,7 @@ namespace Game.Car.Controller
             // Velocity interpolation
             _smoothedLinearVelocity = Vector3.SmoothDamp(
                 _smoothedLinearVelocity,
-                _targetRb.linearVelocity,
+				_targetCarController.LinearVelocity,
                 ref _dampingLinearVelocity,
                 speedSmoothTime,
                 Mathf.Infinity,
@@ -69,7 +70,7 @@ namespace Game.Car.Controller
 			
             _smoothedAngularVelocity = Vector3.SmoothDamp(
                 _smoothedAngularVelocity,
-                _targetRb.angularVelocity,
+				_targetCarController.AngularVelocity,
                 ref _dampingAngularVelocity,
                 speedSmoothTime,
                 Mathf.Infinity,
@@ -80,15 +81,15 @@ namespace Game.Car.Controller
             float localYawRate = Vector3.Dot(_smoothedAngularVelocity, car.up);
             float targetSideOffset = localYawRate * angularOffsetStrength;
             targetSideOffset = Mathf.Clamp(targetSideOffset, -maxSideOffset, maxSideOffset);
-			
-            _currentSideOffset = Mathf.SmoothDamp(
-                _currentSideOffset,
-                targetSideOffset,
-                ref _sideOffsetVelocity,
-                offsetSmoothTime,
-                Mathf.Infinity,
-                deltaTime
-            );
+
+			_currentSideOffset = Mathf.SmoothDamp(
+				_currentSideOffset,
+				targetSideOffset,
+				ref _sideOffsetVelocity,
+				offsetSmoothTime,
+				Mathf.Infinity,
+				deltaTime
+			);
 
             Vector3 basePoint = car.position + (_smoothedLinearVelocity.normalized * lookAheadDistance + car.up * heightOffset);
             Vector3 finalLookPoint = basePoint + car.right * _currentSideOffset;
@@ -116,10 +117,10 @@ namespace Game.Car.Controller
             _dampingAngularVelocity = Vector3.zero;
             _dampingLinearVelocity = Vector3.zero;
             
-            if (_targetRb != null)
+            if (_targetCarController != null)
             {
-                _smoothedLinearVelocity = _targetRb.linearVelocity;
-                _smoothedAngularVelocity = _targetRb.angularVelocity;
+                _smoothedLinearVelocity = _targetCarController.LinearVelocity;
+                _smoothedAngularVelocity = _targetCarController.AngularVelocity;
             }
             else
             {

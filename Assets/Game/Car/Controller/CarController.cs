@@ -14,6 +14,7 @@ namespace Car.Controller
 	{
 		[Inject] private CarService _carService;
 		[Inject] private DriftCarState _driftState;
+		[Inject] private DriftRecoveryCarState _driftRecoveryState;
 		[Inject] private InputService _input;
 
 		[SerializeField] private Transform body;
@@ -27,9 +28,16 @@ namespace Car.Controller
 
 		private bool _isDrifting;
 		private int _driftDir;
+		private bool _isRecoveringFromDrift;
 
 		public Rigidbody RB => _rb;
 		public bool IsDrifting => _isDrifting;
+		public bool IsRecoveringFromDrift => _isRecoveringFromDrift;
+		
+		public Vector3 LinearVelocity => _rb != null ? _rb.linearVelocity : Vector3.zero;
+		public Vector3 AngularVelocity => _isRecoveringFromDrift
+			? new Vector3(0, _driftRecoveryState != null ? _driftRecoveryState.VirtualYawRate : 0, 0)
+			: _rb != null ? _rb.angularVelocity : Vector3.zero; // TODO: UNITY_EDITOR macro
 
 		private void Start()
 		{
@@ -37,14 +45,16 @@ namespace Car.Controller
 
 			_driftState.OnDriftStarted	+= DriftStarted;
 			_driftState.OnDriftEnded	+= DriftEnded;
-
+			_driftRecoveryState.OnDriftRecoveryStarted +=  DriftRecoveryStarted;
+			_driftRecoveryState.OnDriftRecoveryEnded += DriftRecoveryEnded;
 		}
 
 		private void OnDestroy()
 		{
 			_driftState.OnDriftStarted	-= DriftStarted;
 			_driftState.OnDriftEnded	-= DriftEnded;
-
+			_driftRecoveryState.OnDriftRecoveryStarted -= DriftRecoveryStarted;
+			_driftRecoveryState.OnDriftRecoveryEnded -= DriftRecoveryEnded;
 		}
 
 		private void Update()
@@ -79,6 +89,16 @@ namespace Car.Controller
 		private void DriftEnded(float duration)
 		{
 			_isDrifting = false;
+		}
+
+		private void DriftRecoveryStarted()
+		{
+			_isRecoveringFromDrift = true;
+		}
+
+		private void DriftRecoveryEnded()
+		{
+			_isRecoveringFromDrift = false;
 		}
     }
 }
