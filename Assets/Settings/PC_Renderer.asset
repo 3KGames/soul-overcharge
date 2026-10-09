@@ -86,10 +86,10 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 7200000, guid: b9a23f869c4fd45f19c5ada54dd82176, type: 3}
   m_RendererFeatures:
   - {fileID: 4850002065608915306}
-  - {fileID: -9179932365727076756}
   - {fileID: -8545657349455015287}
+  - {fileID: -9179932365727076756}
   - {fileID: -2517345338356954695}
-  m_RendererFeatureMap: 6ab987a82eab4e436ceeb99626549a80891287e1eab96789b9893f92c09710dd
+  m_RendererFeatureMap: 6ab987a82eab4e43891287e1eab967896ceeb99626549a80b9893f92c09710dd
   m_UseNativeRenderPass: 1
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 2
@@ -114,6 +114,25 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
+--- !u!114 &2992121692374085809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 296000294f464a3f9015ba2f084dd5e0, type: 3}
+  m_Name: SmokeColorPass
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    smokeLayer:
+      m_Bits: 1024
+    positionMaterial: {fileID: 2100000, guid: 513b3ccc33328ec45938379198cc0bda, type: 2}
+    normalMaterial: {fileID: 2100000, guid: 3c8b5e90d47a4f2e91b6c7a05d8e42f9, type: 2}
+    composeMaterial: {fileID: 2100000, guid: 07079146e57876e41a59815b56837a2f, type: 2}
 --- !u!114 &4850002065608915306
 MonoBehaviour:
   m_ObjectHideFlags: 0

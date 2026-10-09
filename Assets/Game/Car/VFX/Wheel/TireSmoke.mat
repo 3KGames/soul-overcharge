@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TireSmoke
+  m_Shader: {fileID: 4800000, guid: 814e20c8d3daf564dbcabfba577b7d72, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: b48398b36d4f8bd4cbf2b61bbea742c5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - Additive: 0.29
+    - Deform_Scale: 0.17
+    - Displacement_Speed: 0.31
+    - Power: 3
+    - Shadow_Attenuation: 1.83
+    - Voronoi_Density: 2
+    - _Additive: 0.29
+    - _DeformScale: 0.17
+    - _Deform_Scale: 0.17
+    - _DisplacementSpeed: 0.31
+    - _Displacement_Speed: 0.31
+    - _HighlightMultiplier: 1
+    - _PosterizeSteps: 1
+    - _Power: 3
+    - _QueueControl: -1
+    - _QueueOffset: 0
+    - _RandomRange: 0.31
+    - _ShadowAttenuation: 1.8
+    - _Steps: 1
+    - _VoronoiDensity: 2
+    - _Voronoi_Density: 1
+    m_Colors:
+    - Highlight_Color: {r: 1, g: 0.81568635, b: 0.8313726, a: 0}
+    - Light_Direction: {r: 8.27, g: 13.11, b: -5.1, a: 0}
+    - Shadow_Color: {r: 0.70980394, g: 0.8078432, b: 0.8117648, a: 0}
+    - WorldPos: {r: 0, g: 0, b: 0, a: 0}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HighlightColor: {r: 1, g: 0.63075733, b: 0.65837497, a: 1}
+    - _HighlightTint: {r: 0.8113208, g: 0.7952349, b: 0.7692239, a: 1}
+    - _Highlight_Color: {r: 0.797, g: 1, b: 0.98199993, a: 0}
+    - _LightDirection: {r: 3.17, g: 62.91, b: 0, a: 0}
+    - _ShadowColor: {r: 0.46207705, g: 0.61720675, b: 0.62396055, a: 1}
+    - _ShadowTint: {r: 0.25845498, g: 0.32266608, b: 0.4528302, a: 1}
+    - _Shadow_Color: {r: 0.44899994, g: 0.846, b: 0.858, a: 0}
+    - _WorldPos: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

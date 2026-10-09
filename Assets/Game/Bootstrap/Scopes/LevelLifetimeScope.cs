@@ -14,7 +14,7 @@ using Car.Health.Services;
 using Car.Souls.Data;
 using Car.UI;
 using Enemies;
-using Game.Car.VFX;
+using Game.Car.VFX.Wheel.Runtime;
 using Game.Level.Runtime;
 using Level.Runtime.States;
 using NaughtyAttributes;
