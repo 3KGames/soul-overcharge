@@ -60,7 +60,7 @@ namespace Car.Controller.CarPhysics.States
             if (!inputData.Drift)
             {
                 OnDriftEnded?.Invoke(_driftTimer);
-                return new Transition<NoPayload>(CarState.Drive, new NoPayload());
+                return new Transition<NoPayload>(CarState.DriftRecovery, new NoPayload());
             }
 
             return null;

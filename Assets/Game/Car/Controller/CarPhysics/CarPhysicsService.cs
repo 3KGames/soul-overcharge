@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Car.Controller.CarPhysics
 {
-	public enum CarState { Drive, Drift }
+	public enum CarState { Drive, Drift, DriftRecovery }
 
     public class CarPhysicsService
     {

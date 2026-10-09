@@ -76,6 +76,9 @@ namespace Level.Runtime.Scopes
             builder.Register<DriftCarState>(Lifetime.Singleton)
                 .AsSelf()
                 .As<BaseCarState>();
+			builder.Register<DriftRecoveryCarState>(Lifetime.Singleton)
+				.AsSelf()
+				.As<BaseCarState>();
             builder.Register<CarPhysicsService>(Lifetime.Singleton);
             builder.Register<NitroService>(Lifetime.Singleton);
             builder.Register<CarService>(Lifetime.Singleton);
