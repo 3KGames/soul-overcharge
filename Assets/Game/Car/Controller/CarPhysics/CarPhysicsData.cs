@@ -22,7 +22,7 @@ namespace Car.Controller.CarPhysics
 		[Tooltip("Тормозной момент на колесо в дрифте, Н*м. Заметно слабее обычного: в заносе сцепления и так не хватает")]
 		[Min(0f)]
 		[SerializeField] private float		driftBrakeTorqueNm = 4000f;
-		[Range(0f, 2f)]
+		[Range(0f, 20f)]
 		[SerializeField] private float		driftAccelerationCoefficient = 0.5f;
 
 		[Header("Off-road Penalties")]
