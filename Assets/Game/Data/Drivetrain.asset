@@ -15,12 +15,12 @@ MonoBehaviour:
   wheelRadius: 0.288
   wheelbase: 2.63
   tireStiffness: 5000
-  tireSubsteps: 10
+  wheelSpinStiffness: 1
   wheelInertia: 1.1
   wheelInternalFriction: 0.05
   maxLongitudinalGrip: 26000
-  maxSteerAngleLowSpeed: 20
-  maxSteerAngleHighSpeed: 5
+  maxSteerAngleLowSpeed: 10
+  maxSteerAngleHighSpeed: 2
   highSpeedThreshold: 110
   steerAngleCurve:
     serializedVersion: 2

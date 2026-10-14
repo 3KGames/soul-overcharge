@@ -7,13 +7,17 @@ namespace Car.Controller.CarPhysics.Drivetrain
 	{
 		private DrivetrainModel _drivetrainModel;
 
-		public float DrivenWheelsOmega { get; private set; }
+		private float _gripWheelsOmega;
+		private float _spinWheelsOmega;
+
+		public float GripWheelsOmega => _gripWheelsOmega;
+		public float SpinWheelsOmega => _spinWheelsOmega;
 
 		public float WheelR       => _drivetrainModel.WheelRadius;
 		public float Wheelbase    => _drivetrainModel.Wheelbase;
 		public float WheelInertia => _drivetrainModel.WheelInertia;
 		public float TireStiffness => _drivetrainModel.TireStiffness;
-		public float TireSubsteps => _drivetrainModel.TireSubsteps;
+		public float WheelSpinStiffness => _drivetrainModel.WheelSpinStiffness;
 		public float WheelInternalFriction => _drivetrainModel.WheelInternalFriction;
 		public float MaxLongitudinalGrip   => _drivetrainModel.MaxLongitudinalGrip;
 
@@ -22,53 +26,56 @@ namespace Car.Controller.CarPhysics.Drivetrain
 			_drivetrainModel = drivetrainModel;
 		}
 
-		public void UpdateWheelOmega(float dt, float netTorque)
+		public float StepTireAndWheel(float dt, float driveTorque, float brakeTorque, float forwardSpeed, float? spinDriveTorque = null)
 		{
-			float frictionTorque = DrivenWheelsOmega * WheelInternalFriction;
-			float finalTorque = netTorque - frictionTorque;
-
-			DrivenWheelsOmega += (finalTorque / WheelInertia) * dt;
-
-			if (Mathf.Abs(DrivenWheelsOmega) < 0.1f && Mathf.Abs(finalTorque) < 1f)
-				DrivenWheelsOmega = 0f;
+			StepWheel(ref _spinWheelsOmega, dt, spinDriveTorque ?? driveTorque, brakeTorque, forwardSpeed, WheelSpinStiffness);
+			float gripForce = StepWheel(ref _gripWheelsOmega, dt, driveTorque, brakeTorque, forwardSpeed, TireStiffness);
+			return gripForce;
 		}
 
-		public float StepTireAndWheel(float dt, float driveTorque, float brakeTorque, float forwardSpeed)
+		private float StepWheel(ref float omegaState, float dt, float driveTorque, float brakeTorque, float forwardSpeed, float stiffness)
 		{
-			int steps = Mathf.Max(1, Mathf.RoundToInt(TireSubsteps));
-			float subDt = dt / steps;
-			float stiffness = TireStiffness;
 			float radius = WheelR;
+			float I = WheelInertia;
+			float friction = WheelInternalFriction;
+
+			// dω/dt = a - k * ω
+			// k = (stiffness * R^2 + friction) / I
+			// a = (driveTorque - brakeTerm + stiffness * R * v) / I
+			// ω(dt) = ω_inf + (ω_0 - ω_inf) * exp(-k * dt)
+			// ω_inf = a / k
+
+			float k = (stiffness * radius * radius + friction) / I;
 
 			float maxBrakeTorque = MaxLongitudinalGrip * radius;
 			float appliedBrake = Mathf.Clamp(brakeTorque, 0f, maxBrakeTorque);
 
-			float tireForce = 0f;
-			float tireForceSum = 0f;
+			float maxBrakeForce = (driveTorque + stiffness * radius * forwardSpeed) + (omegaState * I / dt);
+			float actualBrake = Mathf.Clamp(appliedBrake, 0f, Mathf.Max(0f, maxBrakeForce));
 
-			for (int i = 0; i < steps; i++)
+			float a = (driveTorque - actualBrake + stiffness * radius * forwardSpeed) / I;
+			float omega0 = omegaState;
+			float omegaEnd;
+
+			if (k > 1e-6f)
 			{
-				float tirePatchSpeed = DrivenWheelsOmega * radius;
-				float slipSpeed = tirePatchSpeed - forwardSpeed;
-
-				tireForce = slipSpeed * stiffness;
-				tireForceSum += tireForce;
-
-				float roadFeedbackTorque = -tireForce * radius;
-
-				float brakeDir = Mathf.Sign(DrivenWheelsOmega);
-				if (brakeDir == 0f)
-					brakeDir = Mathf.Sign(forwardSpeed);
-
-				float brakeCap = Mathf.Abs(DrivenWheelsOmega) / subDt * WheelInertia;
-				float brakeThisStep = Mathf.Min(appliedBrake, brakeCap);
-
-				float netTorque = driveTorque + roadFeedbackTorque - brakeDir * brakeThisStep;
-
-				UpdateWheelOmega(subDt, netTorque);
+				float omegaInf = a / k;
+				float expTerm = Mathf.Exp(-k * dt);
+				omegaEnd = omegaInf + (omega0 - omegaInf) * expTerm;
+			}
+			else
+			{
+				omegaEnd = omega0 + a * dt;
 			}
 
-			return tireForceSum / steps;
+			if (omegaEnd < 0f) 
+				omegaEnd = 0f;
+
+			omegaState = omegaEnd;
+
+			float omegaAvg = (omega0 + omegaEnd) * 0.5f;
+
+			return (omegaAvg * radius - forwardSpeed) * stiffness;
 		}
 
 		public float GetSteeringAngle(float speed)

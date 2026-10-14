@@ -55,7 +55,7 @@ namespace Car.Controller.CarPhysics.States
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 
 			// TODO: Change name
-			float omegaWheels = _drivetrain.DrivenWheelsOmega;
+			float omegaWheels = _drivetrain.GripWheelsOmega;
 
 			_transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
 			float engagement = _transmission.Engagement;

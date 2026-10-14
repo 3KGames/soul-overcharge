@@ -25,6 +25,10 @@ namespace Car.Controller.CarPhysics
 		[Range(0f, 20f)]
 		[SerializeField] private float		driftAccelerationCoefficient = 0.5f;
 
+		[Range(0f, 30f)]
+		[Tooltip("Аркадный дрифт: скорость доворота вектора скорости к носу (1/с, на градус скольжения). Больше — сильнее самовыравнивание.")]
+		[SerializeField] private float		driftVelocityRealignCoefficient = 5f;
+
 		[Header("Off-road Penalties")]
 		[Range(0f, 1f)]
 		[Tooltip("Множитель ускорения на бездорожье (например, 0.5 = едет в 2 раза медленнее)")]
@@ -56,6 +60,7 @@ namespace Car.Controller.CarPhysics
 		public float MaxDriftAngleCoefficient		=> driftAngleCoefficient.y;
 		public float DriftBrakeTorqueNm				=> driftBrakeTorqueNm;
 		public float DriftAccelerationCoefficient	=> driftAccelerationCoefficient;
+		public float DriftVelocityRealignCoefficient => driftVelocityRealignCoefficient;
 		public float OffroadSpeedMultiplier			=> offroadSpeedMultiplier;
 		public float OffroadGripMultiplier			=> offroadGripMultiplier;
 		public float NoSoulsSpeedMultiplier			=> noSoulsSpeedMultiplier;

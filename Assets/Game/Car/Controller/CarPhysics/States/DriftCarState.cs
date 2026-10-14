@@ -66,70 +66,103 @@ namespace Car.Controller.CarPhysics.States
             return null;
         }
 
-        public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
-        {
-            float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
+		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
+		{
+		    Vector3 localVelocity = rb.transform.InverseTransformDirection(rb.linearVelocity);
+		    float currentSlipAngle = -Mathf.Atan2(localVelocity.x, localVelocity.z) * Mathf.Rad2Deg;
+		
+		    Vector3 flatVelocity = rb.linearVelocity;
+		    flatVelocity.y = 0f;
+		    float speed = flatVelocity.magnitude;
+		
+		    Vector3 flatForward = rb.transform.forward;
+		    flatForward.y = 0f;
+		    flatForward.Normalize();
+		
+		    Vector3 moveDir = speed > 0.05f ? flatVelocity / speed : flatForward;
+		
+		    if (speed > 0.05f)
+		    {
+		        float realignAngle = Mathf.Abs(currentSlipAngle) * _physicsData.DriftVelocityRealignCoefficient * dt;
+		        moveDir = Vector3.RotateTowards(moveDir, flatForward, realignAngle * Mathf.Deg2Rad, 0f);
+		        rb.linearVelocity = moveDir * speed + Vector3.up * rb.linearVelocity.y;
+		    }
+		
+		    _transmission.Tick(dt, speed, inputData.Throttle, inputData.Brake);
+		    float engagement = _transmission.Engagement;
+		
+		    bool fuelCut = _engine.UpdateRevLimiter(dt, inputData.Throttle);
+		    float spinEngineTorque = _engine.CalculateTorque(inputData.Throttle);
+		    if (fuelCut) spinEngineTorque = 0f;
+		    float spinEngineFriction = _engine.CalculateFriction();
+		    float engineOmega = _engine.AngularSpeed;
+		
+		    float clutchSpinTorque = _transmission.CalculateClutchTorque(_drivetrain.SpinWheelsOmega, engineOmega, engagement);
+			_engine.UpdateAngularSpeed(dt, spinEngineTorque - spinEngineFriction - clutchSpinTorque);
+		    float spinDriveTorque = _transmission.CalculateDriveTorque(clutchSpinTorque) * _physicsData.DriftAccelerationCoefficient;
+		
+			float gripWheelSideOmega = _drivetrain.GripWheelsOmega * _transmission.CurGearRatio;
 
-            float omegaWheels = _drivetrain.DrivenWheelsOmega;
-
-            _transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
-            float engagement = _transmission.Engagement;
-
-            bool fuelCut = _engine.UpdateRevLimiter(dt, inputData.Throttle);
-            float engineTorque = _engine.CalculateTorque(inputData.Throttle);
-            if (fuelCut) engineTorque = 0f;
-            float engineFriction = _engine.CalculateFriction();
-            float clutchTorque = _transmission.CalculateClutchTorque(omegaWheels, _engine.AngularSpeed, engagement);
-
-            float torqueEffective = engineTorque - engineFriction - clutchTorque;
-            _engine.UpdateAngularSpeed(dt, torqueEffective);
-
-            float torqueDrive = _transmission.CalculateDriveTorque(clutchTorque);
-			float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed);
-
-            torqueDrive *= _physicsData.DriftAccelerationCoefficient;
-
-            float brakeTorque = inputData.Brake * _physicsData.DriftBrakeTorqueNm;
-            float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed);
-
-            float effMass = _physicsData.BaseMass + _engine.EngineMass;
-            float acceleration = (tireForce - forceDrag) / effMass;
-            rb.AddForce(rb.transform.forward * acceleration, ForceMode.Acceleration);
-
-            float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
-                                 (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
-
+			float clutchGripTorque;
+			if (gripWheelSideOmega >= _engine.MaxOmega)
 			{
-				Vector3 localVelocity = rb.transform.InverseTransformDirection(rb.linearVelocity);
-				float currentSlipAngle = -Mathf.Atan2(localVelocity.x, localVelocity.z) * Mathf.Rad2Deg;
+				clutchGripTorque = _transmission.CalculateClutchTorque(_drivetrain.GripWheelsOmega, _engine.MaxOmega, engagement);
+			}
+			else
+			{
+				float gripEngineOmega = Mathf.Max(gripWheelSideOmega, _engine.IdleOmega);
+				float gripEngineTorque = _engine.CalculateTorqueAt(inputData.Throttle, gripEngineOmega);
+				float gripEngineFriction = _engine.CalculateFrictionAt(gripEngineOmega);
+				float curClutchCapacity = _transmission.ClutchMax * Mathf.Clamp01(engagement);
 
-				float stickSensitivity = 100f; 
-				_targetSlipAngle += inputData.Steer * stickSensitivity * dt;
-
-				float maxAngleLimit = 80f;
-				_targetSlipAngle = Mathf.Clamp(_targetSlipAngle, -maxAngleLimit, maxAngleLimit);
-
-				float slipRate = Mathf.DeltaAngle(_lastSlipAngle, currentSlipAngle) / dt;
-				_lastSlipAngle = currentSlipAngle;
-
-				float angleError = Mathf.DeltaAngle(_targetSlipAngle, currentSlipAngle);
-    
-				float pPower = 1.5f;
-				float dPower = 0.5f; 
-
-				float appliedTorque = -(angleError * pPower) - (slipRate * dPower);
-
-				float maxTorqueLimit = 50f;
-				appliedTorque = Mathf.Clamp(appliedTorque, -maxTorqueLimit, maxTorqueLimit);
-
-				rb.AddRelativeTorque(0f, appliedTorque, 0f, ForceMode.Acceleration);				
+				clutchGripTorque = Mathf.Clamp(gripEngineTorque - gripEngineFriction, -curClutchCapacity, curClutchCapacity);
 			}
 
-			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
-
-            _driftTimer += dt;
-
-            _transmission.EndStep();
-        }
-    }
+			float gripDriveTorque = _transmission.CalculateDriveTorque(clutchGripTorque) * _physicsData.DriftAccelerationCoefficient;
+		
+		    float brakeTorque = inputData.Brake * _physicsData.DriftBrakeTorqueNm;
+		    float tireForce = _drivetrain.StepTireAndWheel(
+		        dt,
+		        driveTorque: gripDriveTorque,
+		        brakeTorque: brakeTorque,
+		        forwardSpeed: speed,
+		        spinDriveTorque: spinDriveTorque);
+		
+		    float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, rb.linearVelocity.magnitude);
+		    float effMass = _physicsData.BaseMass + _engine.EngineMass;
+		    float acceleration = (tireForce - forceDrag) / effMass;
+		
+		    rb.AddForce(moveDir * acceleration, ForceMode.Acceleration);
+		
+		    float stickSensitivity = 200f;
+		    _targetSlipAngle += inputData.Steer * stickSensitivity * dt;
+		
+		    float maxAngleLimit = 80f;
+		    _targetSlipAngle = Mathf.Clamp(_targetSlipAngle, -maxAngleLimit, maxAngleLimit);
+		
+		    float slipRate = Mathf.DeltaAngle(_lastSlipAngle, currentSlipAngle) / dt;
+		    _lastSlipAngle = currentSlipAngle;
+		
+		    float angleError = Mathf.DeltaAngle(_targetSlipAngle, currentSlipAngle);
+		
+		    float pPower = 3.5f;
+		    float dPower = 1.0f;
+		
+		    float appliedTorque = -(angleError * pPower) - (slipRate * dPower);
+		
+		    float maxTorqueLimit = 50f;
+		    appliedTorque = Mathf.Clamp(appliedTorque, -maxTorqueLimit, maxTorqueLimit);
+		
+		    rb.AddRelativeTorque(0f, appliedTorque, 0f, ForceMode.Acceleration);
+		
+		    float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+		                         (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+		
+		    CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
+		
+		    _driftTimer += dt;
+		
+		    _transmission.EndStep();
+		}    
+	}
 }

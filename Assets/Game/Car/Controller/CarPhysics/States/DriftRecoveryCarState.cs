@@ -74,7 +74,7 @@ namespace Car.Controller.CarPhysics.States
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
 		    float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
-		    float omegaWheels = _drivetrain.DrivenWheelsOmega;
+		    float omegaWheels = _drivetrain.GripWheelsOmega;
 		
 		    _transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
 		    bool fuelCut = _engine.UpdateRevLimiter(dt, inputData.Throttle);

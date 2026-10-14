@@ -10,6 +10,8 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 {
 	public class SuspensionController : MonoBehaviour
 	{
+		private const float MaxSpinDegPerStep = 180f;
+		
 		private CarPhysicsService _carPhysicsService;
 		private DrivetrainService _drivetrainService;
 		private InputService _inputService;
@@ -205,9 +207,12 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 				rb.AddForceAtPosition(accel * _massPerWheel[i] * axis, mountWorld, ForceMode.Force);
 
 				float omega = anchor.Driven
-					? _drivetrainService.DrivenWheelsOmega //TODO: Conversion by radius
+					? _drivetrainService.SpinWheelsOmega //TODO: Conversion by radius
 					: forwardSpeed / s.WheelRadius;
-				anchor.SpinDeg = Mathf.Repeat(anchor.SpinDeg + omega * Mathf.Rad2Deg * dt, 360f);
+				float spinStepDeg = omega * Mathf.Rad2Deg * dt;
+				if (MaxSpinDegPerStep > 0f)
+					spinStepDeg = Mathf.Clamp(spinStepDeg, -MaxSpinDegPerStep, MaxSpinDegPerStep);
+				anchor.SpinDeg = Mathf.Repeat(anchor.SpinDeg + spinStepDeg, 360f);
 			}
 
 			float targetSteer = _inputService.Steer * _drivetrainService.GetSteeringAngle(forwardSpeed);

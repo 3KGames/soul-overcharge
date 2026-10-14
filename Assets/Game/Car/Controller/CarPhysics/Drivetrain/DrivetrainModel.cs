@@ -15,7 +15,7 @@ namespace Car.Controller.CarPhysics.Drivetrain
 		public float Wheelbase               { get; private set; }
 
 		public float TireStiffness         { get; private set; }
-		public float TireSubsteps          { get; private set; }
+		public float WheelSpinStiffness    { get; private set; }
 		public float WheelInertia          { get; private set; }
 		public float WheelInternalFriction { get; private set; }
 		public float MaxLongitudinalGrip   { get; private set; }
@@ -32,7 +32,7 @@ namespace Car.Controller.CarPhysics.Drivetrain
 			Wheelbase = baseDrivetrain.Wheelbase;
 
 			TireStiffness = baseDrivetrain.TireStiffness;
-			TireSubsteps = baseDrivetrain.TireSubsteps;
+			WheelSpinStiffness = baseDrivetrain.WheelSpinStiffness;
 			WheelInertia = baseDrivetrain.WheelInertia;
 			WheelInternalFriction = baseDrivetrain.WheelInternalFriction;
 			MaxLongitudinalGrip = baseDrivetrain.MaxLongitudinalGrip;

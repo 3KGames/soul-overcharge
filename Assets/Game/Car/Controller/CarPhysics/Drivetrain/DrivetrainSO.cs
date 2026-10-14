@@ -13,15 +13,8 @@ namespace Car.Controller.CarPhysics.Drivetrain
 		[Min(0.1f)] [SerializeField] private float wheelbase = 2.6f;
 
 		[Header("Tire")]
-		[Tooltip("Продольная жёсткость шины, Н на м/с проскальзывания. " +
-		         "Используется БЕЗ домножений, rb.mass в петле не участвует. " +
-		         "Реальные шины 10^4..10^5, меньшие значения дают большую пробуксовку.")]
 		[Min(1f)] [SerializeField] private float tireStiffness = 5000f;
-
-		[Tooltip("Внутренних шагов шины за физический кадр. Считается, что жёсткая пружина " +
-		         "при явной интеграции расходится, если dt > 2 / (k * (R^2/I + 1/M)). " +
-		         "10 шагов при dt = 0.02 даёт шаг 2 мс с трёхкратным запасом.")]
-		[Range(1, 64)] [SerializeField] private float tireSubsteps = 10f;
+		[Min(0f)] [SerializeField] private float wheelSpinStiffness = 300f;
 
 		[Tooltip("Инерция колеса вместе с шиной, кг*м^2")]
 		[Min(0.01f)] [SerializeField] private float wheelInertia = 2f;
@@ -59,7 +52,7 @@ namespace Car.Controller.CarPhysics.Drivetrain
 		public float Wheelbase               => wheelbase;
 
 		public float TireStiffness           => tireStiffness;
-		public float TireSubsteps            => tireSubsteps;
+		public float WheelSpinStiffness      => wheelSpinStiffness;
 		public float WheelInertia            => wheelInertia;
 		public float WheelInternalFriction   => wheelInternalFriction;
 		public float MaxLongitudinalGrip     => maxLongitudinalGrip;
