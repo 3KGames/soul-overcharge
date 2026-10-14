@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: NewRoadSettings
   m_EditorClassIdentifier: 
   roadLayer: 15
-  laneWidth: 3
+  laneWidth: 6
   roadThickness: 0.01
   roadYCoordinate: 0
   laneMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
