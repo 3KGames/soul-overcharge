@@ -58,10 +58,21 @@ namespace Car.Controller.CarPhysics
             rb.MoveRotation(toRoad * rb.rotation);
         }
 
-        public static void ApplyLateralFriction(Rigidbody rb, float coefficient)
+        public static void ApplyLateralFriction(Rigidbody rb, Vector3 groundNormal, float coefficient)
         {
-            Vector3 rightVel = Vector3.Project(rb.linearVelocity, rb.transform.right);
-            rb.AddForce(-rightVel * coefficient, ForceMode.Acceleration);
+            if (coefficient <= 0.0001f)
+                return;
+
+            if (groundNormal.sqrMagnitude < 0.001f)
+                groundNormal = Vector3.up;
+
+            Vector3 groundRight = Vector3.ProjectOnPlane(rb.transform.right, groundNormal);
+            if (groundRight.sqrMagnitude < 0.001f)
+                return;
+            groundRight.Normalize();
+
+            Vector3 lateralVel = Vector3.Project(rb.linearVelocity, groundRight);
+            rb.AddForce(-lateralVel * coefficient, ForceMode.Acceleration);
         }
 	}
 }

@@ -81,7 +81,7 @@ namespace Car.Controller.CarPhysics.States
 		
 		    Vector3 moveDir = speed > 0.05f ? flatVelocity / speed : flatForward;
 		
-		    if (speed > 0.05f)
+		    if (inputData.IsGrounded && speed > 0.05f)
 		    {
 		        float realignAngle = Mathf.Abs(currentSlipAngle) * _physicsData.DriftVelocityRealignCoefficient * dt;
 		        moveDir = Vector3.RotateTowards(moveDir, flatForward, realignAngle * Mathf.Deg2Rad, 0f);
@@ -126,39 +126,53 @@ namespace Car.Controller.CarPhysics.States
 		        driveTorque: gripDriveTorque,
 		        brakeTorque: brakeTorque,
 		        forwardSpeed: speed,
+		        isGrounded: inputData.IsGrounded,
 		        spinDriveTorque: spinDriveTorque);
 		
 		    float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, rb.linearVelocity.magnitude);
 		    float effMass = _physicsData.BaseMass + _engine.EngineMass;
-		    float acceleration = (tireForce - forceDrag) / effMass;
-		
-		    rb.AddForce(moveDir * acceleration, ForceMode.Acceleration);
-		
-		    float stickSensitivity = 200f;
-		    _targetSlipAngle += inputData.Steer * stickSensitivity * dt;
-		
-		    float maxAngleLimit = 80f;
-		    _targetSlipAngle = Mathf.Clamp(_targetSlipAngle, -maxAngleLimit, maxAngleLimit);
-		
-		    float slipRate = Mathf.DeltaAngle(_lastSlipAngle, currentSlipAngle) / dt;
-		    _lastSlipAngle = currentSlipAngle;
-		
-		    float angleError = Mathf.DeltaAngle(_targetSlipAngle, currentSlipAngle);
-		
-		    float pPower = 3.5f;
-		    float dPower = 1.0f;
-		
-		    float appliedTorque = -(angleError * pPower) - (slipRate * dPower);
-		
-		    float maxTorqueLimit = 50f;
-		    appliedTorque = Mathf.Clamp(appliedTorque, -maxTorqueLimit, maxTorqueLimit);
-		
-		    rb.AddRelativeTorque(0f, appliedTorque, 0f, ForceMode.Acceleration);
-		
-		    float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
-		                         (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
-		
-		    CarPhysicsService.ApplyLateralFriction(rb, _physicsData.DriftSideFrictionCoefficient * gripModifier);
+
+			if (inputData.IsGrounded)
+			{
+				float alignment = Mathf.Clamp01(Vector3.Dot(rb.transform.up, inputData.GroundNormal));
+				float acceleration = (tireForce * inputData.DriveGroundedFactor * alignment - forceDrag) / effMass;
+				rb.AddForce(moveDir * acceleration, ForceMode.Acceleration);
+
+				float stickSensitivity = 200f;
+				_targetSlipAngle += inputData.Steer * stickSensitivity * dt;
+
+				float maxAngleLimit = 80f;
+				_targetSlipAngle = Mathf.Clamp(_targetSlipAngle, -maxAngleLimit, maxAngleLimit);
+
+				float slipRate = Mathf.DeltaAngle(_lastSlipAngle, currentSlipAngle) / dt;
+				_lastSlipAngle = currentSlipAngle;
+
+				float angleError = Mathf.DeltaAngle(_targetSlipAngle, currentSlipAngle);
+
+				float pPower = 3.5f;
+				float dPower = 1.0f;
+
+				float appliedTorque = -(angleError * pPower) - (slipRate * dPower);
+
+				float maxTorqueLimit = 50f;
+				appliedTorque = Mathf.Clamp(appliedTorque, -maxTorqueLimit, maxTorqueLimit);
+
+				rb.AddTorque(inputData.GroundNormal * appliedTorque * inputData.SteerGroundedFactor * alignment, ForceMode.Acceleration);
+
+				float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+				                     (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+
+				CarPhysicsService.ApplyLateralFriction(rb, inputData.GroundNormal,
+					_physicsData.DriftSideFrictionCoefficient * gripModifier * inputData.GroundedFactor * alignment);
+			}
+			else
+			{
+				Vector3 velocity = rb.linearVelocity;
+				if (velocity.sqrMagnitude > 0.0001f)
+					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
+
+				_lastSlipAngle = currentSlipAngle;
+			}
 		
 		    _driftTimer += dt;
 		

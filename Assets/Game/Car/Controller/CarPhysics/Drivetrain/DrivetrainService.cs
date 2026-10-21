@@ -26,11 +26,12 @@ namespace Car.Controller.CarPhysics.Drivetrain
 			_drivetrainModel = drivetrainModel;
 		}
 
-		public float StepTireAndWheel(float dt, float driveTorque, float brakeTorque, float forwardSpeed, float? spinDriveTorque = null)
+		public float StepTireAndWheel(float dt, float driveTorque, float brakeTorque, float forwardSpeed, bool isGrounded = true, float? spinDriveTorque = null)
 		{
-			StepWheel(ref _spinWheelsOmega, dt, spinDriveTorque ?? driveTorque, brakeTorque, forwardSpeed, WheelSpinStiffness);
+			StepWheel(ref _spinWheelsOmega, dt, spinDriveTorque ?? driveTorque, brakeTorque, forwardSpeed, isGrounded ? WheelSpinStiffness : 0f);
 			float gripForce = StepWheel(ref _gripWheelsOmega, dt, driveTorque, brakeTorque, forwardSpeed, TireStiffness);
-			return gripForce;
+			
+			return isGrounded ? gripForce : 0f;
 		}
 
 		private float StepWheel(ref float omegaState, float dt, float driveTorque, float brakeTorque, float forwardSpeed, float stiffness)

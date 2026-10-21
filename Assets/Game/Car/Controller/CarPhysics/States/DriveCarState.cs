@@ -55,7 +55,9 @@ namespace Car.Controller.CarPhysics.States
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 
 			// TODO: Change name
-			float omegaWheels = _drivetrain.GripWheelsOmega;
+			float omegaWheels = inputData.IsGrounded
+				? _drivetrain.GripWheelsOmega
+				: _drivetrain.SpinWheelsOmega;
 
 			_transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
 			float engagement = _transmission.Engagement;
@@ -70,26 +72,43 @@ namespace Car.Controller.CarPhysics.States
 			float torqueDrive = _transmission.CalculateDriveTorque(clutchTorque);
 
 			float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
-			float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed);
+			float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed, inputData.IsGrounded);
 			float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed); // TODO (?): Not forward speed
 			
 			float effMass = _physicsData.BaseMass + _engine.EngineMass;
-			float acceleration = (tireForce - forceDrag) / effMass;
-			Vector3 check = rb.transform.forward;
-			check.y = 0;
-			rb.AddForce(check * acceleration, ForceMode.Acceleration);
 
-			float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(forwardSpeed));
-			float targetTurnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
-			float currentTurnRate = rb.angularVelocity.y;
-			float turnError = targetTurnRate - currentTurnRate;
-			float torque = turnError * _physicsData.SteeringPower - currentTurnRate * _physicsData.SteeringDamping;
-			
-			rb.AddRelativeTorque(0f, torque, 0f, ForceMode.Acceleration);
+			if (inputData.IsGrounded)
+			{
+				float alignment = Mathf.Clamp01(Vector3.Dot(rb.transform.up, inputData.GroundNormal));
 
-			float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
-								  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
-			CarPhysicsService.ApplyLateralFriction(rb, _physicsData.SideFrictionCoefficient * gripModifier);
+				Vector3 groundForward = Vector3.ProjectOnPlane(rb.transform.forward, inputData.GroundNormal);
+				if (groundForward.sqrMagnitude > 0.001f)
+				{
+					groundForward.Normalize();
+					float driveFactor = inputData.DriveGroundedFactor * alignment;
+					float acceleration = (tireForce * driveFactor - forceDrag) / effMass;
+					rb.AddForce(groundForward * acceleration, ForceMode.Acceleration);
+				}
+
+				float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(forwardSpeed));
+				float targetTurnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
+				float currentTurnRate = Vector3.Dot(rb.angularVelocity, inputData.GroundNormal);
+				float turnError = targetTurnRate - currentTurnRate;
+				float torque = (turnError * _physicsData.SteeringPower - currentTurnRate * _physicsData.SteeringDamping)
+							   * inputData.SteerGroundedFactor * alignment;
+				rb.AddTorque(inputData.GroundNormal * torque, ForceMode.Acceleration);
+
+				float gripModifier  = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+									  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+				CarPhysicsService.ApplyLateralFriction(rb, inputData.GroundNormal,
+					_physicsData.SideFrictionCoefficient * gripModifier * inputData.GroundedFactor * alignment);
+			}
+			else
+			{
+				Vector3 velocity = rb.linearVelocity;
+				if (velocity.sqrMagnitude > 0.0001f)
+					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
+			}
 
 			_transmission.EndStep();
 		}

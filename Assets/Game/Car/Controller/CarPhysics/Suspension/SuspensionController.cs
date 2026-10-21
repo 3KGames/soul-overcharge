@@ -10,7 +10,7 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 {
 	public class SuspensionController : MonoBehaviour
 	{
-		private const float MaxSpinDegPerStep = 180f;
+		private const float MaxSpinDegPerStep = 60f;
 		
 		private CarPhysicsService _carPhysicsService;
 		private DrivetrainService _drivetrainService;
@@ -44,6 +44,11 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 		private Vector3 _prevVelocity;
 		private Vector3 _roadNormal = Vector3.up;
 		public int GroundedCount { get; private set; }
+		public bool IsGrounded => GroundedCount > 0;
+		public float GroundedFactor { get; private set; }
+		public float DriveGroundedFactor { get; private set; }
+		public float SteerGroundedFactor { get; private set; }
+		public Vector3 GroundNormal { get; private set; } = Vector3.up;
 
 		private float _steerDeg;
 
@@ -154,6 +159,11 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 			Vector3 axis = rb.rotation * Vector3.up;
 			float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
 
+			int groundedCount = 0;
+			int drivenCount = 0, drivenGrounded = 0;
+			int steerCount = 0, steerGrounded = 0;
+			Vector3 normalSum = Vector3.zero;
+
 			for (int i = 0; i < wheels.Length; i++)
 			{
 				WheelAnchor anchor = wheels[i];
@@ -162,6 +172,9 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 				SuspensionSO s = anchor.Settings;
 				if (s == null)
 					continue;
+
+				if (anchor.Driven) drivenCount++;
+				if (anchor.Steerable) steerCount++;
 
 				Vector3 mountWorld = anchor.MountWorld;
 
@@ -172,6 +185,11 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 				anchor.IsGrounded = hit;
 				if (hit)
 				{
+					groundedCount++;
+					normalSum += hitInfo.normal;
+					if (anchor.Driven) drivenGrounded++;
+					if (anchor.Steerable) steerGrounded++;
+
 					anchor.GroundPoint = hitInfo.point;
 					anchor.GroundNormal = hitInfo.normal;
 					anchor.GroundLayer = hitInfo.collider.gameObject.layer;
@@ -218,13 +236,19 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 			float targetSteer = _inputService.Steer * _drivetrainService.GetSteeringAngle(forwardSpeed);
 			_steerDeg = Mathf.MoveTowards(_steerDeg, targetSteer, steerRate * dt);
 			
+			GroundedCount = groundedCount;
+			GroundedFactor = wheels.Length > 0 ? (float)groundedCount / wheels.Length : 0f;
+			DriveGroundedFactor = drivenCount > 0 ? (float)drivenGrounded / drivenCount : GroundedFactor;
+			SteerGroundedFactor = steerCount > 0 ? (float)steerGrounded / steerCount : GroundedFactor;
+			GroundNormal = groundedCount > 0 ? normalSum.normalized : Vector3.up;
+
 			ApplyBodyTilt(dt);
 		}
 		
 		private void ApplyBodyTilt(float dt)
 		{
 		    Transform t = rb.transform;
-		    Vector3 n = Vector3.up; // TODO: Road check
+		    Vector3 n = GroundNormal;
 		    _roadNormal = n.sqrMagnitude > 0.001f ? n.normalized : Vector3.up;
 		
 		    float currentRoll  = Vector3.SignedAngle(_roadNormal, t.up,  t.forward) * Mathf.Deg2Rad;
@@ -254,7 +278,7 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 		    float rollErr  = Mathf.Clamp(targetRoll - currentRoll,  -maxRoll,  maxRoll);
 		    float pitchErr = Mathf.Clamp(targetPitch - currentPitch, -maxPitch, maxPitch);
 		
-		    float groundScale = /*wheels.Length > 0 ? (float)GroundedCount / wheels.Length :*/ 1f;
+		    float groundScale = GroundedFactor;
 			
 		    Vector3 torque =
 		        t.forward * (_rollStiffness  * tiltResponse * rollErr  * rollSign  * groundScale)

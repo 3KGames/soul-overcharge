@@ -32,6 +32,7 @@ namespace Game.Car.Controller.CarPhysics.Suspension
 
 		public SuspensionSO Settings => settings;
 		public bool Driven => driven;
+		public bool Steerable => steerable;
 		public Transform Hub => hub;
 		public Vector3 MountWorld => transform.position;
 		

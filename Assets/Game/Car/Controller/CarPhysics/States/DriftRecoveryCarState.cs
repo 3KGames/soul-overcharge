@@ -74,7 +74,9 @@ namespace Car.Controller.CarPhysics.States
 		public override void Tick(float dt, Rigidbody rb, CarPhysicsInput inputData)
 		{
 		    float forwardSpeed = CarPhysicsService.GetForwardSpeed(rb);
-		    float omegaWheels = _drivetrain.GripWheelsOmega;
+		    float omegaWheels = inputData.IsGrounded
+		        ? _drivetrain.GripWheelsOmega
+		        : _drivetrain.SpinWheelsOmega;
 		
 		    _transmission.Tick(dt, forwardSpeed, inputData.Throttle, inputData.Brake);
 		    bool fuelCut = _engine.UpdateRevLimiter(dt, inputData.Throttle);
@@ -87,11 +89,10 @@ namespace Car.Controller.CarPhysics.States
 		    
 		    float torqueDrive = _transmission.CalculateDriveTorque(clutchTorque);
 		    float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
-		    float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed);
+		    float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed, inputData.IsGrounded);
 		    float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed);
 		    
 		    float effMass = _physicsData.BaseMass + _engine.EngineMass;
-		    float acceleration = (tireForce - forceDrag) / effMass;
 		
 		    Vector3 flatVelocity = rb.linearVelocity;
 		    flatVelocity.y = 0f;
@@ -100,43 +101,58 @@ namespace Car.Controller.CarPhysics.States
 		    // Virtual handling
 		    Vector3 virtualForward = currentSpeed > 0.1f ? flatVelocity.normalized : rb.transform.forward;
 			VirtualYawRate = 0f;
-		    if (currentSpeed > 1f && Mathf.Abs(inputData.Steer) > 0.01f)
-		    {
-		        float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(currentSpeed));
-				
-				VirtualYawRate = (currentSpeed / turnRadius) * inputData.Steer;
-		        float turnAngle = VirtualYawRate * Mathf.Rad2Deg * dt;
-		        
-		        virtualForward = Quaternion.Euler(0, turnAngle, 0) * virtualForward;
-		    }
-			
-			rb.AddForce(virtualForward * acceleration, ForceMode.Acceleration);
-			
-			// Lateral friction
-		    Vector3 virtualRight = Vector3.Cross(Vector3.up, virtualForward).normalized;
-		    float lateralSpeed = Vector3.Dot(rb.linearVelocity, virtualRight);
-			
-		    float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
-		                         (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
-		    float frictionCoeff = _physicsData.SideFrictionCoefficient * gripModifier;
-		    rb.AddForce(-virtualRight * lateralSpeed * frictionCoeff, ForceMode.Acceleration);
-		
-			// Body alignment
-			if (currentSpeed > 1f)
+
+			if (inputData.IsGrounded)
 			{
-				Vector3 visualForward = rb.transform.forward;
-				visualForward.y = 0f;
-				visualForward.Normalize();
+				float alignment = Mathf.Clamp01(Vector3.Dot(rb.transform.up, inputData.GroundNormal));
+				float acceleration = (tireForce * inputData.DriveGroundedFactor * alignment - forceDrag) / effMass;
 
-				Vector3 moveDir = flatVelocity.normalized;
-				float slipAngle = Vector3.SignedAngle(visualForward, moveDir, Vector3.up);
-				float currentTurnRate = rb.angularVelocity.y * Mathf.Rad2Deg;
+			    if (currentSpeed > 1f && Mathf.Abs(inputData.Steer) > 0.01f)
+			    {
+			        float turnRadius = Mathf.Max(0.1f, _drivetrain.GetTurnRadius(currentSpeed));
+					
+					VirtualYawRate = (currentSpeed / turnRadius) * inputData.Steer;
+			        float turnAngle = VirtualYawRate * Mathf.Rad2Deg * dt;
+			        
+			        virtualForward = Quaternion.AngleAxis(turnAngle, inputData.GroundNormal) * virtualForward;
+			    }
+				
+				rb.AddForce(virtualForward * acceleration, ForceMode.Acceleration);
+				
+				// Lateral friction — в плоскости дороги.
+			    Vector3 virtualRight = Vector3.Cross(inputData.GroundNormal, virtualForward).normalized;
+			    float lateralSpeed = Vector3.Dot(rb.linearVelocity, virtualRight);
+				
+			    float gripModifier = (inputData.IsOffroad ? _physicsData.OffroadGripMultiplier : 1f) *
+			                         (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
+			    float frictionCoeff = _physicsData.SideFrictionCoefficient * gripModifier * inputData.GroundedFactor * alignment;
+			    rb.AddForce(-virtualRight * lateralSpeed * frictionCoeff, ForceMode.Acceleration);
+			
+				// Body alignment — вокруг нормали дороги.
+				if (currentSpeed > 1f)
+				{
+					Vector3 visualForward = Vector3.ProjectOnPlane(rb.transform.forward, inputData.GroundNormal);
+					if (visualForward.sqrMagnitude < 0.001f)
+						visualForward = virtualForward;
+					else
+						visualForward.Normalize();
 
-				float pPower = 0.5f;
-				float dPower = 0.1f;
+					Vector3 moveDir = flatVelocity.normalized;
+					float slipAngle = Vector3.SignedAngle(visualForward, moveDir, inputData.GroundNormal);
+					float currentTurnRate = Vector3.Dot(rb.angularVelocity, inputData.GroundNormal) * Mathf.Rad2Deg;
 
-				float alignTorque = (slipAngle * pPower) - (currentTurnRate * dPower);
-				rb.AddRelativeTorque(0f, alignTorque, 0f, ForceMode.Acceleration);
+					float pPower = 0.5f;
+					float dPower = 0.1f;
+
+					float alignTorque = (slipAngle * pPower) - (currentTurnRate * dPower);
+					rb.AddTorque(inputData.GroundNormal * alignTorque * inputData.SteerGroundedFactor * alignment, ForceMode.Acceleration);
+				}
+			}
+			else
+			{
+				Vector3 velocity = rb.linearVelocity;
+				if (velocity.sqrMagnitude > 0.0001f)
+					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
 			}
 		
 		    _transmission.EndStep();
