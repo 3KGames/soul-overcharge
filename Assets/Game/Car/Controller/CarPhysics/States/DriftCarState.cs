@@ -2,7 +2,6 @@ using System;
 using Car.Controller.CarPhysics.Drivetrain;
 using Car.Controller.CarPhysics.Engine;
 using Car.Controller.CarPhysics.Transmission;
-using Common.Runtime;
 using UnityEngine;
 
 namespace Car.Controller.CarPhysics.States
@@ -129,13 +128,12 @@ namespace Car.Controller.CarPhysics.States
 		        isGrounded: inputData.IsGrounded,
 		        spinDriveTorque: spinDriveTorque);
 		
-		    float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, rb.linearVelocity.magnitude);
 		    float effMass = _physicsData.BaseMass + _engine.EngineMass;
 
 			if (inputData.IsGrounded)
 			{
 				float alignment = Mathf.Clamp01(Vector3.Dot(rb.transform.up, inputData.GroundNormal));
-				float acceleration = (tireForce * inputData.DriveGroundedFactor * alignment - forceDrag) / effMass;
+				float acceleration = tireForce * inputData.DriveGroundedFactor * alignment / effMass;
 				rb.AddForce(moveDir * acceleration, ForceMode.Acceleration);
 
 				float stickSensitivity = 200f;
@@ -167,10 +165,6 @@ namespace Car.Controller.CarPhysics.States
 			}
 			else
 			{
-				Vector3 velocity = rb.linearVelocity;
-				if (velocity.sqrMagnitude > 0.0001f)
-					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
-
 				_lastSlipAngle = currentSlipAngle;
 			}
 		

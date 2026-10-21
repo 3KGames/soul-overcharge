@@ -2,7 +2,6 @@ using System;
 using Car.Controller.CarPhysics.Drivetrain;
 using Car.Controller.CarPhysics.Engine;
 using Car.Controller.CarPhysics.Transmission;
-using Common.Runtime;
 using UnityEngine;
 
 namespace Car.Controller.CarPhysics.States
@@ -73,8 +72,7 @@ namespace Car.Controller.CarPhysics.States
 
 			float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
 			float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed, inputData.IsGrounded);
-			float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed); // TODO (?): Not forward speed
-			
+
 			float effMass = _physicsData.BaseMass + _engine.EngineMass;
 
 			if (inputData.IsGrounded)
@@ -86,7 +84,7 @@ namespace Car.Controller.CarPhysics.States
 				{
 					groundForward.Normalize();
 					float driveFactor = inputData.DriveGroundedFactor * alignment;
-					float acceleration = (tireForce * driveFactor - forceDrag) / effMass;
+					float acceleration = tireForce * driveFactor / effMass;
 					rb.AddForce(groundForward * acceleration, ForceMode.Acceleration);
 				}
 
@@ -94,7 +92,8 @@ namespace Car.Controller.CarPhysics.States
 				float targetTurnRate = (rb.linearVelocity.magnitude / turnRadius) * inputData.Steer;
 				float currentTurnRate = Vector3.Dot(rb.angularVelocity, inputData.GroundNormal);
 				float turnError = targetTurnRate - currentTurnRate;
-				float torque = (turnError * _physicsData.SteeringPower - currentTurnRate * _physicsData.SteeringDamping)
+
+				float torque = turnError * _physicsData.SteeringPower
 							   * inputData.SteerGroundedFactor * alignment;
 				rb.AddTorque(inputData.GroundNormal * torque, ForceMode.Acceleration);
 
@@ -102,12 +101,6 @@ namespace Car.Controller.CarPhysics.States
 									  (inputData.HasSouls ? 1f : _physicsData.NoSoulsGripMultiplier);
 				CarPhysicsService.ApplyLateralFriction(rb, inputData.GroundNormal,
 					_physicsData.SideFrictionCoefficient * gripModifier * inputData.GroundedFactor * alignment);
-			}
-			else
-			{
-				Vector3 velocity = rb.linearVelocity;
-				if (velocity.sqrMagnitude > 0.0001f)
-					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
 			}
 
 			_transmission.EndStep();

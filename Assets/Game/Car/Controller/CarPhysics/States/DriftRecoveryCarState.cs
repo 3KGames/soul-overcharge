@@ -2,7 +2,6 @@ using System;
 using Car.Controller.CarPhysics.Drivetrain;
 using Car.Controller.CarPhysics.Engine;
 using Car.Controller.CarPhysics.Transmission;
-using Common.Runtime;
 using UnityEngine;
 
 namespace Car.Controller.CarPhysics.States
@@ -90,8 +89,6 @@ namespace Car.Controller.CarPhysics.States
 		    float torqueDrive = _transmission.CalculateDriveTorque(clutchTorque);
 		    float brakeTorque = inputData.Brake * _physicsData.BrakeTorqueNm;
 		    float tireForce = _drivetrain.StepTireAndWheel(dt, torqueDrive, brakeTorque, forwardSpeed, inputData.IsGrounded);
-		    float forceDrag = Consts.AirDragForce(_physicsData.AeroEfficiency, _physicsData.FrontArea, forwardSpeed);
-		    
 		    float effMass = _physicsData.BaseMass + _engine.EngineMass;
 		
 		    Vector3 flatVelocity = rb.linearVelocity;
@@ -105,7 +102,7 @@ namespace Car.Controller.CarPhysics.States
 			if (inputData.IsGrounded)
 			{
 				float alignment = Mathf.Clamp01(Vector3.Dot(rb.transform.up, inputData.GroundNormal));
-				float acceleration = (tireForce * inputData.DriveGroundedFactor * alignment - forceDrag) / effMass;
+				float acceleration = tireForce * inputData.DriveGroundedFactor * alignment / effMass;
 
 			    if (currentSpeed > 1f && Mathf.Abs(inputData.Steer) > 0.01f)
 			    {
@@ -148,13 +145,7 @@ namespace Car.Controller.CarPhysics.States
 					rb.AddTorque(inputData.GroundNormal * alignTorque * inputData.SteerGroundedFactor * alignment, ForceMode.Acceleration);
 				}
 			}
-			else
-			{
-				Vector3 velocity = rb.linearVelocity;
-				if (velocity.sqrMagnitude > 0.0001f)
-					rb.AddForce(-velocity.normalized * (forceDrag / effMass), ForceMode.Acceleration);
-			}
-		
+
 		    _transmission.EndStep();
 		}    
 	}

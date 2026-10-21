@@ -27,5 +27,7 @@ MonoBehaviour:
   baseMass: 880
   aeroEfficiency: 0.28
   frontArea: 2.19
+  lateralAeroEfficiency: 0.4
+  verticalAeroEfficiency: 0.2
+  angularDampingLocal: {x: 4, y: 1, z: 3}
   steeringPower: 3
-  steeringDamping: 1
