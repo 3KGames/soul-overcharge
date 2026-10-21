@@ -2,6 +2,7 @@ using System;
 using Car.Controller.CarPhysics;
 using Car.Souls.Services;
 using Car.Controller.CarPhysics.Transmission;
+using Game.Car.Controller.CarPhysics.Suspension;
 using UnityEngine;
 
 namespace Car.Controller
@@ -17,7 +18,26 @@ namespace Car.Controller
 		public bool    IsOffroad        { get; }
 		public bool    HasSouls         { get; }
 
-        public CarPhysicsInput(float throttle, float brake, bool drift, float steer, Vector3 normal, float torqueMultiplier, bool isOffroad = false, bool hasSouls = true)
+		public bool    IsGrounded          { get; }
+		public float   GroundedFactor      { get; }
+		public float   DriveGroundedFactor { get; }
+		public float   SteerGroundedFactor { get; }
+		public Vector3 GroundNormal        { get; }
+
+        public CarPhysicsInput(
+            float throttle,
+            float brake,
+            bool drift,
+            float steer,
+            Vector3 normal,
+            float torqueMultiplier,
+            bool isOffroad = false,
+            bool hasSouls = true,
+            bool isGrounded = true,
+            float groundedFactor = 1f,
+            float driveGroundedFactor = 1f,
+            float steerGroundedFactor = 1f,
+            Vector3 groundNormal = default)
         {
             Throttle         = throttle;
             Brake            = brake;
@@ -27,6 +47,12 @@ namespace Car.Controller
             TorqueMultiplier = torqueMultiplier;
 			IsOffroad        = isOffroad;
 			HasSouls         = hasSouls;
+
+			IsGrounded          = isGrounded;
+			GroundedFactor      = groundedFactor;
+			DriveGroundedFactor = driveGroundedFactor;
+			SteerGroundedFactor = steerGroundedFactor;
+			GroundNormal        = groundNormal == default ? Vector3.up : groundNormal;
         }
     }
 
@@ -38,6 +64,7 @@ namespace Car.Controller
         private readonly RoadCheckService    _road;
         private readonly TransmissionService _transmission;
         private readonly SoulService         _souls;
+        private readonly SuspensionController _suspension;
 
         public Action PhysicsUpdated;
         public float   CurrentSpeed { get; private set; }
@@ -48,7 +75,8 @@ namespace Car.Controller
             NitroService nitro,
             RoadCheckService road,
             TransmissionService transmission,
-            SoulService souls)
+            SoulService souls,
+            SuspensionController suspension)
         {
             _input        = input;
             _physics      = physics;
@@ -56,6 +84,7 @@ namespace Car.Controller
             _road         = road;
             _transmission = transmission;
             _souls        = souls;
+            _suspension   = suspension;
         }
 
         public void PhysicsUpdate(Rigidbody rb)
@@ -71,6 +100,21 @@ namespace Car.Controller
 
 			bool hasSouls = _souls != null && _souls.CurrentSouls > 0f;
 
+			bool    isGrounded          = true;
+			float   groundedFactor      = 1f;
+			float   driveGroundedFactor = 1f;
+			float   steerGroundedFactor = 1f;
+			Vector3 groundNormal        = roadInfo.normal;
+
+			if (_suspension != null)
+			{
+				isGrounded          = _suspension.IsGrounded;
+				groundedFactor      = _suspension.GroundedFactor;
+				driveGroundedFactor = _suspension.DriveGroundedFactor;
+				steerGroundedFactor = _suspension.SteerGroundedFactor;
+				groundNormal        = _suspension.GroundNormal;
+			}
+
 			var inputData = new CarPhysicsInput(
 				_input.Throttle,
 				_input.Brake,
@@ -79,7 +123,12 @@ namespace Car.Controller
 				roadInfo.normal,
 				_nitro.GetTorqueMultiplier(),
 				roadInfo.isOffroad,
-				hasSouls
+				hasSouls,
+				isGrounded,
+				groundedFactor,
+				driveGroundedFactor,
+				steerGroundedFactor,
+				groundNormal
 			);
 
             _physics.Tick(Time.fixedDeltaTime, rb, inputData);

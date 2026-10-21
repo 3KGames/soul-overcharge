@@ -14,6 +14,7 @@ using Car.Health.Services;
 using Car.Souls.Data;
 using Car.UI;
 using Enemies;
+using Game.Car.Controller.CarPhysics.Suspension;
 using Game.Car.VFX.Wheel.Runtime;
 using Game.Level.Runtime;
 using Level.Runtime.States;
@@ -109,6 +110,7 @@ namespace Level.Runtime.Scopes
 
             // Компоненты на сцене
             builder.RegisterComponentInHierarchy<CarController>();
+            builder.RegisterComponentInHierarchy<SuspensionController>();
 			builder.RegisterComponentInHierarchy<WheelVfxController>();
             builder.RegisterComponentInHierarchy<DynamicCameraController>();
             builder.RegisterComponentInHierarchy<GearDisplayUI>();

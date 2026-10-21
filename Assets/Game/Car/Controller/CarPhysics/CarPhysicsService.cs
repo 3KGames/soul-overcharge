@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Car.Controller.CarPhysics.States;
+using Common.Runtime;
 using Common.Runtime.StateMachine;
 using UnityEngine;
 
@@ -32,6 +33,9 @@ namespace Car.Controller.CarPhysics
 				Switch(transition);
 
 			_states[_currentState].Tick(dt, rb, inputData);
+
+			ApplyAirResistance(rb, _physicsData);
+			ApplyAngularDamping(rb, _physicsData);
 		}
 
 		private void Switch(ITransition transition)
@@ -58,10 +62,49 @@ namespace Car.Controller.CarPhysics
             rb.MoveRotation(toRoad * rb.rotation);
         }
 
-        public static void ApplyLateralFriction(Rigidbody rb, float coefficient)
+        public static void ApplyLateralFriction(Rigidbody rb, Vector3 groundNormal, float coefficient)
         {
-            Vector3 rightVel = Vector3.Project(rb.linearVelocity, rb.transform.right);
-            rb.AddForce(-rightVel * coefficient, ForceMode.Acceleration);
+            if (coefficient <= 0.0001f)
+                return;
+
+            if (groundNormal.sqrMagnitude < 0.001f)
+                groundNormal = Vector3.up;
+
+            Vector3 groundRight = Vector3.ProjectOnPlane(rb.transform.right, groundNormal);
+            if (groundRight.sqrMagnitude < 0.001f)
+                return;
+            groundRight.Normalize();
+
+            Vector3 lateralVel = Vector3.Project(rb.linearVelocity, groundRight);
+            rb.AddForce(-lateralVel * coefficient, ForceMode.Acceleration);
         }
+
+		public static void ApplyAirResistance(Rigidbody rb, CarPhysicsData physicsData)
+		{
+			Vector3 localVelocity = rb.transform.InverseTransformDirection(rb.linearVelocity);
+
+			Vector3 localDrag = Consts.AirDragForceLocal(
+				physicsData.LateralAeroEfficiency,
+				physicsData.VerticalAeroEfficiency,
+				physicsData.AeroEfficiency,
+				physicsData.FrontArea,
+				localVelocity);
+
+			rb.AddForce(rb.transform.TransformDirection(localDrag), ForceMode.Force);
+		}
+
+		public static void ApplyAngularDamping(Rigidbody rb, CarPhysicsData physicsData)
+		{
+			Vector3 localAngularVelocity = rb.transform.InverseTransformDirection(rb.angularVelocity);
+			Vector3 localAngularAcceleration = -Vector3.Scale(localAngularVelocity, physicsData.AngularDampingLocal);
+
+			rb.AddTorque(rb.transform.TransformDirection(localAngularAcceleration), ForceMode.Acceleration);
+		}
+
+		public static void DisableBuiltinDamping(Rigidbody rb)
+		{
+			rb.linearDamping = 0f;
+			rb.angularDamping = 0f;
+		}
 	}
 }

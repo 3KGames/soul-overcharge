@@ -43,6 +43,8 @@ namespace Car.Controller
 		{
 			_rb = GetComponent<Rigidbody>();
 
+			CarPhysicsService.DisableBuiltinDamping(_rb);
+
 			_driftState.OnDriftStarted	+= DriftStarted;
 			_driftState.OnDriftEnded	+= DriftEnded;
 			_driftRecoveryState.OnDriftRecoveryStarted +=  DriftRecoveryStarted;
