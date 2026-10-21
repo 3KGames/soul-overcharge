@@ -44,7 +44,7 @@ public class TachometerController : MonoBehaviour
 
     private void UpdateTachometer(float rpm)
 	{
-		Debug.Log(rpm);
+		//Debug.Log(rpm);
         float normalizedRpm = Mathf.InverseLerp(MIN_RPM, MAX_RPM, rpm);
         normalizedRpm = Mathf.Clamp01(normalizedRpm);
 
