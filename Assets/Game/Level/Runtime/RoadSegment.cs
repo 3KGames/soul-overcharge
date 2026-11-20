@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -34,8 +35,12 @@ namespace Game.Level.Runtime
 		public SegmentType segmentType = SegmentType.Straight;
 
 		[Header("Сетка — заполняется через контекстное меню Bake grid")]
-		[Tooltip("Одинаковый у всех префабов и у RoadGenerator")]
+		[Tooltip("Одинаковый у всех префабов и у RoadGenerator"), ReadOnly]
 		public float cellSize = 40f;
+		
+		[Header("Runtime Geometry (Baked)")]
+		[Tooltip("Задаётся при Bake из RoadSettingsSO.laneWidth или вручную")]
+		public float laneWidth = 3.5f;
 
 		[Tooltip("Если включено, Bake не перезаписывает cells (для сегментов нестандартной формы)")]
 		public bool manualCells;
@@ -62,7 +67,7 @@ namespace Game.Level.Runtime
 				exitPoints = new[] { legacyExitPoint };
 		}
 
-		public bool BakeGrid()
+		public bool BakeGrid(bool forceRebake = false)
 		{
 			if ((exitPoints == null || exitPoints.Length == 0) && legacyExitPoint != null)
 				exitPoints = new[] { legacyExitPoint };
@@ -77,6 +82,18 @@ namespace Game.Level.Runtime
 			{
 				Debug.LogError($"[RoadSegment] {name}: cellSize должен быть больше нуля", this);
 				return false;
+			}
+			
+			if (laneWidth <= 0f)
+			{
+				Debug.LogError($"[RoadSegment] {name}: laneWidth должен быть > 0", this);
+				return false;
+			}
+
+			// === FORCE REBAKE: Fix firstEntryLane on fork exits before validation ===
+			if (forceRebake && exits.Length > 1)
+			{
+				FixForkFirstEntryLanes();
 			}
 
 			GetGridFrame(out Vector3 origin, out Vector3 fwd, out Vector3 right);
@@ -128,7 +145,7 @@ namespace Game.Level.Runtime
 
 			exits = baked.ToArray();
 
-			if (!manualCells || cells == null || cells.Length == 0)
+			if (!manualCells || cells == null || cells.Length == 0 || forceRebake)
 			{
 				var list = new List<Vector2Int>();
 				for (int x = min.x; x <= max.x; x++)
@@ -155,7 +172,117 @@ namespace Game.Level.Runtime
 			if (exits.Length > 1)
 				ValidateForkLanes();
 
+			// Set laneCount on all RoadSegmentViews (handles forks with multiple views)
+			SetLaneCountOnViews(forceRebake);
+
 			return ok;
+		}
+
+		void SetLaneCountOnViews(bool forceRebake = false)
+		{
+			// Get all RoadSegmentViews on this prefab
+			var views = GetComponentsInChildren<RoadSegmentView>();
+			if (views == null || views.Length == 0) return;
+
+			// Sync laneWidth from RoadSegment to all views
+			foreach (var v in views)
+				v.laneWidth = laneWidth;
+
+			// Determine entry lanes from entryPoint
+			int entryLanes = entryPoint != null ? entryPoint.NumLanes : 0;
+			if (entryLanes <= 0) return;
+
+			// Find ForkEntry (isForkEntry=true) or the main view
+			RoadSegmentView entryView = null;
+			foreach (var v in views)
+			{
+				if (v.isForkEntry)
+				{
+					entryView = v;
+					break;
+				}
+			}
+			if (entryView == null)
+				entryView = System.Array.Find(views, v => v.spline != null);
+
+			if (entryView != null)
+				entryView.laneCount = entryLanes;
+
+			// === GRAPH-BASED APPROACH ===
+			// Use the explicit graph connections (childViews, exitFirstLane, exitLaneCount)
+			// which are set up by Fork Creator / Runtime Generator
+			
+			if (entryView != null && entryView.isForkEntry && entryView.childViews != null)
+			{
+				// ForkEntry has explicit childViews array - use it directly!
+				// exitFirstLane[i] / exitLaneCount[i] correspond to childViews[i]
+				for (int i = 0; i < entryView.childViews.Length; i++)
+				{
+					var cv = entryView.childViews[i];
+					if (cv == null) continue;
+					if (i < entryView.exitLaneCount.Length)
+					{
+						cv.laneCount = entryView.exitLaneCount[i];
+					}
+					else if (i < exits.Length && exits[i].point != null)
+					{
+						// Fallback to exitPoints order
+						cv.laneCount = exits[i].point.NumLanes;
+					}
+				}
+			}
+			else if (views.Length == 1)
+			{
+				// Normal linear segment: use max of entry and exit lanes (for expanding/narrowing roads)
+				int exitLanes = exits.Length > 0 && exits[0].point != null ? exits[0].point.NumLanes : entryLanes;
+				views[0].laneCount = Mathf.Max(entryLanes, exitLanes);
+			}
+
+			// Force rebuild serializedTopology on all views to match laneCount
+			if (forceRebake)
+			{
+				RebuildViewTopology(views);
+			}
+		}
+
+		void FixForkFirstEntryLanes()
+		{
+			// Only for forks: assign sequential firstEntryLane to each exit
+			// Use exitPoints since exits is not populated yet at this point in BakeGrid
+			int cumulative = 0;
+			for (int i = 0; i < exitPoints.Length; i++)
+			{
+				var ep = exitPoints[i];
+				if (ep == null) continue;
+
+				var cp = ep.GetComponent<ConnectionPoint>();
+				if (cp != null)
+				{
+					// Use SerializedObject to modify private field
+#if UNITY_EDITOR
+					var so = new UnityEditor.SerializedObject(cp);
+					var prop = so.FindProperty("firstEntryLane");
+					if (prop != null && prop.intValue != cumulative)
+					{
+						Debug.Log($"[RoadSegment] {name}: Fixing exit {i} ({ep.name}) firstEntryLane {prop.intValue} → {cumulative}");
+						prop.intValue = cumulative;
+						so.ApplyModifiedProperties();
+					}
+#endif
+					cumulative += cp.NumLanes;
+				}
+			}
+		}
+
+		void RebuildViewTopology(RoadSegmentView[] views)
+		{
+			foreach (var view in views)
+			{
+				if (view == null) continue;
+				
+				// Rebuild serializedTopology from edge profiles and laneCount
+				view.RebuildTopologyFromProfiles();
+			}
 		}
 
 		void ValidateForkLanes()
@@ -187,11 +314,21 @@ namespace Game.Level.Runtime
 		[ContextMenu("Bake grid")]
 		private void BakeGridFromMenu()
 		{
-			bool ok = BakeGrid();
+			bool ok = BakeGrid(false);
 #if UNITY_EDITOR
 			UnityEditor.EditorUtility.SetDirty(this);
 #endif
 			Debug.Log($"[RoadSegment] {name}: {(ok ? "готово" : "есть ошибки, см. выше")}, клеток {cells?.Length ?? 0}, выходов {exits?.Length ?? 0}", this);
+		}
+
+		[ContextMenu("Bake grid (FORCE: fix firstEntryLane & topology)")]
+		private void BakeGridForceFromMenu()
+		{
+			bool ok = BakeGrid(true);
+#if UNITY_EDITOR
+			UnityEditor.EditorUtility.SetDirty(this);
+#endif
+			Debug.Log($"[RoadSegment] {name}: FORCE BAKE {(ok ? "готово" : "есть ошибки, см. выше")}, клеток {cells?.Length ?? 0}, выходов {exits?.Length ?? 0}", this);
 		}
 
 		void GetGridFrame(out Vector3 origin, out Vector3 fwd, out Vector3 right)

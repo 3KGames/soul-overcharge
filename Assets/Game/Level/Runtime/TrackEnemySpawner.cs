@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Common.Runtime;
 using Enemies;
+using Game.Enemies;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -26,9 +27,6 @@ namespace Game.Level.Runtime
 		[Header("Despawn Settings")]
 		[Tooltip("Дистанция от игрока, при превышении которой Biker и SoulVOZ будут деспавниться")]
 		public float despawnDistance = 150f;
-    
-		[Tooltip("Коллайдер этого сегмента дороги (для проверки, стоит ли враг всё ещё на нём)")]
-		public Collider segmentCollider;
 
 		private EnemySpawnPoint[] _spawnPoints;
 		private readonly List<SpawnedEnemyData> _spawnedEnemies = new();
@@ -36,6 +34,7 @@ namespace Game.Level.Runtime
     
 		private LifetimeScope _parentScope;
 		private PlayerTracker _playerTracker;
+		private RoadSegmentView _entryView;
 
 		// Инжектим PlayerTracker
 		[Inject]
@@ -48,12 +47,10 @@ namespace Game.Level.Runtime
 		private void Awake()
 		{
 			_spawnPoints = GetComponentsInChildren<EnemySpawnPoint>();
+			_entryView = GetComponent<RoadSegmentView>();
 
 			if (_spawnPoints.Length == 0)
 				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} нет EnemySpawnPoint!", this);
-            
-			if (segmentCollider == null)
-				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} не назначен segmentCollider! Проверка нахождения на дороге работать не будет.", this);
 		}
 
 		public void TrySpawnEnemies()
@@ -113,6 +110,23 @@ namespace Game.Level.Runtime
 					prefab, point.transform.position, point.transform.rotation, null);
 			}
 
+			// VARIANT B: Determine which RoadSegmentView this spawn point belongs to
+			RoadSegmentView spawnView = point.GetComponentInParent<RoadSegmentView>();
+			if (spawnView == null) spawnView = _entryView; // Fallback
+			 
+			if (enemy != null && spawnView != null)
+			{
+				if (enemy.TryGetComponent<EnemyController>(out var ctrl))
+				{
+					// Initialize with the specific view (Entry or Exit)
+					ctrl.InitializeWithSegment(spawnView);
+				}
+				else
+				{
+					Debug.LogWarning($"[TrackEnemySpawner] Спавненный префаб {prefab.name} не имеет EnemyController!", this);
+				}
+			}
+
 			// Находим тег по префабу и сохраняем его вместе с инстансом
 			EnemyTag tag = GetTagForPrefab(prefab);
 			_spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy, Tag = tag });
@@ -131,37 +145,15 @@ namespace Game.Level.Runtime
 					continue;
 				}
 
-				bool shouldDespawn = true; // По умолчанию деспавним всех
-
-				// Исключения для Biker и SoulVOZ
-				if (data.Tag == EnemyTag.Biker || data.Tag == EnemyTag.SoulVOZ)
+				// Delegate to EnemyController (polymorphic despawn)
+				var ctrl = data.Instance.GetComponent<EnemyController>();
+				if (ctrl != null)
 				{
-					shouldDespawn = false;
-
-					// Условие 1: Слишком далеко от игрока
-					if (_playerTracker != null && _playerTracker.PlayerTransform != null)
-					{
-						float distanceToPlayer = Vector3.Distance(data.Instance.transform.position, _playerTracker.PlayerTransform.position);
-						if (distanceToPlayer > despawnDistance)
-						{
-							shouldDespawn = true;
-						}
-					}
-
-					// Условие 2: Находятся на удаляемой дороге
-					if (!shouldDespawn && segmentCollider != null)
-					{
-						// Проверяем, находится ли центр врага внутри границ коллайдера сегмента
-						if (segmentCollider.bounds.Contains(data.Instance.transform.position))
-						{
-							shouldDespawn = true;
-						}
-					}
+					ctrl.Despawn();
 				}
-
-				if (shouldDespawn)
+				else
 				{
-					DestroyEnemy(data.Instance);
+					Destroy(data.Instance);
 				}
             
 				// В любом случае убираем из списка. 

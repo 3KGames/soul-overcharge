@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Game.Level.Runtime.Config;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -22,9 +24,8 @@ namespace Game.Level.Runtime
 		[Tooltip("Максимум новых сегментов за кадр")]
 		[Min(1)] public int maxSpawnsPerFrame = 2;
 
-		[Header("Сетка")]
-		[Tooltip("Размер клетки в метрах. Должен совпадать с cellSize у всех префабов")]
-		[Min(0.01f)] public float cellSize = 40f;
+		[Header("Сетка")] 
+		public RoadGridSettings gridSettings;
 
 		[Header("Развороты")]
 		[Tooltip("Разрешить дороге поворачивать назад (змейка, петли). " +
@@ -63,6 +64,13 @@ namespace Game.Level.Runtime
 			public readonly List<Vector2Int> cells = new List<Vector2Int>();
 			public int depth;
 			public BiomeTag biome;
+			public object customData;
+		}
+
+		private class ExitViewData
+		{
+			public RoadSegmentView view;
+			public int exitIndex;
 		}
 
 		private class BranchCursor
@@ -212,6 +220,113 @@ namespace Game.Level.Runtime
 				_occupied[cell] = node;
 			}
 
+			// === VARIANT B: Handle Fork Prefabs ===
+			var entryView = go.GetComponent<RoadSegmentView>(); // На корне префаба
+			var childViews = go.GetComponentsInChildren<RoadSegmentView>()
+				.Where(v => v != entryView).ToArray();
+
+			bool isFork = seg.exits.Length > 1;
+
+			// Ensure laneCount is set on all views (critical for gizmos, spline follower, etc.)
+			int entryLanes = isFork ? seg.exits.Sum(e => e.point.NumLanes) : seg.exits[0].point.NumLanes;
+			if (entryView.laneCount == 0) entryView.laneCount = entryLanes;
+			foreach (var cv in childViews)
+				if (cv.laneCount == 0) cv.laneCount = cv.GetComponent<RoadSegmentView>().laneCount; // will be set per-exit below
+
+			// Sync laneWidth from RoadSegment to all views
+			float laneWidth = seg.laneWidth;
+			entryView.laneWidth = laneWidth;
+			foreach (var cv in childViews) cv.laneWidth = laneWidth;
+
+			if (isFork && childViews.Length == seg.exits.Length)
+			{
+				// Setup Entry View with Exit Views mapping
+				int[] firstLanes = new int[seg.exits.Length];
+				int[] laneCounts = new int[seg.exits.Length];
+				for (int i = 0; i < seg.exits.Length; i++)
+				{
+					firstLanes[i] = seg.exits[i].point.FirstEntryLane;
+					laneCounts[i] = seg.exits[i].point.NumLanes;
+				}
+				entryView.SetupForkEntry(childViews, firstLanes, laneCounts);
+
+				// Set laneCount on each child view
+				for (int i = 0; i < childViews.Length; i++)
+					childViews[i].laneCount = laneCounts[i];
+
+				// Generate constant edge profiles for fork views
+				GenerateConstantEdgeProfiles(entryView, entryLanes, laneWidth);
+				for (int i = 0; i < childViews.Length; i++)
+					GenerateConstantEdgeProfiles(childViews[i], laneCounts[i], laneWidth);
+
+				// Each Exit View gets its own node in the graph
+				for (int i = 0; i < childViews.Length; i++)
+				{
+					var cv = childViews[i];
+					// Link linear: entryView -> childView -> next segment
+					cv.SetupLinear(entryView, null, new[] { firstLanes[i] }, new[] { laneCounts[i] });
+
+					// Register childView as separate node for graph traversal
+					var exitNode = new RoadNode
+					{
+						segment = seg, // Same RoadSegment data
+						parent = node,
+						depth = c.depth + 1,
+						children = new RoadNode[0], // Will be filled when extending from this exit
+						biome = c.state.biome?.biomeTag ?? BiomeTag.None,
+						// Custom: store which childView this node represents
+						customData = new ExitViewData { view = cv, exitIndex = i }
+					};
+
+					// Add to graph
+					node.children[i] = exitNode;
+					_open.Add(new BranchCursor
+					{
+						owner = exitNode,
+						exitIndex = i,
+						exitTransform = cv.spline ? cv.transform : seg.exits[i].point.transform,
+						lanes = seg.exits[i].point.NumLanes,
+						cell = c.cell + Rot(seg.exits[i].nextCell, c.heading),
+						heading = (c.heading + seg.exits[i].turn) & 3,
+						depth = c.depth + 1,
+						state = c.state,
+					});
+				}
+			}
+			else
+			{
+				// Normal linear segment
+				if (entryView.laneCount == 0) entryView.laneCount = seg.exits[0].point.NumLanes;
+				entryView.laneWidth = laneWidth;
+				entryView.SetupLinear(
+					c.owner?.segment?.roadView, 
+					null, // nextRoad set later when next segment spawns
+					new[] { c.lanes == -1 ? 0 : c.lanes }, // Simplified
+					new[] { c.lanes == -1 ? entryView.laneCount : c.lanes }
+				);
+
+				// Generate constant edge profiles for linear view
+				GenerateConstantEdgeProfiles(entryView, entryView.laneCount, laneWidth);
+
+				// Single branch for normal segment
+				var cursor = new BranchCursor
+				{
+					owner = node,
+					exitIndex = 0,
+					exitTransform = seg.exits[0].point.transform,
+					lanes = seg.exits[0].point.NumLanes,
+					cell = c.cell + Rot(seg.exits[0].nextCell, c.heading),
+					heading = (c.heading + seg.exits[0].turn) & 3,
+					corridorHeading = c.corridorHeading,
+					latMin = c.latMin,
+					latMax = c.latMax,
+					depth = c.depth + 1,
+					state = c.state,
+				};
+				node.children[0] = node; // Self-reference for linear segment
+				_open.Add(cursor);
+			}
+
 			LinkViews(c, node, seg);
 
 			if (c.owner == null)
@@ -220,33 +335,10 @@ namespace Game.Level.Runtime
 			_open.Remove(c);
 			_nodeCount++;
 
-			bool isFork = seg.exits.Length > 1;
 			c.state.sinceFork = isFork ? 0 : c.state.sinceFork + 1;
 
-			var created = new List<BranchCursor>(seg.exits.Length);
-			for (int i = 0; i < seg.exits.Length; i++)
-			{
-				var exit = seg.exits[i];
-				created.Add(new BranchCursor
-				{
-					owner = node,
-					exitIndex = i,
-					exitTransform = exit.point.transform,
-					lanes = exit.point.NumLanes,
-					cell = c.cell + Rot(exit.nextCell, c.heading),
-					heading = (c.heading + exit.turn) & 3,
-					corridorHeading = c.corridorHeading,
-					latMin = c.latMin,
-					latMax = c.latMax,
-					depth = c.depth + 1,
-					state = c.state,
-				});
-			}
-
 			if (isFork)
-				SplitCorridors(created, node, c.heading);
-
-			_open.AddRange(created);
+				SplitCorridors(_open.Where(x => x.owner != null && x.owner.parent == node).ToList(), node, c.heading);
 
 			if (seg.TryGetComponent(out TrackEnemySpawner spawner))
 				spawner.TrySpawnEnemies();
@@ -268,8 +360,11 @@ namespace Game.Level.Runtime
 
 		void LinkViews(BranchCursor c, RoadNode node, RoadSegment seg)
 		{
-			var view = seg.roadView;
-			if (view != null)
+			var view = seg.roadView; // ForkEntry or Normal View
+			if (view == null) return;
+			
+			// Set exit lane mapping for ForkEntry
+			if (seg.exits.Length > 1)
 			{
 				var first = new int[seg.exits.Length];
 				var count = new int[seg.exits.Length];
@@ -281,14 +376,28 @@ namespace Game.Level.Runtime
 				view.SetExitLanes(first, count);
 			}
 
-			if (c.owner == null) return;
-
-			c.owner.children[c.exitIndex] = node;
-			var prevView = c.owner.segment != null ? c.owner.segment.roadView : null;
-			if (prevView != null && view != null)
+			// Link to previous segment's exit view (or entry view of previous fork)
+			if (c.owner != null)
 			{
-				prevView.SetNextRoad(c.exitIndex, c.owner.children.Length, view);
-				view.previousRoad = prevView;
+				// Find the correct previous view for this branch
+				RoadSegmentView prevView = null;
+				if (c.owner.customData is ExitViewData evd)
+				{
+					prevView = evd.view; // We came from an exit view of a fork
+				}
+				else if (c.owner.segment != null)
+				{
+					prevView = c.owner.segment.roadView; // Normal segment
+				}
+				
+				if (prevView != null && view != null)
+				{
+					// Connect previous view's nextRoad to this view
+					prevView.nextRoad = view;
+					view.previousRoad = prevView;
+				}
+				
+				c.owner.children[c.exitIndex] = node;
 			}
 		}
 
@@ -362,8 +471,8 @@ namespace Game.Level.Runtime
 			string problem = null;
 			if (seg.cells == null || seg.cells.Length == 0 || seg.exits == null || seg.exits.Length == 0)
 				problem = "не запечён (Bake grid)";
-			else if (!Mathf.Approximately(seg.cellSize, cellSize))
-				problem = $"cellSize {seg.cellSize} не совпадает с генератором ({cellSize})";
+			else if (!Mathf.Approximately(seg.cellSize, gridSettings.cellSize))
+				problem = $"cellSize {seg.cellSize} не совпадает с генератором ({gridSettings.cellSize})";
 			else if (seg.entryPoint == null)
 				problem = "не назначен entryPoint";
 			else
@@ -392,7 +501,7 @@ namespace Game.Level.Runtime
 			if (player == null) return;
 
 			Vector3 local = Quaternion.Inverse(_gridRot) * (player.position - _gridPos);
-			var cell = new Vector2Int(Mathf.RoundToInt(local.x / cellSize), Mathf.FloorToInt(local.z / cellSize));
+			var cell = new Vector2Int(Mathf.RoundToInt(local.x / gridSettings.cellSize), Mathf.FloorToInt(local.z / gridSettings.cellSize));
 
 			if (!_occupied.TryGetValue(cell, out var node) || node == _playerNode) return;
 
@@ -434,20 +543,29 @@ namespace Game.Level.Runtime
 			{
 				var child = fork.children[i];
 				if (child == null || child == _chosenBranch) continue;
-
+				
 				DestroySubtree(child);
 				fork.children[i] = null;
-				if (fork.segment != null && fork.segment.roadView != null)
-					fork.segment.roadView.ClearNextRoad(i);
+				
+				// Clear graph connections on ForkEntry
+				if (fork.segment?.roadView != null)
+				{
+					var fv = fork.segment.roadView;
+					if (fv.childViews != null && i < fv.childViews.Length && fv.childViews[i] != null)
+					{
+						fv.childViews[i].previousRoad = null;
+					}
+				}
 			}
-
+				
+			// Reset corridor constraints on ALL open cursors
 			foreach (var c in _open)
 			{
 				c.corridorHeading = -1;
 				c.latMin = int.MinValue;
 				c.latMax = int.MaxValue;
 			}
-
+				
 			_pendingFork = null;
 			_chosenBranch = null;
 		}
@@ -698,6 +816,12 @@ namespace Game.Level.Runtime
 				return;
 			}
 
+			if (gridSettings == null)
+			{
+				Debug.LogError("[RoadGenerator] RoadGridSettings не назначен!", this);
+				return;
+			}
+
 			var laneCounts = new HashSet<int>();
 			foreach (var b in biomes)
 				foreach (var p in AllPrefabs(b))
@@ -774,7 +898,7 @@ namespace Game.Level.Runtime
 
 			Matrix4x4 oldMatrix = Gizmos.matrix;
 			Gizmos.matrix = Matrix4x4.TRS(_gridPos, _gridRot, Vector3.one);
-			var size = new Vector3(cellSize * 0.9f, 0.1f, cellSize * 0.9f);
+			var size = new Vector3(gridSettings.cellSize * 0.9f, 0.1f, gridSettings.cellSize * 0.9f);
 
 			Gizmos.color = new Color(0f, 0.7f, 1f, 0.6f);
 			foreach (var cell in _occupied.Keys)
@@ -787,7 +911,23 @@ namespace Game.Level.Runtime
 			Gizmos.matrix = oldMatrix;
 		}
 
-		Vector3 CellCenterLocal(Vector2Int c) => new Vector3(c.x * cellSize, 0f, (c.y + 0.5f) * cellSize);
+		Vector3 CellCenterLocal(Vector2Int c) => new Vector3(c.x * gridSettings.cellSize, 0f, (c.y + 0.5f) * gridSettings.cellSize);
+
+		private static void GenerateConstantEdgeProfiles(RoadSegmentView view, int laneCount, float laneWidth)
+		{
+			if (view == null || view.spline == null || laneCount <= 0) return;
+			
+			float length = view.spline.CalculateLength();
+			int tiles = Mathf.Max(1, Mathf.FloorToInt(length / (laneWidth * 2f)));
+			
+			view.leftEdgeProfile = new int[tiles];
+			view.rightEdgeProfile = new int[tiles];
+			for (int i = 0; i < tiles; i++)
+			{
+				view.leftEdgeProfile[i] = 0;
+				view.rightEdgeProfile[i] = laneCount - 1;
+			}
+		}
 #endif
 	}
 }

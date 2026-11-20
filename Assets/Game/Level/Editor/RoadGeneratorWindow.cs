@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dreamteck.Splines;
+using Game.Level.Runtime;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -53,6 +55,12 @@ public class RoadGeneratorWindow : EditorWindow
     [SerializeField] private List<TransitionData> leftTransitions = new List<TransitionData>();
     [SerializeField] private List<TransitionData> rightTransitions = new List<TransitionData>();
 
+    // Fork Prefab Creation
+    private Transform forkEntryPoint;
+    private Transform[] forkExitPoints = new Transform[2];
+    private int[] forkExitLanes = new int[] { 2, 1 };
+    private bool ShowForkCreator = false;
+
     private Dictionary<int, List<Vector2Int>> roadTopologyMap = new Dictionary<int, List<Vector2Int>>();
     private int[] leftEdgeProfile;
     private int[] rightEdgeProfile;
@@ -66,6 +74,14 @@ public class RoadGeneratorWindow : EditorWindow
         GetWindow<RoadGeneratorWindow>("Генератор Дорог");
     }
 
+    // Add to the menu items section - add this new menu item
+    [MenuItem("Tools/Road/Create Fork Prefab")]
+    public static void CreateForkPrefab()
+    {
+        var window = GetWindow<RoadGeneratorWindow>("Fork Prefab Creator");
+        window.ShowForkCreator = true;
+    }
+
     private void OnGUI()
     {
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -77,6 +93,11 @@ public class RoadGeneratorWindow : EditorWindow
         DrawTransitionsSection();
         DrawDecalSettingsSection();
         DrawGenerateButton();
+
+        if (ShowForkCreator)
+        {
+            DrawForkCreatorSection();
+        }
 
         EditorGUILayout.EndScrollView();
     }
@@ -324,13 +345,21 @@ public class RoadGeneratorWindow : EditorWindow
         return splineMesh;
     }
 
+    // VisualLaneCount = slider (what gizmos/enemies see).
+    // EffectiveLaneCount = VisualLaneCount + 1 (mesh channels: 0..EffectiveLaneCount-1).
+    // Mesh channels 0 and EffectiveLaneCount-1 are rendered at half-width via material (±0.25 offset).
+    // This gives VisualLaneCount visual lanes with correct total width.
+    private int VisualLaneCount => Mathf.Max(1, laneCount);
+    private int EffectiveLaneCount => VisualLaneCount + 1;
+
     private RoadLayout CalculateLayout()
     {
         float totalSplineLength = targetSpline.CalculateLength();
         float physicalLength = settings.laneWidth * settings.textureRatio;
         int totalTiles = Mathf.Max(1, Mathf.FloorToInt(totalSplineLength / physicalLength));
 
-        float totalWidth = laneCount * settings.laneWidth;
+        int effLanes = EffectiveLaneCount;
+        float totalWidth = effLanes * settings.laneWidth;
         float startOffset = (-totalWidth / 2f) + (settings.laneWidth / 2f);
 
         return new RoadLayout(totalSplineLength, physicalLength, totalTiles, startOffset);
@@ -338,23 +367,25 @@ public class RoadGeneratorWindow : EditorWindow
 
     private void BuildMeshChannels(SplineMesh splineMesh, RoadLayout layout)
     {
-        for (int laneIndex = 0; laneIndex < laneCount; laneIndex++)
+        int effLanes = EffectiveLaneCount;
+
+        for (int meshLane = 0; meshLane < effLanes; meshLane++)
         {
-            if (!roadTopologyMap.TryGetValue(laneIndex, out var segments)) continue;
+            if (!roadTopologyMap.TryGetValue(meshLane, out var segments)) continue;
 
             foreach (Vector2Int segment in segments)
             {
-                CreateLaneChannel(splineMesh, layout, laneIndex, segment);
+                CreateLaneChannel(splineMesh, layout, meshLane, segment);
             }
         }
     }
 
-    private void CreateLaneChannel(SplineMesh splineMesh, RoadLayout layout, int laneIndex, Vector2Int segment)
+    private void CreateLaneChannel(SplineMesh splineMesh, RoadLayout layout, int meshLane, Vector2Int segment)
     {
-        SplineMesh.Channel channel = splineMesh.AddChannel($"Lane_{laneIndex}_{segment.x}_{segment.y}");
+        SplineMesh.Channel channel = splineMesh.AddChannel($"Lane_{meshLane}_{segment.x}_{segment.y}");
         channel.AddMesh(settings.laneMesh);
 
-        float currentOffset = layout.StartOffset + (laneIndex * settings.laneWidth);
+        float currentOffset = layout.StartOffset + (meshLane * settings.laneWidth);
         SetChannelLateralOffset(channel, currentOffset);
 
         channel.autoCount = true;
@@ -365,7 +396,7 @@ public class RoadGeneratorWindow : EditorWindow
         ConfigureChannelClip(channel, layout, segment);
 
         channel.overrideMaterialID = true;
-        ApplyLaneMaterial(channel, mesh, layout, laneIndex, segment, currentOffset);
+        ApplyLaneMaterial(channel, mesh, layout, meshLane, segment, currentOffset);
     }
 
     private void SetChannelLateralOffset(SplineMesh.Channel channel, float x)
@@ -389,20 +420,28 @@ public class RoadGeneratorWindow : EditorWindow
         channel.clipTo = clipToPercent;
     }
 
-    private void ApplyLaneMaterial(SplineMesh.Channel channel, SplineMesh.Channel.MeshDefinition mesh, RoadLayout layout, int laneIndex, Vector2Int segment, float currentOffset)
+    private void ApplyLaneMaterial(SplineMesh.Channel channel, SplineMesh.Channel.MeshDefinition mesh, RoadLayout layout, int meshLane, Vector2Int segment, float currentOffset)
     {
+        int effLanes = EffectiveLaneCount;
         int midTile = Mathf.Clamp((segment.x + segment.y) / 2, 0, layout.TotalTiles - 1);
-        bool isLeftEdge = laneIndex == leftEdgeProfile[midTile];
-        bool isRightEdge = laneIndex == rightEdgeProfile[midTile];
+
+        bool isLeftEdge = meshLane == leftEdgeProfile[midTile];
+        bool isRightEdge = meshLane == rightEdgeProfile[midTile];
+
+        // First and last mesh channels are always half-width edges (via material)
+        bool isFirstMeshLane = (meshLane == 0);
+        bool isLastMeshLane = (meshLane == effLanes - 1);
 
         if (isLeftEdge && isRightEdge)
         {
+            // Single lane road — center material
             channel.targetMaterialID = 1;
             return;
         }
 
-        if (isLeftEdge)
+        if (isLeftEdge || (isFirstMeshLane && leftEdgeProfile[midTile] == 0))
         {
+            // Left edge of road — half width, shifted right by quarter
             channel.targetMaterialID = 2;
             mesh.scale = new Vector3(settings.laneWidth * 0.5f, settings.roadThickness, settings.laneWidth);
             mesh.mirror = SplineMesh.Channel.MeshDefinition.MirrorMethod.X;
@@ -410,8 +449,9 @@ public class RoadGeneratorWindow : EditorWindow
             return;
         }
 
-        if (isRightEdge)
+        if (isRightEdge || (isLastMeshLane && rightEdgeProfile[midTile] == effLanes - 1))
         {
+            // Right edge of road — half width, shifted left by quarter
             channel.targetMaterialID = 2;
             mesh.scale = new Vector3(settings.laneWidth * 0.5f, settings.roadThickness, settings.laneWidth);
             mesh.mirror = SplineMesh.Channel.MeshDefinition.MirrorMethod.None;
@@ -419,15 +459,17 @@ public class RoadGeneratorWindow : EditorWindow
             return;
         }
 
-        channel.targetMaterialID = ResolveCenterLaneMaterial(laneIndex);
+        // Center lanes — full width
+        channel.targetMaterialID = ResolveCenterLaneMaterial(meshLane);
     }
 
-    private int ResolveCenterLaneMaterial(int laneIndex)
+    private int ResolveCenterLaneMaterial(int meshLane)
     {
-        int centerLaneId = (laneCount - 1) / 2;
-        int idFromCenter = centerLaneId - laneIndex;
+        int effLanes = EffectiveLaneCount;
+        int centerLaneId = (effLanes - 1) / 2;
+        int idFromCenter = centerLaneId - meshLane;
 
-        return (idFromCenter != 0 && laneIndex % 2 == 0) ? 0 : 1;
+        return (idFromCenter != 0 && meshLane % 2 == 0) ? 0 : 1;
     }
 
     private void SetupMeshCollider()
@@ -463,7 +505,7 @@ public class RoadGeneratorWindow : EditorWindow
 
     private void SpawnTransitions(RoadLayout layout)
     {
-        if (laneCount < 2) return;
+        if (VisualLaneCount < 2) return;
 
         SpawnSideTransitions(SortTransitions(leftTransitions), false, layout);
         SpawnSideTransitions(SortTransitions(rightTransitions), true, layout);
@@ -492,7 +534,7 @@ public class RoadGeneratorWindow : EditorWindow
         return currentLane;
     }
 
-    private int CalculateInitialEdgeLane(List<TransitionData> sorted, bool isRightSide)
+    private int CalculateInitialEdgeLane(List<TransitionData> sorted, bool isRightSide, int effLanes)
     {
         int current = 0;
         int extreme = 0;
@@ -511,14 +553,18 @@ public class RoadGeneratorWindow : EditorWindow
             }
         }
 
-        return isRightSide ? (laneCount - 1) - extreme : -extreme;
+        // Left edge starts at 0 (left half-edge), right edge at effLanes-1 (right half-edge).
+        // For no transitions (extreme=0): left=0, right=effLanes-1.
+        // All effLanes channels active: 0 (half), 1..effLanes-2 (center), effLanes-1 (half).
+        int initial = isRightSide ? (effLanes - 1) - extreme : -extreme;
+        return Mathf.Clamp(initial, 0, effLanes - 1);
     }
 
     private void SpawnSideTransitions(List<TransitionData> sorted, bool isRightSide, RoadLayout layout)
     {
         if (sorted.Count == 0) return;
 
-        int spawnLane = CalculateInitialEdgeLane(sorted, isRightSide);
+        int spawnLane = CalculateInitialEdgeLane(sorted, isRightSide, EffectiveLaneCount);
 
         for (int i = 0; i < sorted.Count; i++)
         {
@@ -548,6 +594,7 @@ public class RoadGeneratorWindow : EditorWindow
         double percent = targetSpline.Travel(0.0, currentDistance, Spline.Direction.Forward);
         SplineSample sample = targetSpline.Evaluate(percent);
 
+        // prefabLane is in effective space (0..EffectiveLaneCount-1)
         float laneOffset = layout.StartOffset + (prefabLane * settings.laneWidth);
         Vector3 spawnPosition = sample.position + (sample.right * laneOffset);
 
@@ -597,7 +644,7 @@ public class RoadGeneratorWindow : EditorWindow
     {
         for (int attempts = 0; attempts < 20; attempts++)
         {
-            int randomLane = Random.Range(0, laneCount);
+            int randomLane = Random.Range(0, EffectiveLaneCount);
 
             bool isLaneValid = IsLaneValidAtTile(randomLane, tileIndex);
             bool isLeftEdge = randomLane == leftEdgeProfile[tileIndex];
@@ -618,6 +665,7 @@ public class RoadGeneratorWindow : EditorWindow
         double percent = targetSpline.Travel(0.0, currentDistance, Spline.Direction.Forward);
         SplineSample sample = targetSpline.Evaluate(percent);
 
+        // lane is in effective space (0..EffectiveLaneCount-1)
         float laneOffsetValue = layout.StartOffset + (lane * settings.laneWidth);
 
         Vector3 spawnPosition = sample.position + (sample.right * laneOffsetValue);
@@ -654,11 +702,44 @@ public class RoadGeneratorWindow : EditorWindow
 
     private void ApplyRoadViewData(RoadLayout layout)
     {
-        roadView.laneCount = laneCount;
+        // roadView expects VISUAL lanes (0..VisualLaneCount-1).
+        // Internal profiles/topology use EFFECTIVE lanes (0..EffectiveLaneCount-1).
+        // Mapping:
+        //   Effective 0 = left half-edge → visual lane 0 (left edge)
+        //   Effective 1..VisualLaneCount-1 = center lanes → visual lanes 1..VisualLaneCount-1
+        //   Effective VisualLaneCount = right half-edge → visual lane VisualLaneCount-1 (right edge)
+        // So: leftEdgeVisual = leftEdgeProfile (no shift, clamp)
+        //     rightEdgeVisual = rightEdgeProfile - 1 (shift right half-edge to last visual lane)
+        
+        roadView.laneCount = VisualLaneCount;
         roadView.roadLength = layout.TotalLength;
         roadView.previousRoad = previousRoad;
         roadView.nextRoad = nextRoad;
-        roadView.SetTopologyMap(roadTopologyMap);
+
+        // Convert edge profiles
+        int totalTiles = layout.TotalTiles;
+        int[] leftEdgeVisual = new int[totalTiles];
+        int[] rightEdgeVisual = new int[totalTiles];
+        for (int i = 0; i < totalTiles; i++)
+        {
+            leftEdgeVisual[i] = Mathf.Clamp(leftEdgeProfile[i], 0, VisualLaneCount - 1);
+            rightEdgeVisual[i] = Mathf.Clamp(rightEdgeProfile[i] - 1, 0, VisualLaneCount - 1);
+        }
+        roadView.leftEdgeProfile = leftEdgeVisual;
+        roadView.rightEdgeProfile = rightEdgeVisual;
+
+        // Convert topology map: effective lanes 0..VisualLaneCount -> visual 0..VisualLaneCount-1
+        var visualTopology = new Dictionary<int, List<Vector2Int>>();
+        foreach (var kvp in roadTopologyMap)
+        {
+            int effLane = kvp.Key;
+            if (effLane >= 0 && effLane <= VisualLaneCount)
+            {
+                int visualLane = Mathf.Clamp(effLane, 0, VisualLaneCount - 1);
+                visualTopology[visualLane] = kvp.Value;
+            }
+        }
+        roadView.SetTopologyMap(visualTopology);
     }
 
     private void SetLayerRecursively(GameObject obj, int newLayer)
@@ -679,13 +760,16 @@ public class RoadGeneratorWindow : EditorWindow
         roadTopologyMap.Clear();
         leftEdgeProfile = new int[totalTiles];
         rightEdgeProfile = new int[totalTiles];
-        holesMap = new bool[laneCount, totalTiles];
+        
+        int effLanes = EffectiveLaneCount;
+        holesMap = new bool[effLanes, totalTiles];
 
         var sortedLeft = SortTransitions(leftTransitions);
         var sortedRight = SortTransitions(rightTransitions);
 
-        int startLeftEdge = CalculateInitialEdgeLane(sortedLeft, false);
-        int startRightEdge = CalculateInitialEdgeLane(sortedRight, true);
+        // Profiles use EFFECTIVE indices (0..effLanes-1)
+        int startLeftEdge = CalculateInitialEdgeLane(sortedLeft, false, effLanes);
+        int startRightEdge = CalculateInitialEdgeLane(sortedRight, true, effLanes);
 
         for (int i = 0; i < totalTiles; i++)
         {
@@ -693,13 +777,17 @@ public class RoadGeneratorWindow : EditorWindow
             rightEdgeProfile[i] = startRightEdge;
         }
 
-        ApplyEdgeTransitions(sortedLeft, startLeftEdge, false, totalTiles);
-        ApplyEdgeTransitions(sortedRight, startRightEdge, true, totalTiles);
+        ApplyEdgeTransitions(sortedLeft, startLeftEdge, false, totalTiles, effLanes);
+        ApplyEdgeTransitions(sortedRight, startRightEdge, true, totalTiles, effLanes);
 
-        BuildLaneSegments(totalTiles);
+        BuildLaneSegments(totalTiles, effLanes);
+
+        int maxLeft = leftEdgeProfile.Max();
+        int maxRight = rightEdgeProfile.Max();
+        Debug.Log($"[RoadGenerator] visualLanes={VisualLaneCount} effLanes={effLanes} | leftEdge[0]={leftEdgeProfile[0]} max={maxLeft} | rightEdge[0]={rightEdgeProfile[0]} max={maxRight} | leftT={leftTransitions.Count} rightT={rightTransitions.Count}");
     }
 
-    private void ApplyEdgeTransitions(List<TransitionData> sorted, int startLane, bool isRightSide, int totalTiles)
+    private void ApplyEdgeTransitions(List<TransitionData> sorted, int startLane, bool isRightSide, int totalTiles, int effLanes)
     {
         int[] edgeProfile = isRightSide ? rightEdgeProfile : leftEdgeProfile;
         int currentLane = startLane;
@@ -708,6 +796,7 @@ public class RoadGeneratorWindow : EditorWindow
         {
             int prefabLane = TransitionPrefabLane(t.type, currentLane, isRightSide);
             currentLane += TransitionDelta(t.type, isRightSide);
+            currentLane = Mathf.Clamp(currentLane, 0, effLanes - 1);
 
             int changeStartIndex = t.type == TransitionType.Narrowing
                 ? t.tileIndex
@@ -721,17 +810,20 @@ public class RoadGeneratorWindow : EditorWindow
             int startTile = Mathf.Max(0, t.tileIndex);
             int endTile = Mathf.Min(totalTiles, t.tileIndex + settings.transitionLength);
 
+            // holesMap uses EffectiveLaneCount indices directly (prefabLane is already in effective space)
+            int holeLane = prefabLane;
             for (int i = startTile; i < endTile; i++)
             {
-                if (prefabLane < 0 || prefabLane >= laneCount) continue;
-                holesMap[prefabLane, i] = true;
+                if (holeLane < 0 || holeLane >= effLanes) continue;
+                holesMap[holeLane, i] = true;
             }
         }
     }
 
-    private void BuildLaneSegments(int totalTiles)
+    private void BuildLaneSegments(int totalTiles, int effLanes)
     {
-        for (int lane = 0; lane < laneCount; lane++)
+        // Profiles and topology use EFFECTIVE indices (0..effLanes-1)
+        for (int lane = 0; lane < effLanes; lane++)
         {
             var segments = new List<Vector2Int>();
             bool inSegment = false;
@@ -739,9 +831,10 @@ public class RoadGeneratorWindow : EditorWindow
 
             for (int tile = 0; tile < totalTiles; tile++)
             {
+                bool hasHole = holesMap[lane, tile];
                 bool isActive = lane >= leftEdgeProfile[tile]
                     && lane <= rightEdgeProfile[tile]
-                    && !holesMap[lane, tile];
+                    && !hasHole;
 
                 if (isActive && !inSegment)
                 {
@@ -765,5 +858,200 @@ public class RoadGeneratorWindow : EditorWindow
                 roadTopologyMap[lane] = segments;
             }
         }
+    }
+
+    private void DrawForkCreatorSection()
+    {
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        EditorGUILayout.Space();
+        
+        GUILayout.Label("Fork Prefab Creator (Variant B)", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("Creates a fork prefab with: Parent (RoadSegment) + EntryView + N ChildViews. Each View has its own SplineComputer.", MessageType.Info);
+        
+        forkEntryPoint = (Transform)EditorGUILayout.ObjectField("Entry Point", forkEntryPoint, typeof(Transform), true);
+        
+        EditorGUILayout.LabelField("Exit Points", EditorStyles.boldLabel);
+        int exitCount = EditorGUILayout.IntSlider("Exit Count", forkExitPoints?.Length ?? 2, 2, 4);
+        if (forkExitPoints == null || forkExitPoints.Length != exitCount)
+        {
+            System.Array.Resize(ref forkExitPoints, exitCount);
+            System.Array.Resize(ref forkExitLanes, exitCount);
+        }
+        
+        for (int i = 0; i < exitCount; i++)
+        {
+            EditorGUILayout.BeginHorizontal();
+            forkExitPoints[i] = (Transform)EditorGUILayout.ObjectField($"Exit {i}", forkExitPoints[i], typeof(Transform), true);
+            forkExitLanes[i] = EditorGUILayout.IntField("Lanes", forkExitLanes[i], GUILayout.Width(80));
+            EditorGUILayout.EndHorizontal();
+        }
+        
+        if (GUILayout.Button("Generate Fork Prefab", GUILayout.Height(40)))
+        {
+            GenerateForkPrefab();
+        }
+    }
+
+    private void GenerateForkPrefab()
+    {
+        if (forkEntryPoint == null || System.Array.Exists(forkExitPoints, p => p == null))
+        {
+            EditorUtility.DisplayDialog("Error", "Assign all entry/exit points", "OK");
+            return;
+        }
+        
+        // Calculate total lanes first
+        int totalLanes = 0;
+        for (int i = 0; i < forkExitLanes.Length; i++) totalLanes += forkExitLanes[i];
+        
+        // 1. Create parent GameObject
+        var parent = new GameObject("RoadSegment_Fork");
+        parent.transform.position = forkEntryPoint.position;
+        parent.transform.rotation = forkEntryPoint.rotation;
+        
+        // 2. Create ENTRY SPLINE (Entry Point -> Fork Split Point)
+        // Find split point: average of exit points projected onto entry direction
+        Vector3 splitPoint = CalculateSplitPoint(forkEntryPoint, forkExitPoints);
+        
+        var entrySpline = CreateSpline(forkEntryPoint.position, splitPoint, forkEntryPoint.forward);
+        var entryViewObj = new GameObject("EntryView");
+        entryViewObj.transform.SetParent(parent.transform);
+        var entryView = entryViewObj.AddComponent<RoadSegmentView>();
+        entryView.spline = entrySpline;
+        entryView.isForkEntry = true;
+        entryView.laneCount = totalLanes; // SET LANE COUNT (sum of exit lanes)
+        
+        // 3. Create EXIT SPLINES (Split Point -> Each Exit Point)
+        var exitViews = new System.Collections.Generic.List<RoadSegmentView>();
+        for (int i = 0; i < forkExitPoints.Length; i++)
+        {
+            var exitSpline = CreateSpline(splitPoint, forkExitPoints[i].position, forkExitPoints[i].forward);
+            var exitViewObj = new GameObject($"ChildView_{i}");
+            exitViewObj.transform.SetParent(parent.transform);
+            var exitView = exitViewObj.AddComponent<RoadSegmentView>();
+            exitView.spline = exitSpline;
+            exitView.isForkEntry = false;
+            exitView.laneCount = forkExitLanes[i]; // SET LANE COUNT
+            exitViews.Add(exitView);
+        }
+        
+        // 4. Add RoadSegment component on parent
+        var segment = parent.AddComponent<RoadSegment>();
+        segment.roadView = entryView; // Main reference
+        segment.segmentType = RoadSegment.SegmentType.Fork;
+        
+        segment.entryPoint = CreateConnectionPoint(forkEntryPoint, totalLanes);
+        segment.exitPoints = new ConnectionPoint[forkExitPoints.Length];
+        for (int i = 0; i < forkExitPoints.Length; i++)
+        {
+            segment.exitPoints[i] = CreateConnectionPoint(forkExitPoints[i], forkExitLanes[i]);
+        }
+        
+        // 5. Bake topology for each view (using RoadSettingsSO.laneWidth)
+        float laneWidth = settings?.laneWidth ?? 3.5f;
+        entryView.laneWidth = laneWidth;
+        foreach (var ev in exitViews) ev.laneWidth = laneWidth;
+        
+        // Generate constant edge profiles for each view (straight segments, no transitions)
+        int entryTiles = Mathf.Max(1, Mathf.FloorToInt(entrySpline.CalculateLength() / (laneWidth * 2f)));
+        entryView.leftEdgeProfile = new int[entryTiles];
+        entryView.rightEdgeProfile = new int[entryTiles];
+        for (int i = 0; i < entryTiles; i++)
+        {
+            entryView.leftEdgeProfile[i] = 0;
+            entryView.rightEdgeProfile[i] = totalLanes - 1;
+        }
+        
+        for (int i = 0; i < exitViews.Count; i++)
+        {
+            var ev = exitViews[i];
+            int exitTiles = Mathf.Max(1, Mathf.FloorToInt(ev.spline.CalculateLength() / (laneWidth * 2f)));
+            ev.leftEdgeProfile = new int[exitTiles];
+            ev.rightEdgeProfile = new int[exitTiles];
+            for (int t = 0; t < exitTiles; t++)
+            {
+                ev.leftEdgeProfile[t] = 0;
+                ev.rightEdgeProfile[t] = forkExitLanes[i] - 1;
+            }
+        }
+        
+        // 6. Save as Prefab
+        string folderPath = "Assets/Game/Level/Prefabs/RoadSegments/Forks/";
+        if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))
+        {
+            string[] parts = folderPath.Split('/');
+            string currentPath = parts[0];
+            for (int i = 1; i < parts.Length - 1; i++)
+            {
+                string nextPath = currentPath + "/" + parts[i];
+                if (!UnityEditor.AssetDatabase.IsValidFolder(nextPath))
+                {
+                    UnityEditor.AssetDatabase.CreateFolder(currentPath, parts[i]);
+                }
+                currentPath = nextPath;
+            }
+        }
+        
+        string path = folderPath + "Fork_" + System.DateTime.Now.Ticks + ".prefab";
+        UnityEditor.PrefabUtility.SaveAsPrefabAsset(parent, path);
+        UnityEngine.Object.DestroyImmediate(parent);
+        
+        Debug.Log($"[ForkCreator] Created fork prefab at {path}");
+        UnityEditor.EditorUtility.RevealInFinder(path);
+        
+        ShowForkCreator = false;
+    }
+    
+    private Vector3 CalculateSplitPoint(Transform entry, Transform[] exits)
+    {
+        // Project exits onto entry forward plane, average
+        Vector3 entryPos = entry.position;
+        Vector3 entryFwd = entry.forward;
+        Vector3 sum = Vector3.zero;
+        foreach (var ex in exits)
+        {
+            Vector3 toExit = ex.position - entryPos;
+            float proj = Vector3.Dot(toExit, entryFwd);
+            sum += entryPos + entryFwd * proj;
+        }
+        return sum / exits.Length;
+    }
+    
+    private Dreamteck.Splines.SplineComputer CreateSpline(Vector3 start, Vector3 end, Vector3 forward)
+    {
+        var go = new GameObject("Spline");
+        var spline = go.AddComponent<Dreamteck.Splines.SplineComputer>();
+        spline.type = Dreamteck.Splines.Spline.Type.Bezier;
+        
+        Vector3 dir = (end - start).normalized;
+        float dist = Vector3.Distance(start, end);
+        
+        Dreamteck.Splines.SplinePoint p0 = new Dreamteck.Splines.SplinePoint();
+        p0.position = start;
+        p0.normal = forward;
+        p0.size = 1f;
+        p0.SetTangent2Position(start + dir * dist * 0.33f);
+        
+        Dreamteck.Splines.SplinePoint p1 = new Dreamteck.Splines.SplinePoint();
+        p1.position = end;
+        p1.normal = forward;
+        p1.size = 1f;
+        p1.SetTangentPosition(end - dir * dist * 0.33f);
+        
+        spline.SetPoints(new[] { p0, p1 });
+        return spline;
+    }
+    
+    private ConnectionPoint CreateConnectionPoint(Transform t, int lanes)
+    {
+        var go = new GameObject($"ConnectionPoint_{lanes}L");
+        go.transform.SetPositionAndRotation(t.position, t.rotation);
+        var cp = go.AddComponent<ConnectionPoint>();
+        // ConnectionPoint has private field numLanes with public property NumLanes
+        // We need to set via reflection or use the serialized field
+        var field = typeof(ConnectionPoint).GetField("numLanes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (field != null) field.SetValue(cp, lanes);
+        return cp;
     }
 }

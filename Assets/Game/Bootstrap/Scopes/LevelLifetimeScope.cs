@@ -17,6 +17,7 @@ using Enemies;
 using Game.Car.Controller.CarPhysics.Suspension;
 using Game.Car.VFX.Wheel.Runtime;
 using Game.Level.Runtime;
+using Game.Level.Runtime.Config;
 using Level.Runtime.States;
 using NaughtyAttributes;
 using UI;
@@ -30,6 +31,8 @@ namespace Level.Runtime.Scopes
     {
         [SerializeField] private LayerMask roadMask;
         [SerializeField] private LayerMask offroadMask;
+        [Header("Road Generator")]
+        [SerializeField] private RoadGridSettings roadGridSettings;
 
         [Header("Car physics")]
         [SerializeField] private CarPhysicsData physicsData;
@@ -53,6 +56,7 @@ namespace Level.Runtime.Scopes
             builder.RegisterInstance(ResolveOrDefault(transmissionSO, nameof(transmissionSO)));
             builder.RegisterInstance(ResolveOrDefault(drivetrainSO, nameof(drivetrainSO)));
             builder.RegisterInstance(new RoadCheckService(roadMask, offroadMask));
+            builder.RegisterInstance(ResolveOrDefault(roadGridSettings, nameof(roadGridSettings)));
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
 
