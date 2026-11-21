@@ -55,12 +55,6 @@ public class RoadGeneratorWindow : EditorWindow
     [SerializeField] private List<TransitionData> leftTransitions = new List<TransitionData>();
     [SerializeField] private List<TransitionData> rightTransitions = new List<TransitionData>();
 
-    // Fork Prefab Creation
-    private Transform forkEntryPoint;
-    private Transform[] forkExitPoints = new Transform[2];
-    private int[] forkExitLanes = new int[] { 2, 1 };
-    private bool ShowForkCreator = false;
-
     private Dictionary<int, List<Vector2Int>> roadTopologyMap = new Dictionary<int, List<Vector2Int>>();
     private int[] leftEdgeProfile;
     private int[] rightEdgeProfile;
@@ -74,14 +68,6 @@ public class RoadGeneratorWindow : EditorWindow
         GetWindow<RoadGeneratorWindow>("Генератор Дорог");
     }
 
-    // Add to the menu items section - add this new menu item
-    [MenuItem("Tools/Road/Create Fork Prefab")]
-    public static void CreateForkPrefab()
-    {
-        var window = GetWindow<RoadGeneratorWindow>("Fork Prefab Creator");
-        window.ShowForkCreator = true;
-    }
-
     private void OnGUI()
     {
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -93,11 +79,6 @@ public class RoadGeneratorWindow : EditorWindow
         DrawTransitionsSection();
         DrawDecalSettingsSection();
         DrawGenerateButton();
-
-        if (ShowForkCreator)
-        {
-            DrawForkCreatorSection();
-        }
 
         EditorGUILayout.EndScrollView();
     }
@@ -860,164 +841,6 @@ public class RoadGeneratorWindow : EditorWindow
         }
     }
 
-    private void DrawForkCreatorSection()
-    {
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        EditorGUILayout.Space();
-        
-        GUILayout.Label("Fork Prefab Creator (Variant B)", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("Creates a fork prefab with: Parent (RoadSegment) + EntryView + N ChildViews. Each View has its own SplineComputer.", MessageType.Info);
-        
-        forkEntryPoint = (Transform)EditorGUILayout.ObjectField("Entry Point", forkEntryPoint, typeof(Transform), true);
-        
-        EditorGUILayout.LabelField("Exit Points", EditorStyles.boldLabel);
-        int exitCount = EditorGUILayout.IntSlider("Exit Count", forkExitPoints?.Length ?? 2, 2, 4);
-        if (forkExitPoints == null || forkExitPoints.Length != exitCount)
-        {
-            System.Array.Resize(ref forkExitPoints, exitCount);
-            System.Array.Resize(ref forkExitLanes, exitCount);
-        }
-        
-        for (int i = 0; i < exitCount; i++)
-        {
-            EditorGUILayout.BeginHorizontal();
-            forkExitPoints[i] = (Transform)EditorGUILayout.ObjectField($"Exit {i}", forkExitPoints[i], typeof(Transform), true);
-            forkExitLanes[i] = EditorGUILayout.IntField("Lanes", forkExitLanes[i], GUILayout.Width(80));
-            EditorGUILayout.EndHorizontal();
-        }
-        
-        if (GUILayout.Button("Generate Fork Prefab", GUILayout.Height(40)))
-        {
-            GenerateForkPrefab();
-        }
-    }
-
-    private void GenerateForkPrefab()
-    {
-        if (forkEntryPoint == null || System.Array.Exists(forkExitPoints, p => p == null))
-        {
-            EditorUtility.DisplayDialog("Error", "Assign all entry/exit points", "OK");
-            return;
-        }
-        
-        // Calculate total lanes first
-        int totalLanes = 0;
-        for (int i = 0; i < forkExitLanes.Length; i++) totalLanes += forkExitLanes[i];
-        
-        // 1. Create parent GameObject
-        var parent = new GameObject("RoadSegment_Fork");
-        parent.transform.position = forkEntryPoint.position;
-        parent.transform.rotation = forkEntryPoint.rotation;
-        
-        // 2. Create ENTRY SPLINE (Entry Point -> Fork Split Point)
-        // Find split point: average of exit points projected onto entry direction
-        Vector3 splitPoint = CalculateSplitPoint(forkEntryPoint, forkExitPoints);
-        
-        var entrySpline = CreateSpline(forkEntryPoint.position, splitPoint, forkEntryPoint.forward);
-        var entryViewObj = new GameObject("EntryView");
-        entryViewObj.transform.SetParent(parent.transform);
-        var entryView = entryViewObj.AddComponent<RoadSegmentView>();
-        entryView.spline = entrySpline;
-        entryView.isForkEntry = true;
-        entryView.laneCount = totalLanes; // SET LANE COUNT (sum of exit lanes)
-        
-        // 3. Create EXIT SPLINES (Split Point -> Each Exit Point)
-        var exitViews = new System.Collections.Generic.List<RoadSegmentView>();
-        for (int i = 0; i < forkExitPoints.Length; i++)
-        {
-            var exitSpline = CreateSpline(splitPoint, forkExitPoints[i].position, forkExitPoints[i].forward);
-            var exitViewObj = new GameObject($"ChildView_{i}");
-            exitViewObj.transform.SetParent(parent.transform);
-            var exitView = exitViewObj.AddComponent<RoadSegmentView>();
-            exitView.spline = exitSpline;
-            exitView.isForkEntry = false;
-            exitView.laneCount = forkExitLanes[i]; // SET LANE COUNT
-            exitViews.Add(exitView);
-        }
-        
-        // 4. Add RoadSegment component on parent
-        var segment = parent.AddComponent<RoadSegment>();
-        segment.roadView = entryView; // Main reference
-        segment.segmentType = RoadSegment.SegmentType.Fork;
-        
-        segment.entryPoint = CreateConnectionPoint(forkEntryPoint, totalLanes);
-        segment.exitPoints = new ConnectionPoint[forkExitPoints.Length];
-        for (int i = 0; i < forkExitPoints.Length; i++)
-        {
-            segment.exitPoints[i] = CreateConnectionPoint(forkExitPoints[i], forkExitLanes[i]);
-        }
-        
-        // 5. Bake topology for each view (using RoadSettingsSO.laneWidth)
-        float laneWidth = settings?.laneWidth ?? 3.5f;
-        entryView.laneWidth = laneWidth;
-        foreach (var ev in exitViews) ev.laneWidth = laneWidth;
-        
-        // Generate constant edge profiles for each view (straight segments, no transitions)
-        int entryTiles = Mathf.Max(1, Mathf.FloorToInt(entrySpline.CalculateLength() / (laneWidth * 2f)));
-        entryView.leftEdgeProfile = new int[entryTiles];
-        entryView.rightEdgeProfile = new int[entryTiles];
-        for (int i = 0; i < entryTiles; i++)
-        {
-            entryView.leftEdgeProfile[i] = 0;
-            entryView.rightEdgeProfile[i] = totalLanes - 1;
-        }
-        
-        for (int i = 0; i < exitViews.Count; i++)
-        {
-            var ev = exitViews[i];
-            int exitTiles = Mathf.Max(1, Mathf.FloorToInt(ev.spline.CalculateLength() / (laneWidth * 2f)));
-            ev.leftEdgeProfile = new int[exitTiles];
-            ev.rightEdgeProfile = new int[exitTiles];
-            for (int t = 0; t < exitTiles; t++)
-            {
-                ev.leftEdgeProfile[t] = 0;
-                ev.rightEdgeProfile[t] = forkExitLanes[i] - 1;
-            }
-        }
-        
-        // 6. Save as Prefab
-        string folderPath = "Assets/Game/Level/Prefabs/RoadSegments/Forks/";
-        if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))
-        {
-            string[] parts = folderPath.Split('/');
-            string currentPath = parts[0];
-            for (int i = 1; i < parts.Length - 1; i++)
-            {
-                string nextPath = currentPath + "/" + parts[i];
-                if (!UnityEditor.AssetDatabase.IsValidFolder(nextPath))
-                {
-                    UnityEditor.AssetDatabase.CreateFolder(currentPath, parts[i]);
-                }
-                currentPath = nextPath;
-            }
-        }
-        
-        string path = folderPath + "Fork_" + System.DateTime.Now.Ticks + ".prefab";
-        UnityEditor.PrefabUtility.SaveAsPrefabAsset(parent, path);
-        UnityEngine.Object.DestroyImmediate(parent);
-        
-        Debug.Log($"[ForkCreator] Created fork prefab at {path}");
-        UnityEditor.EditorUtility.RevealInFinder(path);
-        
-        ShowForkCreator = false;
-    }
-    
-    private Vector3 CalculateSplitPoint(Transform entry, Transform[] exits)
-    {
-        // Project exits onto entry forward plane, average
-        Vector3 entryPos = entry.position;
-        Vector3 entryFwd = entry.forward;
-        Vector3 sum = Vector3.zero;
-        foreach (var ex in exits)
-        {
-            Vector3 toExit = ex.position - entryPos;
-            float proj = Vector3.Dot(toExit, entryFwd);
-            sum += entryPos + entryFwd * proj;
-        }
-        return sum / exits.Length;
-    }
-    
     private Dreamteck.Splines.SplineComputer CreateSpline(Vector3 start, Vector3 end, Vector3 forward)
     {
         var go = new GameObject("Spline");

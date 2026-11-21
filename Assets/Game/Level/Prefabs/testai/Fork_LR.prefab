@@ -188,7 +188,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spline: {fileID: 3809274396089123345}
-  roadLength: 27.13752
+  roadLength: 20.41172
   laneCount: 2
   leftEdgeProfile: 
   rightEdgeProfile: 
@@ -1431,8 +1431,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8850832930287385900}
+  m_Children: []
   m_Father: {fileID: 488128056607879470}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6422825226064200732
@@ -1460,12 +1459,12 @@ MonoBehaviour:
   _spline:
     points:
     - _type: 0
-      position: {x: 0, y: 0, z: -33.9394}
+      position: {x: 0, y: 0, z: -25}
       color: {r: 1, g: 1, b: 1, a: 1}
       normal: {x: 0, y: 1, z: 0}
       size: 1
-      tangent: {x: 0, y: 0, z: -42.18939}
-      tangent2: {x: 0, y: 0, z: -25.689411}
+      tangent: {x: 0, y: 0, z: -33.249992}
+      tangent2: {x: 0, y: 0, z: -16.750011}
     - _type: 0
       position: {x: 0, y: 0, z: -16.99925}
       color: {r: 1, g: 1, b: 1, a: 1}
@@ -1499,55 +1498,55 @@ MonoBehaviour:
   _subscribers:
   - {fileID: 1881440227499086259}
   _rawSamples:
-  - position: {x: 0, y: 0, z: -33.9394}
+  - position: {x: 0, y: 0, z: -25}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0
-  - position: {x: 0, y: 0, z: -31.457232}
+  - position: {x: 0, y: 0, z: -22.824394}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.1111111111111111
-  - position: {x: 0, y: 0, z: -29.42501}
+  - position: {x: 0, y: 0, z: -21.613766}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.2222222222222222
-  - position: {x: 0, y: 0, z: -27.714182}
+  - position: {x: 0, y: 0, z: -21.092402}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.3333333333333333
-  - position: {x: 0, y: 0, z: -26.19619}
+  - position: {x: 0, y: 0, z: -20.984608}
     up: {x: 0, y: 1, z: 0}
-    forward: {x: 0, y: 0, z: 1}
+    forward: {x: 0, y: 0, z: -1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.4444444444444444
-  - position: {x: 0, y: 0, z: -24.742474}
+  - position: {x: 0, y: 0, z: -21.014658}
     up: {x: 0, y: 1, z: 0}
-    forward: {x: 0, y: 0, z: 1}
+    forward: {x: 0, y: 0, z: -1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.5555555555555556
-  - position: {x: 0, y: 0, z: -23.22448}
+  - position: {x: 0, y: 0, z: -20.906857}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.6666666666666666
-  - position: {x: 0, y: 0, z: -21.513649}
+  - position: {x: 0, y: 0, z: -20.385494}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
     size: 1
     percent: 0.7777777777777778
-  - position: {x: 0, y: 0, z: -19.481424}
+  - position: {x: 0, y: 0, z: -19.17486}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
@@ -1573,27 +1572,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spline: {fileID: 6422825226064200732}
-  roadLength: 16.94015
+  roadLength: 8.06085
   laneCount: 4
-  leftEdgeProfile: 
-  rightEdgeProfile: 
+  leftEdgeProfile: 00000000
+  rightEdgeProfile: 03000000
   laneWidth: 6
   serializedTopology:
   - laneIndex: 0
     segments:
-    - {x: 0, y: 2}
+    - {x: 0, y: 1}
   - laneIndex: 1
     segments:
-    - {x: 0, y: 2}
+    - {x: 0, y: 1}
   - laneIndex: 2
     segments:
-    - {x: 0, y: 2}
+    - {x: 0, y: 1}
   - laneIndex: 3
     segments:
-    - {x: 0, y: 2}
-  - laneIndex: 4
-    segments:
-    - {x: 0, y: 2}
+    - {x: 0, y: 1}
   previousRoad: {fileID: 0}
   nextRoad: {fileID: 0}
   exitFirstLane: 0000000002000000
@@ -1689,7 +1685,7 @@ MonoBehaviour:
     useClippedPercent: 0
     keys: []
   _clipFromSample:
-    position: {x: 0, y: 0, z: -33.9394}
+    position: {x: 0, y: 0, z: -25}
     up: {x: 0, y: 1, z: 0}
     forward: {x: 0, y: 0, z: 1}
     color: {r: 1, g: 1, b: 1, a: 1}
@@ -1730,7 +1726,7 @@ MonoBehaviour:
   _bakedMesh: {fileID: 0}
   colliderUpdateRate: 0.2
   _channels:
-  - name: Lane_0_0_2
+  - name: Lane_0_0_1
     _iterationSeed: 0
     _offsetSeed: 0
     _rotationSeed: 0
@@ -1929,7 +1925,7 @@ MonoBehaviour:
     _overrideNormal: 0
     _customNormal: {x: 0, y: 1, z: 0}
     _type: 0
-    _count: 3
+    _count: 1
     _autoCount: 1
     _spacing: 0
     _randomRotation: 0
@@ -1948,7 +1944,7 @@ MonoBehaviour:
       blend: 1
       useClippedPercent: 0
       keys: []
-  - name: Lane_1_0_2
+  - name: Lane_1_0_1
     _iterationSeed: 0
     _offsetSeed: 0
     _rotationSeed: 0
@@ -2147,7 +2143,7 @@ MonoBehaviour:
     _overrideNormal: 0
     _customNormal: {x: 0, y: 1, z: 0}
     _type: 0
-    _count: 3
+    _count: 1
     _autoCount: 1
     _spacing: 0
     _randomRotation: 0
@@ -2166,7 +2162,7 @@ MonoBehaviour:
       blend: 1
       useClippedPercent: 0
       keys: []
-  - name: Lane_2_0_2
+  - name: Lane_2_0_1
     _iterationSeed: 0
     _offsetSeed: 0
     _rotationSeed: 0
@@ -2365,7 +2361,7 @@ MonoBehaviour:
     _overrideNormal: 0
     _customNormal: {x: 0, y: 1, z: 0}
     _type: 0
-    _count: 3
+    _count: 1
     _autoCount: 1
     _spacing: 0
     _randomRotation: 0
@@ -2384,7 +2380,7 @@ MonoBehaviour:
       blend: 1
       useClippedPercent: 0
       keys: []
-  - name: Lane_3_0_2
+  - name: Lane_3_0_1
     _iterationSeed: 0
     _offsetSeed: 0
     _rotationSeed: 0
@@ -2583,7 +2579,7 @@ MonoBehaviour:
     _overrideNormal: 0
     _customNormal: {x: 0, y: 1, z: 0}
     _type: 0
-    _count: 3
+    _count: 1
     _autoCount: 1
     _spacing: 0
     _randomRotation: 0
@@ -2602,7 +2598,7 @@ MonoBehaviour:
       blend: 1
       useClippedPercent: 0
       keys: []
-  - name: Lane_4_0_2
+  - name: Lane_4_0_1
     _iterationSeed: 0
     _offsetSeed: 0
     _rotationSeed: 0
@@ -2801,7 +2797,7 @@ MonoBehaviour:
     _overrideNormal: 0
     _customNormal: {x: 0, y: 1, z: 0}
     _type: 0
-    _count: 3
+    _count: 1
     _autoCount: 1
     _spacing: 0
     _randomRotation: 0
@@ -3020,7 +3016,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spline: {fileID: 214865647521483452}
-  roadLength: 28.601124
+  roadLength: 22.218061
   laneCount: 2
   leftEdgeProfile: 
   rightEdgeProfile: 
@@ -3984,80 +3980,6 @@ MonoBehaviour:
     spawnChance: 0.6
   globalSpawnChance: 1
   despawnDistance: 150
---- !u!1001 &41274268951741166
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1441276340391780985}
-    m_Modifications:
-    - target: {fileID: 1450012805691226734, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_Size.x
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1450012805691226734, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_Size.y
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_Name
-      value: Generated_Decal_Lane_3_0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1838550014578707942, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -24.9394
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: -0.17736034
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.17736034
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.68450224
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.68450224
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
---- !u!4 &8850832930287385900 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8810970593821228994, guid: 2d18aa1416472be4695933f4325b6855, type: 3}
-  m_PrefabInstance: {fileID: 41274268951741166}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4912535570509881246
 PrefabInstance:
   m_ObjectHideFlags: 0

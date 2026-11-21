@@ -1864,6 +1864,7 @@ MonoBehaviour:
   offroadMask:
     serializedVersion: 2
     m_Bits: 65536
+  roadGridSettings: {fileID: 11400000, guid: e529cac089caee444a4a5f69b3c05c00, type: 2}
   physicsData: {fileID: 11400000, guid: 64494ce466f6a874f97066b5cbf971ea, type: 2}
   engineSO: {fileID: 11400000, guid: 3146d8897b574e77bc28e5aee9c219cc, type: 2}
   transmissionSO: {fileID: 11400000, guid: 657e1899f3aa4706a13f71f7965af787, type: 2}
@@ -6904,29 +6905,23 @@ MonoBehaviour:
     weightHillDown: 1
     weightFork: 8
     straightPrefabs:
-    - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
-    - {fileID: 8545565238388433368, guid: 3483215dc8a41753b9c30df7022f4fc8, type: 3}
-    - {fileID: 8545565238388433368, guid: 2904cc8a5f5d76147b3030d85cfcf876, type: 3}
-    turnLeftPrefabs:
-    - {fileID: 8545565238388433368, guid: b06c534d6355fff479c59244fcff5344, type: 3}
-    - {fileID: 8545565238388433368, guid: 6ea4349fea3d47847b001de6392234ee, type: 3}
-    turnRightPrefabs:
-    - {fileID: 8545565238388433368, guid: 8972c9ccb82fac642a22e958dd9ebb5b, type: 3}
-    - {fileID: 8545565238388433368, guid: 1d73f48c2c0060543848f063029b787b, type: 3}
+    - {fileID: 8545565238388433368, guid: 602816569ce130e48b0bf43d6409096c, type: 3}
+    - {fileID: 8545565238388433368, guid: f868071f403e29f42817a7d64eb37d9c, type: 3}
+    turnLeftPrefabs: []
+    turnRightPrefabs: []
     hillUpPrefabs: []
     hillDownPrefabs: []
     forkPrefabs:
-    - {fileID: 8545565238388433368, guid: ec4780cf90d9a664f9c16f9a3448cd56, type: 3}
-    - {fileID: 8545565238388433368, guid: d1d5d0bc318e62948a258a7c6a177972, type: 3}
+    - {fileID: 8545565238388433368, guid: 1cf029cdc7e7c9e428ab472f1e59dd56, type: 3}
   player: {fileID: 52702740}
-  segmentsAhead: 2
+  segmentsAhead: 5
   keepSegmentsBehind: 2
   maxSpawnsPerFrame: 2
-  cellSize: 50
+  gridSettings: {fileID: 11400000, guid: e529cac089caee444a4a5f69b3c05c00, type: 2}
   allowBackward: 1
   maxSameTurnInRow: 1
   maxHillsInRow: 1
-  minSegmentsBetweenForks: 8
+  minSegmentsBetweenForks: 3
   pruneAfterSegments: 2
 --- !u!4 &1488523654
 Transform:

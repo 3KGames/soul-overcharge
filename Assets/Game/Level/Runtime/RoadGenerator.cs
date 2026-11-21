@@ -202,6 +202,11 @@ namespace Game.Level.Runtime
 				return;
 			}
 
+			// Обновляем счётчик ДО копирования state в дочерние курсоры:
+			// иначе они навсегда получают sinceFork = 0 и вилки блокируются в CanPlace.
+			bool isFork = seg.exits != null && seg.exits.Length > 1;
+			c.state.sinceFork = isFork ? 0 : c.state.sinceFork + 1;
+
 			AlignSegment(seg, c.exitTransform);
 
 			var node = new RoadNode
@@ -221,11 +226,14 @@ namespace Game.Level.Runtime
 			}
 
 			// === VARIANT B: Handle Fork Prefabs ===
-			var entryView = go.GetComponent<RoadSegmentView>(); // На корне префаба
-			var childViews = go.GetComponentsInChildren<RoadSegmentView>()
-				.Where(v => v != entryView).ToArray();
-
-			bool isFork = seg.exits.Length > 1;
+			// roadView — сериализованная ссылка на входной view (у вилки это ForkEntry).
+			// Если она не проставлена, fallback по isForkEntry/spline, как в RoadSegment.SetLaneCountOnViews.
+			var allViews = go.GetComponentsInChildren<RoadSegmentView>();
+			var entryView = ResolveEntryView(seg, allViews);
+			var childViews = entryView != null && entryView.isForkEntry && entryView.childViews != null &&
+			                 entryView.childViews.Length > 0
+				? entryView.childViews
+				: allViews.Where(v => v != entryView).ToArray();
 
 			// Ensure laneCount is set on all views (critical for gizmos, spline follower, etc.)
 			int entryLanes = isFork ? seg.exits.Sum(e => e.point.NumLanes) : seg.exits[0].point.NumLanes;
@@ -284,7 +292,10 @@ namespace Game.Level.Runtime
 					{
 						owner = exitNode,
 						exitIndex = i,
-						exitTransform = cv.spline ? cv.transform : seg.exits[i].point.transform,
+						// Дочерний spline view стоит в (0,0,0) с identity-поворотом —
+						// выравнивание по нему ставит следующий сегмент прямо в центр вилки.
+						// Используем ту же ConnectionPoint, от которой взяты cell и heading.
+						exitTransform = seg.exits[i].point.transform,
 						lanes = seg.exits[i].point.NumLanes,
 						cell = c.cell + Rot(seg.exits[i].nextCell, c.heading),
 						heading = (c.heading + seg.exits[i].turn) & 3,
@@ -335,13 +346,19 @@ namespace Game.Level.Runtime
 			_open.Remove(c);
 			_nodeCount++;
 
-			c.state.sinceFork = isFork ? 0 : c.state.sinceFork + 1;
-
 			if (isFork)
 				SplitCorridors(_open.Where(x => x.owner != null && x.owner.parent == node).ToList(), node, c.heading);
 
 			if (seg.TryGetComponent(out TrackEnemySpawner spawner))
 				spawner.TrySpawnEnemies();
+		}
+
+		static RoadSegmentView ResolveEntryView(RoadSegment seg, RoadSegmentView[] allViews)
+		{
+			if (seg.roadView != null && allViews.Contains(seg.roadView)) return seg.roadView;
+			var forkEntry = allViews.FirstOrDefault(v => v.isForkEntry);
+			if (forkEntry != null) return forkEntry;
+			return allViews.FirstOrDefault(v => v.spline != null) ?? allViews.FirstOrDefault();
 		}
 
 		GameObject InstantiateSegment(GameObject prefab)
@@ -686,7 +703,7 @@ namespace Game.Level.Runtime
 				candidates = ForceBiomeSwitchAndRetry(c);
 
 			if (candidates.Count == 0) return null;
-			return PickFromTypeCandidates(c, candidates);
+			return PickFromTypeCandidates(ref c.state, candidates);
 		}
 
 		List<(SegmentType type, int weight, List<GameObject> prefabs)> ForceBiomeSwitchAndRetry(BranchCursor c)
@@ -758,7 +775,7 @@ namespace Game.Level.Runtime
 				list.Add((type, weight, valid));
 		}
 
-		GameObject PickFromTypeCandidates(BranchCursor c, List<(SegmentType type, int weight, List<GameObject> prefabs)> candidates)
+		GameObject PickFromTypeCandidates(ref GenState state, List<(SegmentType type, int weight, List<GameObject> prefabs)> candidates)
 		{
 			int total = 0;
 			foreach (var cand in candidates) total += cand.weight;
@@ -770,13 +787,13 @@ namespace Game.Level.Runtime
 				cumulative += cand.weight;
 				if (roll < cumulative)
 				{
-					UpdateCounters(ref c.state, cand.type);
+					UpdateCounters(ref state, cand.type);
 					return cand.prefabs[Random.Range(0, cand.prefabs.Count)];
 				}
 			}
 
 			var last = candidates[candidates.Count - 1];
-			UpdateCounters(ref c.state, last.type);
+			UpdateCounters(ref state, last.type);
 			return last.prefabs[Random.Range(0, last.prefabs.Count)];
 		}
 

@@ -132,7 +132,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLanes: 2
-  firstEntryLane: 1
+  firstEntryLane: 0
 --- !u!1 &4300614835651602385
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +265,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   numLanes: 4
-  firstEntryLane: 2
+  firstEntryLane: 0
 --- !u!1 &4867565217161771864
 GameObject:
   m_ObjectHideFlags: 0
@@ -577,8 +577,7 @@ MonoBehaviour:
     - {x: 11, y: 13}
   - laneIndex: 1
     segments:
-    - {x: 0, y: 3}
-    - {x: 11, y: 13}
+    - {x: 0, y: 13}
   - laneIndex: 2
     segments:
     - {x: 0, y: 13}

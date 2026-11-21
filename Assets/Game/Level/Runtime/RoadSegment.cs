@@ -280,6 +280,10 @@ namespace Game.Level.Runtime
 			{
 				if (view == null) continue;
 				
+				// Update roadLength from spline (editor-time rebake)
+				if (view.spline != null)
+					view.roadLength = view.spline.CalculateLength();
+				
 				// Rebuild serializedTopology from edge profiles and laneCount
 				view.RebuildTopologyFromProfiles();
 			}

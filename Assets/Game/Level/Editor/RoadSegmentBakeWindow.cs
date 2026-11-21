@@ -2,27 +2,63 @@
 
 using Game.Level.Runtime;
 using Game.Level.Runtime.Config;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEditorInternal;
 
 public class RoadSegmentBakeWindow : EditorWindow
 {
     [SerializeField] private RoadSettingsSO bakeSettings;
     [SerializeField] private RoadGridSettings gridSettings;
     [SerializeField] private bool forceRebake = false;
-	
-    [MenuItem("Tools/Road/Bake all road segments (with settings)")]
+    [SerializeField] private List<GameObject> targetPrefabs = new List<GameObject>();
+    
+    private ReorderableList reorderableList;
+    private Vector2 scrollPos;
+    
+    [MenuItem("Tools/Road/Bake Road Segments (Multi-Select)")]
     private static void ShowWindow()
     {
         var window = GetWindow<RoadSegmentBakeWindow>("Bake Road Segments");
-        window.minSize = new Vector2(350, 220);
+        window.minSize = new Vector2(400, 300);
+    }
+    
+    void OnEnable()
+    {
+        reorderableList = new ReorderableList(targetPrefabs, typeof(GameObject), true, true, true, true)
+        {
+            drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Target Prefabs"),
+            drawElementCallback = (rect, index, active, focused) =>
+            {
+                if (index >= 0 && index < targetPrefabs.Count)
+                {
+                    rect.height = EditorGUIUtility.singleLineHeight;
+                    rect.y += 1;
+                    targetPrefabs[index] = (GameObject)EditorGUI.ObjectField(
+                        rect, targetPrefabs[index], typeof(GameObject), false);
+                }
+            },
+            onAddCallback = list => targetPrefabs.Add(null),
+            onRemoveCallback = list =>
+            {
+                if (list.index >= 0 && list.index < targetPrefabs.Count)
+                    targetPrefabs.RemoveAt(list.index);
+            },
+            elementHeight = EditorGUIUtility.singleLineHeight + 4
+        };
     }
     
     void OnGUI()
     {
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+        
         EditorGUILayout.LabelField("Bake Road Segments", EditorStyles.boldLabel);
         EditorGUILayout.Space();
         
+        // Settings
         bakeSettings = (RoadSettingsSO)EditorGUILayout.ObjectField(
             "Road Settings SO", bakeSettings, typeof(RoadSettingsSO), false);
         
@@ -30,54 +66,73 @@ public class RoadSegmentBakeWindow : EditorWindow
             "Road Grid Settings", gridSettings, typeof(RoadGridSettings), false);
         
         EditorGUILayout.Space();
+        
         forceRebake = EditorGUILayout.ToggleLeft("Force Re-bake (overwrite serializedTopology & fix firstEntryLane)", forceRebake);
         if (forceRebake)
             EditorGUILayout.HelpBox("Полностью пересчитает топологию, исправит firstEntryLane на выходе форков, обновит laneCount на всех View.", MessageType.Warning);
         
         EditorGUILayout.Space();
-        bool canBake = bakeSettings != null && gridSettings != null;
-        EditorGUI.BeginDisabledGroup(!canBake);
         
-        if (GUILayout.Button("Bake All RoadSegment Prefabs", GUILayout.Height(30)))
-        {
-            BakeAll(bakeSettings, gridSettings, forceRebake);
-        }
+        reorderableList.DoLayoutList();
         
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Current Open Prefab", EditorStyles.boldLabel);
-        var openPrefab = GetOpenPrefabWithRoadSegment();
-        if (openPrefab != null)
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Add Current Open Prefab"))
         {
-            EditorGUILayout.ObjectField(openPrefab, typeof(GameObject), false);
-            if (GUILayout.Button("Bake This Prefab Only", GUILayout.Height(30)))
+            var prefabAsset = GetOpenPrefabAssetWithRoadSegment();
+            if (prefabAsset != null)
             {
-                BakeSingle(openPrefab, bakeSettings, gridSettings, forceRebake);
+                if (!targetPrefabs.Contains(prefabAsset))
+                    targetPrefabs.Add(prefabAsset);
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("No Prefab", "Open a prefab with RoadSegment in Prefab Mode first.", "OK");
             }
         }
-        else
+        if (GUILayout.Button("Clear All"))
         {
-            EditorGUILayout.HelpBox("Откройте префаб с RoadSegment в Prefab Mode.", MessageType.Info);
+            targetPrefabs.Clear();
+        }
+        EditorGUILayout.EndHorizontal();
+        
+        EditorGUILayout.Space();
+        
+        bool canBake = bakeSettings != null && gridSettings != null && targetPrefabs.Count > 0 && targetPrefabs.All(p => p != null);
+        EditorGUI.BeginDisabledGroup(!canBake);
+        
+        if (GUILayout.Button($"Bake {targetPrefabs.Count} Prefab(s)", GUILayout.Height(35)))
+        {
+            BakeMultiple(targetPrefabs.ToArray(), bakeSettings, gridSettings, forceRebake);
         }
         
         EditorGUI.EndDisabledGroup();
         
         if (!canBake)
         {
-            EditorGUILayout.HelpBox("Назначьте оба Settings для активации кнопки.", MessageType.Warning);
+            EditorGUILayout.HelpBox("Назначьте Settings и выберите хотя бы один префаб с RoadSegment.", MessageType.Warning);
         }
+        
+        EditorGUILayout.EndScrollView();
     }
     
-    private static GameObject GetOpenPrefabWithRoadSegment()
+    private static GameObject GetOpenPrefabAssetWithRoadSegment()
     {
-        var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+        var stage = PrefabStageUtility.GetCurrentPrefabStage();
         if (stage != null && stage.prefabContentsRoot != null)
         {
-            return stage.prefabContentsRoot.GetComponent<RoadSegment>() != null ? stage.prefabContentsRoot : null;
+            var root = stage.prefabContentsRoot;
+            if (root.GetComponent<RoadSegment>() != null)
+            {
+                // Get the actual prefab asset, not the scene instance
+                string assetPath = stage.assetPath;
+                return AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            }
         }
         return null;
     }
     
-    private static void BakeAll(RoadSettingsSO settings, RoadGridSettings gridSettings, bool force)
+    private static void BakeMultiple(GameObject[] prefabs, RoadSettingsSO settings, RoadGridSettings gridSettings, bool force)
     {
         if (settings == null || gridSettings == null)
         {
@@ -89,17 +144,28 @@ public class RoadSegmentBakeWindow : EditorWindow
         float defaultCellSize = gridSettings.cellSize;
         int baked = 0, failed = 0;
         
-        string[] guids = AssetDatabase.FindAssets("t:Prefab");
-        foreach (var guid in guids)
+        foreach (var prefab in prefabs)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (asset == null || asset.GetComponent<RoadSegment>() == null) continue;
+            if (prefab == null) continue;
+            
+            string path = AssetDatabase.GetAssetPath(prefab);
+            if (string.IsNullOrEmpty(path))
+            {
+                Debug.LogWarning($"[RoadSegmentBake] {prefab.name} is not an asset prefab, skipping.");
+                failed++;
+                continue;
+            }
             
             var root = PrefabUtility.LoadPrefabContents(path);
             try
             {
                 var segment = root.GetComponent<RoadSegment>();
+                if (segment == null)
+                {
+                    Debug.LogWarning($"[RoadSegmentBake] {prefab.name} has no RoadSegment, skipping.");
+                    failed++;
+                    continue;
+                }
                 
                 // Always sync from settings on force-rebake; otherwise only if not set
                 if (force || segment.laneWidth <= 0f) segment.laneWidth = defaultLaneWidth;
@@ -107,39 +173,14 @@ public class RoadSegmentBakeWindow : EditorWindow
                 
                 if (segment.BakeGrid(force)) baked++;
                 else failed++;
+                
                 PrefabUtility.SaveAsPrefabAsset(root, path);
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
         }
+        
         Debug.Log($"[RoadSegmentBake] Готово: {baked}, с ошибками: {failed}. laneWidth={defaultLaneWidth}, cellSize={defaultCellSize}, force={force}");
-    }
-    
-    private static void BakeSingle(GameObject root, RoadSettingsSO settings, RoadGridSettings gridSettings, bool force)
-    {
-        var segment = root.GetComponent<RoadSegment>();
-        if (segment == null) return;
-        
-        // Always sync from settings on force-rebake; otherwise only if not set
-        if (force || segment.laneWidth <= 0f) segment.laneWidth = settings.laneWidth;
-        if (!Mathf.Approximately(segment.cellSize, gridSettings.cellSize)) segment.cellSize = gridSettings.cellSize;
-        
-        bool ok = segment.BakeGrid(force);
-        Debug.Log($"[RoadSegmentBake] Single: {(ok ? "OK" : "FAILED")}. force={force}");
-        
-        // Save if in prefab stage
-        var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-        if (stage != null)
-        {
-            EditorUtility.SetDirty(root);
-            PrefabUtility.SaveAsPrefabAsset(stage.prefabContentsRoot, stage.assetPath);
-        }
-        else
-        {
-            // Regular prefab asset
-            string path = AssetDatabase.GetAssetPath(root);
-            if (!string.IsNullOrEmpty(path))
-                PrefabUtility.SaveAsPrefabAsset(root, path);
-        }
+        EditorUtility.DisplayDialog("Bake Complete", $"Baked: {baked}\nFailed: {failed}", "OK");
     }
 }
 
