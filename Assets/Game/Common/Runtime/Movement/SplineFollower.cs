@@ -163,32 +163,38 @@ namespace Game.Common.Runtime.Movement
                 {
                     nextPath = nextPaths[0]; // Take first available
                     
-                    // Validate current lane exists on next path at start (distance=0)
-                    if (nextPath != null && !nextPath.IsLaneActiveAt(CurrentLane, 0f))
+                    // Clamp current lane to next path's valid range FIRST
+                    if (nextPath != null)
                     {
-                        // Find nearest active lane on next path
-                        int candidateLane = CurrentLane;
-                        for (int i = 1; i < nextPath.LaneCount; i++)
+                        CurrentLane = Mathf.Clamp(CurrentLane, 0, nextPath.LaneCount - 1);
+                    
+                        // Validate current lane exists on next path at start (distance=0)
+                        if (!nextPath.IsLaneActiveAt(CurrentLane, 0f))
                         {
-                            // Check both directions
-                            int leftLane = CurrentLane - i;
-                            int rightLane = CurrentLane + i;
-                            bool found = false;
-                            
-                            if (leftLane >= 0 && nextPath.IsLaneActiveAt(leftLane, 0f))
+                            // Find nearest active lane on next path
+                            int candidateLane = CurrentLane;
+                            for (int i = 1; i < nextPath.LaneCount; i++)
                             {
-                                candidateLane = leftLane;
-                                found = true;
+                                // Check both directions
+                                int leftLane = CurrentLane - i;
+                                int rightLane = CurrentLane + i;
+                                bool found = false;
+                                
+                                if (leftLane >= 0 && nextPath.IsLaneActiveAt(leftLane, 0f))
+                                {
+                                    candidateLane = leftLane;
+                                    found = true;
+                                }
+                                else if (rightLane < nextPath.LaneCount && nextPath.IsLaneActiveAt(rightLane, 0f))
+                                {
+                                    candidateLane = rightLane;
+                                    found = true;
+                                }
+                                
+                                if (found) break;
                             }
-                            else if (rightLane < nextPath.LaneCount && nextPath.IsLaneActiveAt(rightLane, 0f))
-                            {
-                                candidateLane = rightLane;
-                                found = true;
-                            }
-                            
-                            if (found) break;
+                            CurrentLane = candidateLane;
                         }
-                        CurrentLane = candidateLane;
                         _targetLaneOffset = nextPath.GetLaneOffset(CurrentLane);
                         _currentLaneOffset = _targetLaneOffset;
                         _lateralVelocity = 0f;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Level.Runtime.Config;
@@ -5,6 +6,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using static Game.Level.Runtime.RoadSegment;
+using URandom = UnityEngine.Random;
 
 namespace Game.Level.Runtime
 {
@@ -99,6 +101,9 @@ namespace Game.Level.Runtime
 		private RoadNode _chosenBranch;
 		private int _nodeCount;
 		private bool _warnedNoResolver;
+
+		// Event fired BEFORE segment is deactivated/destroyed
+		public event Action<RoadSegment> OnSegmentDestroying;
 
 		private Vector3 _gridPos;
 		private Quaternion _gridRot;
@@ -275,12 +280,13 @@ namespace Game.Level.Runtime
 					cv.SetupLinear(entryView, null, new[] { firstLanes[i] }, new[] { laneCounts[i] });
 
 					// Register childView as separate node for graph traversal
+					// Each fork exit leads to ONE next segment, so children array size = 1
 					var exitNode = new RoadNode
 					{
 						segment = seg, // Same RoadSegment data
 						parent = node,
 						depth = c.depth + 1,
-						children = new RoadNode[0], // Will be filled when extending from this exit
+						children = new RoadNode[1], // Single next segment after this fork exit
 						biome = c.state.biome?.biomeTag ?? BiomeTag.None,
 						// Custom: store which childView this node represents
 						customData = new ExitViewData { view = cv, exitIndex = i }
@@ -288,17 +294,20 @@ namespace Game.Level.Runtime
 
 					// Add to graph
 					node.children[i] = exitNode;
+					var forkBranchCell = c.cell + Rot(seg.exits[i].nextCell, c.heading);
+					var forkBranchHeading = (c.heading + seg.exits[i].turn) & 3;
+					Debug.Log($"[RoadGenerator] Fork branch {i}: parentCell={c.cell} parentHeading={c.heading} exitNextCell={seg.exits[i].nextCell} exitTurn={seg.exits[i].turn} => branchCell={forkBranchCell} branchHeading={forkBranchHeading} lanes={seg.exits[i].point.NumLanes}");
 					_open.Add(new BranchCursor
 					{
 						owner = exitNode,
-						exitIndex = i,
+						exitIndex = 0, // Fork exit node has only 1 child slot (index 0)
 						// Дочерний spline view стоит в (0,0,0) с identity-поворотом —
 						// выравнивание по нему ставит следующий сегмент прямо в центр вилки.
 						// Используем ту же ConnectionPoint, от которой взяты cell и heading.
 						exitTransform = seg.exits[i].point.transform,
 						lanes = seg.exits[i].point.NumLanes,
-						cell = c.cell + Rot(seg.exits[i].nextCell, c.heading),
-						heading = (c.heading + seg.exits[i].turn) & 3,
+						cell = forkBranchCell,
+						heading = forkBranchHeading,
 						depth = c.depth + 1,
 						state = c.state,
 					});
@@ -447,22 +456,52 @@ namespace Game.Level.Runtime
 			foreach (var local in seg.cells)
 			{
 				var cell = c.cell + Rot(local, c.heading);
-				if (!InCorridor(cell, c) || IsBlocked(cell, c)) return false;
+				if (!InCorridor(cell, c))
+				{
+					Debug.Log($"[RoadGenerator] CanPlace FAIL InCorridor: seg={seg.name} c.cell={c.cell} c.heading={c.heading} local={local} => cell={cell} corridorHeading={c.corridorHeading} latMin={c.latMin} latMax={c.latMax}");
+					return false;
+				}
+				if (IsBlocked(cell, c))
+				{
+					Debug.Log($"[RoadGenerator] CanPlace FAIL IsBlocked: cell={cell}");
+					return false;
+				}
 			}
 
 			foreach (var exit in seg.exits)
 			{
 				int h = (c.heading + exit.turn) & 3;
-				if (h == DirBack && !allowBackward) return false;
+				if (h == DirBack && !allowBackward)
+				{
+					Debug.Log($"[RoadGenerator] CanPlace FAIL DirBack: h={h} allowBackward={allowBackward}");
+					return false;
+				}
 
 				if (c.corridorHeading >= 0)
 				{
-					if (h == ((c.corridorHeading + 1) & 3) && c.latMax != int.MaxValue) return false;
-					if (h == ((c.corridorHeading + 3) & 3) && c.latMin != int.MinValue) return false;
+					if (h == ((c.corridorHeading + 1) & 3) && c.latMax != int.MaxValue)
+					{
+						Debug.Log($"[RoadGenerator] CanPlace FAIL CorridorRight: h={h} corridorHeading={c.corridorHeading} latMax={c.latMax}");
+						return false;
+					}
+					if (h == ((c.corridorHeading + 3) & 3) && c.latMin != int.MinValue)
+					{
+						Debug.Log($"[RoadGenerator] CanPlace FAIL CorridorLeft: h={h} corridorHeading={c.corridorHeading} latMin={c.latMin}");
+						return false;
+					}
 				}
 
 				var next = c.cell + Rot(exit.nextCell, c.heading);
-				if (!InCorridor(next, c) || IsBlocked(next, c)) return false;
+				if (!InCorridor(next, c))
+				{
+					Debug.Log($"[RoadGenerator] CanPlace FAIL Exit InCorridor: next={next}");
+					return false;
+				}
+				if (IsBlocked(next, c))
+				{
+					Debug.Log($"[RoadGenerator] CanPlace FAIL Exit IsBlocked: next={next}");
+					return false;
+				}
 			}
 
 			return true;
@@ -613,7 +652,7 @@ namespace Game.Level.Runtime
 		void DestroySubtree(RoadNode node)
 		{
 			foreach (var ch in node.children)
-				if (ch != null) DestroySubtree(ch);
+				if (ch != null && ch != node) DestroySubtree(ch); // Skip self-reference (linear segments)
 			DestroyNode(node);
 		}
 
@@ -628,8 +667,13 @@ namespace Game.Level.Runtime
 
 			if (node.segment != null)
 			{
-				if (node.segment.TryGetComponent(out TrackEnemySpawner spawner))
-					spawner.DespawnEnemies();
+				// 1. Notify subscribers BEFORE deactivating segment (allows immediate enemy despawn)
+				OnSegmentDestroying?.Invoke(node.segment);
+
+				// 2. Deactivate segment immediately (stops FixedUpdate on RoadSegmentView, removes from physics)
+				node.segment.gameObject.SetActive(false);
+
+				// 3. Destroy at end of frame for GC cleanup
 				Destroy(node.segment.gameObject);
 			}
 
@@ -651,7 +695,7 @@ namespace Game.Level.Runtime
 				return;
 			}
 
-			if (Random.value < s.biome.exitChance)
+			if (URandom.value < s.biome.exitChance)
 			{
 				var previous = s.biome;
 				var next = PickNextBiome(new HashSet<RoadBiomeDefinition> { previous });
@@ -680,9 +724,9 @@ namespace Game.Level.Runtime
 			float total = 0f;
 			foreach (var b in pool) total += Mathf.Max(0f, b.weight);
 
-			if (total <= 0f) return pool[Random.Range(0, pool.Count)];
+			if (total <= 0f) return pool[URandom.Range(0, pool.Count)];
 
-			float roll = Random.Range(0f, total);
+			float roll = URandom.Range(0f, total);
 			float cumulative = 0f;
 			foreach (var b in pool)
 			{
@@ -780,7 +824,7 @@ namespace Game.Level.Runtime
 			int total = 0;
 			foreach (var cand in candidates) total += cand.weight;
 
-			int roll = Random.Range(0, total);
+			int roll = URandom.Range(0, total);
 			int cumulative = 0;
 			foreach (var cand in candidates)
 			{
@@ -788,13 +832,13 @@ namespace Game.Level.Runtime
 				if (roll < cumulative)
 				{
 					UpdateCounters(ref state, cand.type);
-					return cand.prefabs[Random.Range(0, cand.prefabs.Count)];
+					return cand.prefabs[URandom.Range(0, cand.prefabs.Count)];
 				}
 			}
 
 			var last = candidates[candidates.Count - 1];
 			UpdateCounters(ref state, last.type);
-			return last.prefabs[Random.Range(0, last.prefabs.Count)];
+			return last.prefabs[URandom.Range(0, last.prefabs.Count)];
 		}
 
 		void UpdateCounters(ref GenState s, SegmentType chosen)

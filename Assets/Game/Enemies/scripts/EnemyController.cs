@@ -1,6 +1,7 @@
 using Game.Common.Runtime;
 using Game.Common.Runtime.Movement;
 using Game.Enemies.Flocking;
+using Game.Level.Runtime;
 using Game.Level.Runtime.Config;
 using Common.Runtime;
 using System.Collections.Generic;
@@ -48,6 +49,7 @@ namespace Game.Enemies
             // Configure follower from grid settings
             Follower.MaxLateralAcceleration = GridSettings != null ? GridSettings.cellSize * 0.1f : 10f;
             Follower.LateralDamping = 15f;
+            Debug.Log($"[EnemyController:{name}] Construct: PlayerTracker={playerTracker != null} GridSettings={gridSettings != null} cellSize={gridSettings?.cellSize}");
         }
         
         protected virtual void Awake()
@@ -64,7 +66,11 @@ namespace Game.Enemies
         
         protected virtual void FixedUpdate()
         {
-            if (PlayerTracker == null || PlayerTransform == null) return;
+            if (PlayerTracker == null || PlayerTransform == null) 
+            {
+                Debug.Log($"[EnemyController:{name}] SKIP: PlayerTracker={PlayerTracker != null} PlayerTransform={PlayerTransform != null}");
+                return;
+            }
             
             float dt = Time.fixedDeltaTime;
             
@@ -77,6 +83,7 @@ namespace Game.Enemies
             
             // 3. Step follower
             var result = Follower.ComputeFrame(dt);
+            Debug.Log($"[EnemyController:{name}] ComputeFrame: Speed={Follower.Speed} Path={Follower.CurrentPath != null} Lane={Follower.CurrentLane} Dist={Follower.DistanceAlongPath:F2} ResultPos={result.Position} Vel={result.Velocity}");
             
             // 4. Move
             MoveRigidbody(result);
@@ -84,6 +91,19 @@ namespace Game.Enemies
             // 5. Handle segment transition
             if (result.PathCompleted && result.NextPath != null)
             {
+                // Передача владения врагом: старый сегмент -> новый сегмент
+                var oldPathComp = Follower.CurrentPath as Component;
+                var newPathComp = result.NextPath as Component;
+                
+                if (oldPathComp != null && newPathComp != null)
+                {
+                    var oldSegment = oldPathComp.GetComponentInParent<RoadSegment>();
+                    var newSegment = newPathComp.GetComponentInParent<RoadSegment>();
+
+                    oldSegment?.Spawner?.UnregisterEnemy(this);
+                    newSegment?.Spawner?.RegisterEnemy(this);
+                }
+
                 Follower.SetPath(result.NextPath, Follower.CurrentLane, 0f);
             }
         }
@@ -93,6 +113,7 @@ namespace Game.Enemies
         
         protected virtual void MoveRigidbody(SplineFollower.FrameResult result)
         {
+            Debug.Log($"[EnemyController:{name}] MoveRigidbody: Rb={Rb != null} Pos={result.Position} Vel={result.Velocity}");
             if (Rb != null)
             {
                 Rb.MovePosition(result.Position);
@@ -128,25 +149,28 @@ namespace Game.Enemies
         /// <summary>Called by TrackEnemySpawner to initialize on specific segment.</summary>
         public virtual void InitializeWithSegment(IRoadPath segment)
         {
-            int startLane = RandomLane();
+            int startLane = RandomLane(segment);
             Follower.SetPath(segment, startLane, 0f);
             Follower.Speed = BaseSpeed;
+            Debug.Log($"[EnemyController:{name}] InitializeWithSegment: segment={segment?.GetType().Name} lane={startLane} speed={BaseSpeed} LaneCount={segment?.LaneCount} Length={segment?.Length}");
         }
         
         /// <summary>Despawn cleanup. Override for effects.</summary>
         public virtual void Despawn()
         {
+            // Immediate deactivation stops FixedUpdate, then destroy for GC
+            gameObject.SetActive(false);
             Destroy(gameObject);
         }
         
-        protected int RandomLane()
+        protected int RandomLane(IRoadPath path)
         {
-            if (CurrentPath == null) return 0;
+            if (path == null) return 0;
             
             // Pick only active lanes at segment start
             var activeLanes = new List<int>();
-            for (int i = 0; i < CurrentPath.LaneCount; i++)
-                if (CurrentPath.IsLaneActiveAt(i, 0f))
+            for (int i = 0; i < path.LaneCount; i++)
+                if (path.IsLaneActiveAt(i, 0f))
                     activeLanes.Add(i);
             
             return activeLanes.Count > 0 

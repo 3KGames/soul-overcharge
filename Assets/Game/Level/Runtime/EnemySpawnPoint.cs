@@ -39,9 +39,10 @@ namespace Game.Level.Runtime
 		}
 
 		private void OnTriggerEnter(Collider other)
-		{
+		{Debug.LogWarning("WTF1: " + other.gameObject.name);
 			if (!_isArmed || !other.CompareTag("Player")) return;
 
+			Debug.LogWarning("WTF2: " + other.gameObject.name);
 			_isArmed = false;
 
 			_parentSpawner.SpawnFromTrigger(this, _armedPrefab);

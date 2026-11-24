@@ -11,6 +11,7 @@ namespace Game.Level.Runtime
 		Bomber,
 		SoulPickup,
 		SoulVOZ,
+		Enemy1,
 	}
 
 	[Serializable]

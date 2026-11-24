@@ -266,7 +266,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   numLanes: 4
   firstEntryLane: 0
---- !u!1 &4867565217161771864
+--- !u!1 &7361137573133205416
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -274,29 +274,98 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 133892147331740971}
+  - component: {fileID: 2162229569247435049}
   m_Layer: 0
-  m_Name: SpawnPoints
+  m_Name: SpawnPionts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &133892147331740971
+--- !u!4 &2162229569247435049
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4867565217161771864}
+  m_GameObject: {fileID: 7361137573133205416}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.1, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6570822889603122500}
+  m_Father: {fileID: 488128056607879470}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8341824258244309720
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6570822889603122500}
+  - component: {fileID: 7763173379436777235}
+  - component: {fileID: 4212084644365657068}
+  m_Layer: 0
+  m_Name: Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6570822889603122500
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8341824258244309720}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.09, y: 4.23, z: -21.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 488128056607879470}
+  m_Father: {fileID: 2162229569247435049}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7763173379436777235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8341824258244309720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27a492684353b6f43967acf4d80bbb19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allowedEnemyTags: 06000000
+  spawnOnTrigger: 1
+--- !u!65 &4212084644365657068
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8341824258244309720}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 40.84, y: 12.79, z: 10.93}
+  m_Center: {x: 0, y: 0, z: 56.3}
 --- !u!1 &8545565238388433368
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,7 +400,7 @@ Transform:
   - {fileID: 7063002145863882957}
   - {fileID: 2792479679456578268}
   - {fileID: 369308897113420890}
-  - {fileID: 133892147331740971}
+  - {fileID: 2162229569247435049}
   - {fileID: 5889331128466092871}
   - {fileID: 1208619693355034578}
   m_Father: {fileID: 0}
@@ -377,12 +446,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyEntries:
-  - enemyTag: 5
-    prefab: {fileID: 905759461516864671, guid: a426002e16b1067469e420378b18a12b, type: 3}
-    spawnCount: 5
-    spawnChance: 0.6
+  - enemyTag: 6
+    prefab: {fileID: 6397482764891213827, guid: d46d8defced8dd64bbaacb97049aabee, type: 3}
+    spawnCount: 1
+    spawnChance: 1
   globalSpawnChance: 1
-  despawnDistance: 150
+  despawnDistance: 500
 --- !u!1 &8716828465166700170
 GameObject:
   m_ObjectHideFlags: 0

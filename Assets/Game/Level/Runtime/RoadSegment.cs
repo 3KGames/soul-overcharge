@@ -21,6 +21,19 @@ namespace Game.Level.Runtime
 	public class RoadSegment : MonoBehaviour
 	{
 		public RoadSegmentView roadView;
+		private TrackEnemySpawner _spawner;
+
+		public TrackEnemySpawner Spawner
+		{
+			get
+			{
+				if (_spawner == null)
+				{
+					_spawner = GetComponent<TrackEnemySpawner>();
+				}
+				return _spawner;
+			}
+		}
 
 		[Header("Точки стыковки")]
 		public ConnectionPoint entryPoint;
