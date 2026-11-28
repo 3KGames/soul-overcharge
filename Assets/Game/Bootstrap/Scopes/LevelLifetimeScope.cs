@@ -16,7 +16,11 @@ using Car.UI;
 using Enemies;
 using Game.Car.Controller.CarPhysics.Suspension;
 using Game.Car.VFX.Wheel.Runtime;
+using Game.Enemies.Audio;
+using Game.Enemies.Behavior;
+using Game.Enemies.Vehicle;
 using Game.Level.Runtime;
+using Game.Level.Runtime.Config;
 using Level.Runtime.States;
 using NaughtyAttributes;
 using UI;
@@ -30,6 +34,9 @@ namespace Level.Runtime.Scopes
     {
         [SerializeField] private LayerMask roadMask;
         [SerializeField] private LayerMask offroadMask;
+        [Header("Road Generator")]
+        [SerializeField] private RoadGridSettings roadGridSettings;
+        [SerializeField] private Game.Enemies.Flocking.FlockSystem flockSystem;
 
         [Header("Car physics")]
         [SerializeField] private CarPhysicsData physicsData;
@@ -46,28 +53,25 @@ namespace Level.Runtime.Scopes
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // Данные
             builder.RegisterInstance(physicsData);
             builder.RegisterInstance(nitroData);
             builder.RegisterInstance(ResolveOrDefault(engineSO, nameof(engineSO)));
             builder.RegisterInstance(ResolveOrDefault(transmissionSO, nameof(transmissionSO)));
             builder.RegisterInstance(ResolveOrDefault(drivetrainSO, nameof(drivetrainSO)));
             builder.RegisterInstance(new RoadCheckService(roadMask, offroadMask));
+            builder.RegisterInstance(ResolveOrDefault(roadGridSettings, nameof(roadGridSettings)));
             builder.RegisterInstance(soulData);
             builder.RegisterInstance(healthData);
 
-            // Ввод
             builder.Register<InputService>(Lifetime.Singleton)
                 .AsSelf()
                 .As<IInitializable>()
                 .As<IDisposable>();
 
-            // Модели читают настройки из SO один раз при создании
             builder.Register<EngineModel>(Lifetime.Singleton);
             builder.Register<TransmissionModel>(Lifetime.Singleton);
             builder.Register<DrivetrainModel>(Lifetime.Singleton);
 
-            // Машина
             builder.Register<EngineService>(Lifetime.Singleton);
             builder.Register<DrivetrainService>(Lifetime.Singleton);
             builder.Register<TransmissionService>(Lifetime.Singleton);
@@ -84,7 +88,6 @@ namespace Level.Runtime.Scopes
             builder.Register<NitroService>(Lifetime.Singleton);
             builder.Register<CarService>(Lifetime.Singleton);
 
-            // Души и здоровье
             builder.Register<SoulService>(Lifetime.Singleton);
             builder.Register<SoulDrainService>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
@@ -93,22 +96,31 @@ namespace Level.Runtime.Scopes
                 .AsImplementedInterfaces()
                 .AsSelf();
 
-            // Аудио
             builder.Register<AudioVolumeService>(Lifetime.Singleton);
 
-            // Game Over — после InputService и AudioVolumeService
             builder.Register<GameOverService>(Lifetime.Singleton);
 
-            // Таймер
             builder.Register<GameTimer>(Lifetime.Singleton)
                 .AsImplementedInterfaces()
                 .AsSelf();
 
-            // Прочие сервисы
             builder.Register<TargetRegistry>(Lifetime.Singleton);
             builder.Register<PlayerTracker>(Lifetime.Singleton);
+			
+			builder.Register<RoadTrackingService>(Lifetime.Singleton);
+			builder.Register<PurePursuitService>(Lifetime.Singleton);
+			builder.Register<EnemyVehiclePhysicsService>(Lifetime.Singleton);
+			builder.Register<EnemyDrivetrainService>(Lifetime.Singleton);
+			builder.Register<NarrowingDetectionService>(Lifetime.Singleton);
+			builder.Register<EnemyBrainFactory>(Lifetime.Singleton);
 
-            // Компоненты на сцене
+			builder.Register<AgentSpatialRegistry>(Lifetime.Singleton);
+
+			builder.RegisterEntryPoint<EnemyAudioLodManager>(Lifetime.Singleton)
+				.AsSelf()
+				.WithParameter("maxActiveVoices", 8)
+				.WithParameter("maxAudibleDistance", 120f);
+
             builder.RegisterComponentInHierarchy<CarController>();
             builder.RegisterComponentInHierarchy<SuspensionController>();
 			builder.RegisterComponentInHierarchy<WheelVfxController>();
@@ -125,14 +137,11 @@ namespace Level.Runtime.Scopes
             builder.RegisterComponentInHierarchy<RoadGenerator>();
             builder.RegisterComponentInHierarchy<BossController>();
             builder.RegisterComponentInHierarchy<GameOverUI>();
+            
+            var flock = flockSystem != null ? flockSystem : new GameObject("FlockSystem").AddComponent<Game.Enemies.Flocking.FlockSystem>();
+            builder.RegisterInstance(flock);
         }
 
-        /// <summary>
-        /// Если ассет не назначен в инспекторе, создаём временный экземпляр с
-        /// дефолтными значениями, чтобы уровень не падал на пустом SO. Факт
-        /// подмены логируется — молча брать дефолты нельзя, иначе настройки
-        /// будут выглядеть применёнными, хотя их никто не задавал.
-        /// </summary>
         private T ResolveOrDefault<T>(T current, string fieldName) where T : ScriptableObject
         {
             if (current != null) return current;

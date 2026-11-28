@@ -456,7 +456,7 @@ namespace Game.Level.Runtime.Terrain
 
 		void BakeSettings()
 		{
-			float cs = roadGenerator != null ? roadGenerator.cellSize : 50f;
+			float cs = roadGenerator != null && roadGenerator.CellSize > 0f ? roadGenerator.CellSize : 50f;
 			float maxStampRadius = cs * 0.45f;
 
 			int tagCount = 0;

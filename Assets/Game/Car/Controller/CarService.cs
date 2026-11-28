@@ -67,6 +67,7 @@ namespace Car.Controller
         private readonly SuspensionController _suspension;
 
         public Action PhysicsUpdated;
+        public Action<Vector3, float> AccelerationUpdated;
         public float   CurrentSpeed { get; private set; }
 
         public CarService(
@@ -86,6 +87,9 @@ namespace Car.Controller
             _souls        = souls;
             _suspension   = suspension;
         }
+
+        private Vector3 _prevVelocity;
+        private bool _firstPhysicsUpdate = true;
 
         public void PhysicsUpdate(Rigidbody rb)
         {
@@ -131,11 +135,17 @@ namespace Car.Controller
 				groundNormal
 			);
 
+            Vector3 prevVel = _firstPhysicsUpdate ? rb.linearVelocity : _prevVelocity;
             _physics.Tick(Time.fixedDeltaTime, rb, inputData);
+            
             CurrentSpeed = CarPhysicsService.GetForwardSpeed(rb);
+            Vector3 acceleration = (rb.linearVelocity - prevVel) / Time.fixedDeltaTime;
+            _prevVelocity = rb.linearVelocity;
+            _firstPhysicsUpdate = false;
 
             _input.ResetShiftBuffers();
             PhysicsUpdated?.Invoke();
+            AccelerationUpdated?.Invoke(acceleration, CurrentSpeed);
         }
 
         private void HandleGearShift()

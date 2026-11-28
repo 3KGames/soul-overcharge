@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71af15dcfe584035a6fe475fd7ef5444, type: 3}
+  m_Name: EnemyVehicleConfig
+  m_EditorClassIdentifier: 
+  Steering:
+    Wheelbase: 3
+    MaxSteerAngleDeg: 35
+    MinLookahead: 5
+    LookaheadTime: 0.65
+    MaxLookahead: 28
+    CurvatureGain: 1
+    EdgeMargin: 0.8
+    RecoveryTurnSpeed: 8
+  Yaw:
+    Kp: 10
+    Kd: 0.25
+    DerivativeTau: 0.1
+    MaxAccel: 25
+  Speed:
+    Kp: 6
+    MaxDriveAccel: 10
+    MaxBrakeAccel: 30
+    CornerFrictionMu: 0.85
+  Stability:
+    LateralDamping: 6
+    HighSpeedDampingMultiplier: 2
+    UprightStiffness: 35
+    UprightDamping: 8
+    MaxUprightAccel: 45
+  Body:
+    Mass: 1500
+    LinearDamping: 0.08
+    AngularDamping: 0.15
+    CenterOfMass: {x: 0, y: -0.35, z: 0}
+    MaxAngularVelocity: 15
+    StuckSpeedThreshold: 1
+    StuckDuration: 2.5
+    HoverHeight: 0.3
+    HoverRaycastOffset: 0
+    HoverFrequency: 2.5
+    HoverDampingRatio: 1
+    HoverGroundMask:
+      serializedVersion: 2
+      m_Bits: 98304
+  Drivetrain:
+    WheelRadius: 0.35
+    FinalDrive: 3.5
+    GearRatios:
+    - 3.2
+    - 2.1
+    - 1.5
+    - 1.1
+    - 0.85
+    IdleRpm: 900
+    MaxRpm: 6500
+    ShiftUpRpm: 5800
+    ShiftDownRpm: 2400
+    ShiftCooldown: 0.4
+    ThrottleRpmBoost: 450
+    RpmResponseSpeed: 12

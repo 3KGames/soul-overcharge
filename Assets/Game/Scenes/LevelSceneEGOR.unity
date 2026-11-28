@@ -835,10 +835,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roadGenerator: {fileID: 1488523653}
-  player: {fileID: 0}
+  player: {fileID: 52702740}
   biomes:
   - {fileID: 11400000, guid: a40bfc168044e2646b28375dca4164de, type: 2}
-  fallbackBiome: {fileID: 0}
+  fallbackBiome: {fileID: 11400000, guid: a40bfc168044e2646b28375dca4164de, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 04b008b3ad645374cb86fcd4672ba1eb, type: 2}
   resolution: 50
   seed: 0
@@ -1534,6 +1534,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8999183737713300636, guid: e56f90c72b67244409c505a9023a847e, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1944,12 +1948,15 @@ MonoBehaviour:
   - {fileID: 83612264}
   - {fileID: 1873864656}
   - {fileID: 1664715273}
+  - {fileID: 128210116}
   roadMask:
     serializedVersion: 2
     m_Bits: 32768
   offroadMask:
     serializedVersion: 2
     m_Bits: 65536
+  roadGridSettings: {fileID: 11400000, guid: e529cac089caee444a4a5f69b3c05c00, type: 2}
+  flockSystem: {fileID: 1395067806}
   physicsData: {fileID: 11400000, guid: 64494ce466f6a874f97066b5cbf971ea, type: 2}
   engineSO: {fileID: 11400000, guid: 3146d8897b574e77bc28e5aee9c219cc, type: 2}
   transmissionSO: {fileID: 11400000, guid: 657e1899f3aa4706a13f71f7965af787, type: 2}
@@ -6523,6 +6530,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1376637763}
   m_CullTransparentMesh: 1
+--- !u!1 &1395067805
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1395067807}
+  - component: {fileID: 1395067806}
+  m_Layer: 0
+  m_Name: FlockSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1395067806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395067805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ae7ccd569724b541b66a01800efddf8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NeighborSearchRadius: 20
+  MaxNeighbors: 20
+  SeparationStrength: 1
+  AlignmentStrength: 0.5
+  CohesionStrength: 0.3
+--- !u!4 &1395067807
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1395067805}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.08665353, y: 5.9888763, z: -0.8310633}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1423142505
 GameObject:
   m_ObjectHideFlags: 0
@@ -6990,29 +7046,23 @@ MonoBehaviour:
     weightHillDown: 1
     weightFork: 8
     straightPrefabs:
-    - {fileID: 8545565238388433368, guid: bce5fbe2ef3d3114bb9c1c1ce180e6b1, type: 3}
-    - {fileID: 8545565238388433368, guid: 3483215dc8a41753b9c30df7022f4fc8, type: 3}
-    - {fileID: 8545565238388433368, guid: 2904cc8a5f5d76147b3030d85cfcf876, type: 3}
-    turnLeftPrefabs:
-    - {fileID: 8545565238388433368, guid: b06c534d6355fff479c59244fcff5344, type: 3}
-    - {fileID: 8545565238388433368, guid: 6ea4349fea3d47847b001de6392234ee, type: 3}
-    turnRightPrefabs:
-    - {fileID: 8545565238388433368, guid: 8972c9ccb82fac642a22e958dd9ebb5b, type: 3}
-    - {fileID: 8545565238388433368, guid: 1d73f48c2c0060543848f063029b787b, type: 3}
+    - {fileID: 8545565238388433368, guid: 602816569ce130e48b0bf43d6409096c, type: 3}
+    - {fileID: 8545565238388433368, guid: f868071f403e29f42817a7d64eb37d9c, type: 3}
+    turnLeftPrefabs: []
+    turnRightPrefabs: []
     hillUpPrefabs: []
     hillDownPrefabs: []
     forkPrefabs:
-    - {fileID: 8545565238388433368, guid: ec4780cf90d9a664f9c16f9a3448cd56, type: 3}
-    - {fileID: 8545565238388433368, guid: d1d5d0bc318e62948a258a7c6a177972, type: 3}
+    - {fileID: 8545565238388433368, guid: 1cf029cdc7e7c9e428ab472f1e59dd56, type: 3}
   player: {fileID: 52702740}
-  segmentsAhead: 2
+  segmentsAhead: 5
   keepSegmentsBehind: 2
   maxSpawnsPerFrame: 2
-  cellSize: 50
+  gridSettings: {fileID: 11400000, guid: e529cac089caee444a4a5f69b3c05c00, type: 2}
   allowBackward: 1
   maxSameTurnInRow: 1
   maxHillsInRow: 1
-  minSegmentsBetweenForks: 8
+  minSegmentsBetweenForks: 3
   pruneAfterSegments: 2
 --- !u!4 &1488523654
 Transform:
@@ -18863,4 +18913,5 @@ SceneRoots:
   - {fileID: 1632056464}
   - {fileID: 1661872316}
   - {fileID: 2046729809}
+  - {fileID: 1395067807}
   - {fileID: 128210118}

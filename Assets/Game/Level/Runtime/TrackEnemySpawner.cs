@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using Common.Runtime;
 using Enemies;
+using Game.Common.Runtime;
+using Game.Enemies;
+using Game.Enemies.Vehicle;
+using Game.Enemies.Behavior;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-
-// Добавлен неймспейс для PlayerTracker
 
 namespace Game.Level.Runtime
 {
 	public class TrackEnemySpawner : MonoBehaviour
 	{
-		// Структура для хранения заспавненного объекта и его тега
 		private struct SpawnedEnemyData
 		{
 			public GameObject Instance;
@@ -26,9 +27,6 @@ namespace Game.Level.Runtime
 		[Header("Despawn Settings")]
 		[Tooltip("Дистанция от игрока, при превышении которой Biker и SoulVOZ будут деспавниться")]
 		public float despawnDistance = 150f;
-    
-		[Tooltip("Коллайдер этого сегмента дороги (для проверки, стоит ли враг всё ещё на нём)")]
-		public Collider segmentCollider;
 
 		private EnemySpawnPoint[] _spawnPoints;
 		private readonly List<SpawnedEnemyData> _spawnedEnemies = new();
@@ -36,8 +34,9 @@ namespace Game.Level.Runtime
     
 		private LifetimeScope _parentScope;
 		private PlayerTracker _playerTracker;
+		private RoadSegmentView _entryView;
+		private RoadSegment _roadSegment;
 
-		// Инжектим PlayerTracker
 		[Inject]
 		public void Construct(LifetimeScope parentScope, PlayerTracker playerTracker)
 		{
@@ -48,12 +47,41 @@ namespace Game.Level.Runtime
 		private void Awake()
 		{
 			_spawnPoints = GetComponentsInChildren<EnemySpawnPoint>();
+			_roadSegment = GetComponent<RoadSegment>();
+			if (_roadSegment != null)
+				_entryView = _roadSegment.roadView;
+
+			var generator = FindObjectOfType<RoadGenerator>();
+			if (generator != null)
+				generator.SegmentRemoved += OnSegmentRemoved;
 
 			if (_spawnPoints.Length == 0)
 				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} нет EnemySpawnPoint!", this);
-            
-			if (segmentCollider == null)
-				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} не назначен segmentCollider! Проверка нахождения на дороге работать не будет.", this);
+			if (_entryView == null)
+				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} нет roadView в RoadSegment!", this);
+		}
+
+		private void OnDestroy()
+		{
+			var generator = FindObjectOfType<RoadGenerator>();
+			if (generator != null)
+				generator.SegmentRemoved -= OnSegmentRemoved;
+		}
+
+		private void OnSegmentRemoved(RoadSegment segment)
+		{
+			if (segment != _roadSegment) return;
+
+			Debug.Log($"[TrackEnemySpawner] SegmentRemoved: segment={segment.name}, resident enemies={_roadSegment.ResidentEnemies.Count}");
+
+			var enemiesToDespawn = new List<EnemyVehicleController>(_roadSegment.ResidentEnemies);
+			foreach (var vehicle in enemiesToDespawn)
+			{
+				vehicle.OnSegmentChanged -= HandleEnemySegmentChanged;
+				vehicle.Despawn();
+				Debug.Log($"[TrackEnemySpawner] Despawned enemy {vehicle.name} from destroyed segment");
+			}
+			_roadSegment.ResidentEnemies.Clear();
 		}
 
 		public void TrySpawnEnemies()
@@ -81,6 +109,44 @@ namespace Game.Level.Runtime
 					else
 						PerformSpawn(point, entry.prefab);
 				}
+			}
+		}
+
+		public void InitializeEnemy(EnemyVehicleController vehicle, IRoadPath roadPath, int lane, float startDistance, EnemyBehaviorProfileSO profile = null)
+		{
+			if (vehicle == null || roadPath == null) return;
+
+			vehicle.InitializeOnRoad(roadPath, lane, startDistance, profile);
+
+			var segment = (roadPath as RoadSegmentView)?.Segment;
+			if (segment == null)
+			{
+				Debug.LogWarning($"[TrackEnemySpawner] InitializeEnemy: roadPath is not a RoadSegmentView or has no Segment! roadPath={roadPath?.GetType().Name}");
+			}
+			else
+			{
+				segment.RegisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] InitializeEnemy: {vehicle.name} registered to segment {segment.name}");
+			}
+
+			vehicle.OnSegmentChanged += HandleEnemySegmentChanged;
+		}
+
+		private void HandleEnemySegmentChanged(EnemyVehicleController vehicle, IRoadPath oldPath, IRoadPath newPath)
+		{
+			var oldSeg = (oldPath as RoadSegmentView)?.Segment;
+			var newSeg = (newPath as RoadSegmentView)?.Segment;
+
+			if (oldSeg != null && oldSeg != newSeg)
+			{
+				oldSeg.UnregisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] Enemy {vehicle.name} unregistered from segment {oldSeg.name}");
+			}
+
+			if (newSeg != null)
+			{
+				newSeg.RegisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] Enemy {vehicle.name} registered to segment {newSeg.name}");
 			}
 		}
 
@@ -113,59 +179,63 @@ namespace Game.Level.Runtime
 					prefab, point.transform.position, point.transform.rotation, null);
 			}
 
-			// Находим тег по префабу и сохраняем его вместе с инстансом
+			RoadSegmentView spawnView = _entryView;
+			 
+			Debug.Log($"[TrackEnemySpawner] Spawn: point={point.name} spawnView={spawnView != null} enemy={enemy != null}");
+			 
+			if (enemy != null && spawnView != null)
+			{
+				if (enemy.TryGetComponent<EnemyVehicleController>(out var vehicleCtrl))
+				{
+					EnemyBehaviorProfileSO profile = null;
+					foreach (var entry in enemyEntries)
+					{
+						if (entry.prefab == prefab && entry.behaviorProfile != null)
+						{
+							profile = entry.behaviorProfile;
+							break;
+						}
+					}
+
+					int startLane = 0;
+					InitializeEnemy(vehicleCtrl, spawnView, startLane, 0f, profile);
+				}
+				else if (enemy.TryGetComponent<EnemyController>(out var legacyCtrl))
+				{
+					legacyCtrl.InitializeWithSegment(spawnView);
+				}
+				else
+				{
+					Debug.LogWarning($"[TrackEnemySpawner] Спавненный префаб {prefab.name} не имеет ни EnemyVehicleController, ни EnemyController!", this);
+				}
+			}
+			else
+			{
+				Debug.LogError($"[TrackEnemySpawner] SKIP init: enemy={enemy != null} spawnView={spawnView != null}");
+			}
+
 			EnemyTag tag = GetTagForPrefab(prefab);
 			_spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy, Tag = tag });
 		}
 
 		public void DespawnEnemies()
 		{
-			// Проходимся по списку с конца, так как будем удалять элементы
 			for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
 			{
 				var data = _spawnedEnemies[i];
-            
+			
 				if (data.Instance == null)
 				{
 					_spawnedEnemies.RemoveAt(i);
 					continue;
 				}
 
-				bool shouldDespawn = true; // По умолчанию деспавним всех
-
-				// Исключения для Biker и SoulVOZ
-				if (data.Tag == EnemyTag.Biker || data.Tag == EnemyTag.SoulVOZ)
-				{
-					shouldDespawn = false;
-
-					// Условие 1: Слишком далеко от игрока
-					if (_playerTracker != null && _playerTracker.PlayerTransform != null)
-					{
-						float distanceToPlayer = Vector3.Distance(data.Instance.transform.position, _playerTracker.PlayerTransform.position);
-						if (distanceToPlayer > despawnDistance)
-						{
-							shouldDespawn = true;
-						}
-					}
-
-					// Условие 2: Находятся на удаляемой дороге
-					if (!shouldDespawn && segmentCollider != null)
-					{
-						// Проверяем, находится ли центр врага внутри границ коллайдера сегмента
-						if (segmentCollider.bounds.Contains(data.Instance.transform.position))
-						{
-							shouldDespawn = true;
-						}
-					}
-				}
-
-				if (shouldDespawn)
-				{
-					DestroyEnemy(data.Instance);
-				}
-            
-				// В любом случае убираем из списка. 
-				// Если враг выжил (уехал на другой сегмент), этот спавнер больше за него не отвечает.
+				var ctrl = data.Instance.GetComponent<EnemyController>();
+				var vehicleCtrl = data.Instance.GetComponent<EnemyVehicleController>();
+				if (ctrl != null) ctrl.Despawn();
+				else if (vehicleCtrl != null) vehicleCtrl.Despawn();
+				else data.Instance.SetActive(false);
+				
 				_spawnedEnemies.RemoveAt(i);
 			}
 
@@ -173,6 +243,63 @@ namespace Game.Level.Runtime
 				point.Disarm();
 
 			_hasSpawned = false;
+		}
+
+		private void DespawnAllTracked()
+		{
+			for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
+			{
+				var data = _spawnedEnemies[i];
+				if (data.Instance != null)
+				{
+					var ctrl = data.Instance.GetComponent<EnemyController>();
+					var vehicleCtrl = data.Instance.GetComponent<EnemyVehicleController>();
+					if (ctrl != null) ctrl.Despawn();
+					else if (vehicleCtrl != null) vehicleCtrl.Despawn();
+					else data.Instance.SetActive(false);
+				}
+				_spawnedEnemies.RemoveAt(i);
+			}
+		}
+
+		public void RegisterEnemy(EnemyController enemy)
+		{
+			if (enemy == null) return;
+			_spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy.gameObject, Tag = GetTagForPrefab(enemy.gameObject) });
+		}
+
+		public void UnregisterEnemy(EnemyController enemy)
+		{
+			if (enemy == null) return;
+			for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
+			{
+				if (_spawnedEnemies[i].Instance == enemy.gameObject)
+				{
+					_spawnedEnemies.RemoveAt(i);
+					break;
+				}
+			}
+		}
+
+		private void GetGridFrame(out Vector3 origin, out Vector3 fwd, out Vector3 right)
+		{
+			fwd = Flat(_roadSegment.entryPoint.transform.forward);
+			right = Vector3.Cross(Vector3.up, fwd);
+			origin = _roadSegment.entryPoint.transform.position + fwd * (_roadSegment.cellSize * 0.5f);
+		}
+
+		private Vector2Int WorldToGridCell(Vector3 worldPos, Vector3 origin, Vector3 fwd, Vector3 right)
+		{
+			Vector3 d = worldPos - origin;
+			return new Vector2Int(
+				Mathf.RoundToInt(Vector3.Dot(d, right) / _roadSegment.cellSize),
+				Mathf.RoundToInt(Vector3.Dot(d, fwd) / _roadSegment.cellSize));
+		}
+
+		private static Vector3 Flat(Vector3 v)
+		{
+			v.y = 0f;
+			return v.normalized;
 		}
 
 		private void DestroyEnemy(GameObject e)
