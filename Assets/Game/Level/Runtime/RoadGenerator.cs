@@ -102,11 +102,52 @@ namespace Game.Level.Runtime
 		private int _nodeCount;
 		private bool _warnedNoResolver;
 
-		// Event fired BEFORE segment is deactivated/destroyed
-		public event Action<RoadSegment> OnSegmentDestroying;
-
 		private Vector3 _gridPos;
 		private Quaternion _gridRot;
+		private bool _gridReady;
+
+		/// <summary>Сегмент поставлен и выровнен. Клетки — в мировой сетке генератора.</summary>
+		public event System.Action<RoadSegmentInfo> SegmentPlaced;
+
+		/// <summary>Сегмент сейчас будет уничтожен (позади игрока или отрезанная ветка развилки).</summary>
+		public event System.Action<RoadSegment> SegmentRemoved;
+
+		/// <summary>Вызван ResetGenerator: старая дорога удалена, сейчас начнётся новая.</summary>
+		public event System.Action GeneratorReset;
+
+		public float CellSize => gridSettings != null ? gridSettings.cellSize : 0f;
+		public bool IsGridReady => _gridReady;
+		public Vector3 GridOrigin => _gridPos;
+		public Quaternion GridRotation => _gridRot;
+
+		/// <summary>Мировая точка → координаты в сетке (метры, без поворота генератора).</summary>
+		public Vector3 WorldToGrid(Vector3 world) => Quaternion.Inverse(_gridRot) * (world - _gridPos);
+
+		/// <summary>Координаты в сетке (метры) → мировая точка.</summary>
+		public Vector3 GridToWorld(Vector3 grid) => _gridPos + _gridRot * grid;
+
+		/// <summary>Клетка сетки, в которой лежит мировая точка.</summary>
+		public Vector2Int WorldToCell(Vector3 world)
+		{
+			if (gridSettings == null) return Vector2Int.zero;
+			Vector3 local = WorldToGrid(world);
+			return new Vector2Int(Mathf.RoundToInt(local.x / gridSettings.cellSize), Mathf.FloorToInt(local.z / gridSettings.cellSize));
+		}
+
+		/// <summary>Все живые сегменты (для тех, кто подписался позже первой генерации).</summary>
+		public void GetPlacedSegments(List<RoadSegmentInfo> result)
+		{
+			result.Clear();
+			if (_root != null) CollectSegments(_root, result);
+		}
+
+		static void CollectSegments(RoadNode node, List<RoadSegmentInfo> result)
+		{
+			if (node.segment != null)
+				result.Add(new RoadSegmentInfo(node.segment, node.biome, node.cells.ToArray(), node.depth));
+			foreach (var ch in node.children)
+				if (ch != null) CollectSegments(ch, result);
+		}
 
 		public BiomeTag CurrentBiomeTag =>
 			_playerNode != null ? _playerNode.biome : _root != null ? _root.biome : BiomeTag.None;
@@ -151,6 +192,7 @@ namespace Game.Level.Runtime
 		{
 			_gridPos = transform.position;
 			_gridRot = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+			_gridReady = true;
 
 			_open.Add(new BranchCursor
 			{
@@ -360,6 +402,34 @@ namespace Game.Level.Runtime
 
 			if (seg.TryGetComponent(out TrackEnemySpawner spawner))
 				spawner.TrySpawnEnemies();
+
+			NotifyPlaced(node);
+		}
+
+		void NotifyPlaced(RoadNode node)
+		{
+			if (SegmentPlaced == null) return;
+			try
+			{
+				SegmentPlaced(new RoadSegmentInfo(node.segment, node.biome, node.cells.ToArray(), node.depth));
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogException(e, this);
+			}
+		}
+
+		void NotifyRemoved(RoadSegment segment)
+		{
+			if (SegmentRemoved == null || segment == null) return;
+			try
+			{
+				SegmentRemoved(segment);
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogException(e, this);
+			}
 		}
 
 		static RoadSegmentView ResolveEntryView(RoadSegment seg, RoadSegmentView[] allViews)
@@ -667,13 +737,17 @@ namespace Game.Level.Runtime
 
 			if (node.segment != null)
 			{
-				// 1. Notify subscribers BEFORE deactivating segment (allows immediate enemy despawn)
-				OnSegmentDestroying?.Invoke(node.segment);
+				// 1. Notify subscribers BEFORE deactivating segment (allows immediate despawn)
+				NotifyRemoved(node.segment);
 
-				// 2. Deactivate segment immediately (stops FixedUpdate on RoadSegmentView, removes from physics)
+				// 2. Despawn enemies on the segment that is being removed
+				if (node.segment.TryGetComponent(out TrackEnemySpawner spawner))
+					spawner.DespawnEnemies();
+
+				// 3. Deactivate segment immediately (stops FixedUpdate on RoadSegmentView, removes from physics)
 				node.segment.gameObject.SetActive(false);
 
-				// 3. Destroy at end of frame for GC cleanup
+				// 4. Destroy at end of frame for GC cleanup
 				Destroy(node.segment.gameObject);
 			}
 
@@ -938,6 +1012,9 @@ namespace Game.Level.Runtime
 			_root = _playerNode = _pendingFork = _chosenBranch = null;
 			_nodeCount = 0;
 
+			try { GeneratorReset?.Invoke(); }
+			catch (System.Exception e) { Debug.LogException(e, this); }
+
 			StartGeneration();
 		}
 
@@ -990,5 +1067,23 @@ namespace Game.Level.Runtime
 			}
 		}
 #endif
+	}
+
+	/// <summary>Что сообщает генератор о поставленном сегменте.</summary>
+	public readonly struct RoadSegmentInfo
+	{
+		public readonly RoadSegment segment;
+		public readonly BiomeTag biome;
+		/// <summary>Клетки сегмента в мировой сетке генератора.</summary>
+		public readonly Vector2Int[] cells;
+		public readonly int depth;
+
+		public RoadSegmentInfo(RoadSegment segment, BiomeTag biome, Vector2Int[] cells, int depth)
+		{
+			this.segment = segment;
+			this.biome = biome;
+			this.cells = cells;
+			this.depth = depth;
+		}
 	}
 }

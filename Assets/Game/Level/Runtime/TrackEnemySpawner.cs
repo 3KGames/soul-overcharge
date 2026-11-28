@@ -53,7 +53,7 @@ namespace Game.Level.Runtime
 
 			var generator = FindObjectOfType<RoadGenerator>();
 			if (generator != null)
-				generator.OnSegmentDestroying += OnSegmentDestroying;
+				generator.SegmentRemoved += OnSegmentRemoved;
 
 			if (_spawnPoints.Length == 0)
 				Debug.LogWarning($"[TrackEnemySpawner] На {gameObject.name} нет EnemySpawnPoint!", this);
@@ -65,14 +65,14 @@ namespace Game.Level.Runtime
 		{
 			var generator = FindObjectOfType<RoadGenerator>();
 			if (generator != null)
-				generator.OnSegmentDestroying -= OnSegmentDestroying;
+				generator.SegmentRemoved -= OnSegmentRemoved;
 		}
 
-		private void OnSegmentDestroying(RoadSegment segment)
+		private void OnSegmentRemoved(RoadSegment segment)
 		{
 			if (segment != _roadSegment) return;
 
-			Debug.Log($"[TrackEnemySpawner] OnSegmentDestroying: segment={segment.name}, resident enemies={_roadSegment.ResidentEnemies.Count}");
+			Debug.Log($"[TrackEnemySpawner] SegmentRemoved: segment={segment.name}, resident enemies={_roadSegment.ResidentEnemies.Count}");
 
 			var enemiesToDespawn = new List<EnemyVehicleController>(_roadSegment.ResidentEnemies);
 			foreach (var vehicle in enemiesToDespawn)

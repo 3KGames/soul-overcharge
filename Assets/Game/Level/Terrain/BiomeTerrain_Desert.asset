@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19847b9c89da0174ead4f477340248a7, type: 3}
+  m_Name: BiomeTerrain_Desert
+  m_EditorClassIdentifier: 
+  biomeTag: 1
+  material: {fileID: 2100000, guid: 04b008b3ad645374cb86fcd4672ba1eb, type: 2}
+  splatChannel: 0
+  baseOffset: 0
+  detailType: 4
+  detailAmplitude: 2
+  detailScale: 40
+  octaves: 4
+  lacunarity: 2
+  gain: 0.5
+  warpStrength: 8
+  windAngle: 30
+  duneWavelength: 35
+  duneSharpness: 2
+  plateSize: 12
+  crackWidth: 0.12
+  stampDensity: 0.25
+  stamps:
+  - stamp: {fileID: 11400000, guid: 75326f8b4ceae0344bbf6b3426731cad, type: 2}
+    weight: 2
+  - stamp: {fileID: 11400000, guid: 790f3d238ed498f46a5bdf9845e14700, type: 2}
+    weight: 1
+  propDensity: 0.35
+  props:
+  - prefab: {fileID: 4919195566623887024, guid: ef5fc5932a874764d9a0f61959d7c654, type: 3}
+    weight: 4
+    radius: 0.6
+    scale: {x: 2.5, y: 4}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 6209271702811891519, guid: f6d280c0a93e507449dcc64673da7e91, type: 3}
+    weight: 3
+    radius: 0.5
+    scale: {x: 2, y: 3.5}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 4910799210144045943, guid: 642698b7ae0d98146983b4148d26d4be, type: 3}
+    weight: 2
+    radius: 1.2
+    scale: {x: 2, y: 3}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 227703647039591838, guid: 2d2c1b8305fd96727b99bd41f7c4b044, type: 3}
+    weight: 0.6
+    radius: 5
+    scale: {x: 1, y: 1.2}
+    flattenGround: 1
+    flattenFalloff: 2
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 1536553374156835099, guid: 57989607b8e7ba0419c241856b49d562, type: 3}
+    weight: 0.7
+    radius: 2
+    scale: {x: 1.2, y: 1.6}
+    flattenGround: 1
+    flattenFalloff: 3
+    minRoadDistance: 3
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 9205384357374097613, guid: 0c3511eb0fef17849a43576b2ae4169d, type: 3}
+    weight: 1
+    radius: 1
+    scale: {x: 1, y: 1.5}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 3103652586841478409, guid: 58a514f445e445245a6aab3556a84d61, type: 3}
+    weight: 1
+    radius: 0.5
+    scale: {x: 2, y: 3}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 786357686799132041, guid: 1db40908d5bd6da4893faeb2613e5d91, type: 3}
+    weight: 0.5
+    radius: 0.6
+    scale: {x: 2, y: 3}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 0
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05
+  - prefab: {fileID: 5952042417801111603, guid: d9ff5e75a8ac83443a47ee087d35148a, type: 3}
+    weight: 0.5
+    radius: 0.5
+    scale: {x: 2, y: 2.5}
+    flattenGround: 0
+    flattenFalloff: 3
+    minRoadDistance: 0
+    maxRoadDistance: 4
+    maxSlope: 35
+    alignToNormal: 0
+    randomYaw: 0
+    faceCamera: 1
+    sink: 0.05

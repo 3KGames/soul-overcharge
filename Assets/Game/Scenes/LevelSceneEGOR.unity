@@ -805,6 +805,92 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 101854444}
   m_CullTransparentMesh: 1
+--- !u!1 &128210116
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 128210118}
+  - component: {fileID: 128210117}
+  m_Layer: 0
+  m_Name: Terrain
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &128210117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 128210116}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c306ed3341a6fa47a2db56d8d9537d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roadGenerator: {fileID: 1488523653}
+  player: {fileID: 0}
+  biomes:
+  - {fileID: 11400000, guid: a40bfc168044e2646b28375dca4164de, type: 2}
+  fallbackBiome: {fileID: 0}
+  defaultMaterial: {fileID: 2100000, guid: 04b008b3ad645374cb86fcd4672ba1eb, type: 2}
+  resolution: 50
+  seed: 0
+  detailOnlyNearRoad: 1
+  roadPadding: 1
+  playerPadding: 1
+  edgeFadeWidth: 15
+  farGround: 1
+  loadRadius: 4
+  farResolution: 5
+  colliderRadius: 1
+  preventFallThrough: 1
+  fallThroughDepth: 0.75
+  useBackgroundThreads: 1
+  maxConcurrentJobs: 3
+  maxAppliesPerFrame: 2
+  maxSyncBuildsPerFrame: 1
+  roadShapeSource: 0
+  laneWidth: 3
+  roadShoulder: 0.5
+  splineLateralOffset: 0
+  roadSurfaceOffset: 0
+  splineSamples: 40
+  roadClearance: 2
+  roadFalloff: 10
+  sinkUnderRoad: 0.3
+  shoulderDrop: 0.05
+  stampCellSize: 20
+  stampRoadOverlap: 0.5
+  spawnProps: 1
+  propCellSize: 7
+  propRoadClearance: 1.5
+  terrainLayer: 16
+  uvScale: 10
+  castShadows: 1
+  drawGizmos: 1
+  logStats: 0
+--- !u!4 &128210118
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 128210116}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &135499973
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2065,7 +2151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &356033452
 Transform:
   m_ObjectHideFlags: 0
@@ -18827,3 +18913,4 @@ SceneRoots:
   - {fileID: 1661872316}
   - {fileID: 2046729809}
   - {fileID: 1395067807}
+  - {fileID: 128210118}
