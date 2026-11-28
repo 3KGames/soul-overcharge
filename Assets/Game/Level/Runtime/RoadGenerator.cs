@@ -146,7 +146,7 @@ namespace Game.Level.Runtime
 			if (node.segment != null)
 				result.Add(new RoadSegmentInfo(node.segment, node.biome, node.cells.ToArray(), node.depth));
 			foreach (var ch in node.children)
-				if (ch != null) CollectSegments(ch, result);
+				if (ch != null && ch != node) CollectSegments(ch, result); // Skip self-reference (linear segments)
 		}
 
 		public BiomeTag CurrentBiomeTag =>
