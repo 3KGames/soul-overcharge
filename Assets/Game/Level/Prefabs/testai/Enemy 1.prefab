@@ -94,7 +94,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 473778077907093501}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 9bb590f29b766874bb4d137e2d2f6ca6, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -118,7 +118,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6686549296057669100}
   - component: {fileID: 8615792705400709480}
-  - component: {fileID: 2930264033434061776}
+  - component: {fileID: 1489039226729762502}
   m_Layer: 0
   m_Name: Enemy 1
   m_TagString: Untagged
@@ -169,7 +169,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &2930264033434061776
+--- !u!114 &1489039226729762502
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -178,18 +178,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 6397482764891213827}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7a4143e693b1b545b786211d104a10f, type: 3}
+  m_Script: {fileID: 11500000, guid: c0b6c9dbee3e44439daf7b33868a67d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BaseSpeed: 30
-  MaxSpeed: 50
-  CanFlock: 0
-  SeparationRadius: 10
-  AlignmentWeight: 1
-  CohesionWeight: 0.5
-  RamForce: 5000
-  RamCooldown: 1
-  CatchUpDistance: 20
-  PushDistance: 3
-  PushCooldown: 1.5
-  ShowDebugGizmos: 0
+  _vehicleConfig: {fileID: 11400000, guid: 1e6b628e9768c9646b25e41ce88ed459, type: 2}
+  _behaviorProfile: {fileID: 11400000, guid: d039e5c1cf63f9d4eb5e93c6dc8504ef, type: 2}
+  _rb: {fileID: 8615792705400709480}
+  _initialRoadPath: {fileID: 0}
+  _testStartLane: 0
+  _testLateralOffset: 0
+  _testSpeed: 25

@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using Common.Runtime;
 using Enemies;
+using Game.Common.Runtime;
 using Game.Enemies;
+using Game.Enemies.Vehicle;
+using Game.Enemies.Behavior;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-
-// Добавлен неймспейс для PlayerTracker
 
 namespace Game.Level.Runtime
 {
 	public class TrackEnemySpawner : MonoBehaviour
 	{
-		// Структура для хранения заспавненного объекта и его тега
 		private struct SpawnedEnemyData
 		{
 			public GameObject Instance;
@@ -37,7 +37,6 @@ namespace Game.Level.Runtime
 		private RoadSegmentView _entryView;
 		private RoadSegment _roadSegment;
 
-		// Инжектим PlayerTracker
 		[Inject]
 		public void Construct(LifetimeScope parentScope, PlayerTracker playerTracker)
 		{
@@ -48,12 +47,10 @@ namespace Game.Level.Runtime
 		private void Awake()
 		{
 			_spawnPoints = GetComponentsInChildren<EnemySpawnPoint>();
-			// RoadSegment.roadView уже ссылается на правильный входной view (ForkEntry или линейный)
 			_roadSegment = GetComponent<RoadSegment>();
 			if (_roadSegment != null)
 				_entryView = _roadSegment.roadView;
 
-			// Subscribe to segment destruction event
 			var generator = FindObjectOfType<RoadGenerator>();
 			if (generator != null)
 				generator.OnSegmentDestroying += OnSegmentDestroying;
@@ -73,8 +70,18 @@ namespace Game.Level.Runtime
 
 		private void OnSegmentDestroying(RoadSegment segment)
 		{
-			if (segment == _roadSegment)
-				DespawnEnemies();
+			if (segment != _roadSegment) return;
+
+			Debug.Log($"[TrackEnemySpawner] OnSegmentDestroying: segment={segment.name}, resident enemies={_roadSegment.ResidentEnemies.Count}");
+
+			var enemiesToDespawn = new List<EnemyVehicleController>(_roadSegment.ResidentEnemies);
+			foreach (var vehicle in enemiesToDespawn)
+			{
+				vehicle.OnSegmentChanged -= HandleEnemySegmentChanged;
+				vehicle.Despawn();
+				Debug.Log($"[TrackEnemySpawner] Despawned enemy {vehicle.name} from destroyed segment");
+			}
+			_roadSegment.ResidentEnemies.Clear();
 		}
 
 		public void TrySpawnEnemies()
@@ -102,6 +109,44 @@ namespace Game.Level.Runtime
 					else
 						PerformSpawn(point, entry.prefab);
 				}
+			}
+		}
+
+		public void InitializeEnemy(EnemyVehicleController vehicle, IRoadPath roadPath, int lane, float startDistance, EnemyBehaviorProfileSO profile = null)
+		{
+			if (vehicle == null || roadPath == null) return;
+
+			vehicle.InitializeOnRoad(roadPath, lane, startDistance, profile);
+
+			var segment = (roadPath as RoadSegmentView)?.Segment;
+			if (segment == null)
+			{
+				Debug.LogWarning($"[TrackEnemySpawner] InitializeEnemy: roadPath is not a RoadSegmentView or has no Segment! roadPath={roadPath?.GetType().Name}");
+			}
+			else
+			{
+				segment.RegisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] InitializeEnemy: {vehicle.name} registered to segment {segment.name}");
+			}
+
+			vehicle.OnSegmentChanged += HandleEnemySegmentChanged;
+		}
+
+		private void HandleEnemySegmentChanged(EnemyVehicleController vehicle, IRoadPath oldPath, IRoadPath newPath)
+		{
+			var oldSeg = (oldPath as RoadSegmentView)?.Segment;
+			var newSeg = (newPath as RoadSegmentView)?.Segment;
+
+			if (oldSeg != null && oldSeg != newSeg)
+			{
+				oldSeg.UnregisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] Enemy {vehicle.name} unregistered from segment {oldSeg.name}");
+			}
+
+			if (newSeg != null)
+			{
+				newSeg.RegisterEnemy(vehicle);
+				Debug.Log($"[TrackEnemySpawner] Enemy {vehicle.name} registered to segment {newSeg.name}");
 			}
 		}
 
@@ -134,20 +179,34 @@ namespace Game.Level.Runtime
 					prefab, point.transform.position, point.transform.rotation, null);
 			}
 
-			// roadView берётся из RoadSegment.roadView (уже правильный ForkEntry или линейный)
 			RoadSegmentView spawnView = _entryView;
 			 
 			Debug.Log($"[TrackEnemySpawner] Spawn: point={point.name} spawnView={spawnView != null} enemy={enemy != null}");
 			 
 			if (enemy != null && spawnView != null)
 			{
-				if (enemy.TryGetComponent<EnemyController>(out var ctrl))
+				if (enemy.TryGetComponent<EnemyVehicleController>(out var vehicleCtrl))
 				{
-					ctrl.InitializeWithSegment(spawnView);
+					EnemyBehaviorProfileSO profile = null;
+					foreach (var entry in enemyEntries)
+					{
+						if (entry.prefab == prefab && entry.behaviorProfile != null)
+						{
+							profile = entry.behaviorProfile;
+							break;
+						}
+					}
+
+					int startLane = 0;
+					InitializeEnemy(vehicleCtrl, spawnView, startLane, 0f, profile);
+				}
+				else if (enemy.TryGetComponent<EnemyController>(out var legacyCtrl))
+				{
+					legacyCtrl.InitializeWithSegment(spawnView);
 				}
 				else
 				{
-					Debug.LogWarning($"[TrackEnemySpawner] Спавненный префаб {prefab.name} не имеет EnemyController!", this);
+					Debug.LogWarning($"[TrackEnemySpawner] Спавненный префаб {prefab.name} не имеет ни EnemyVehicleController, ни EnemyController!", this);
 				}
 			}
 			else
@@ -155,14 +214,12 @@ namespace Game.Level.Runtime
 				Debug.LogError($"[TrackEnemySpawner] SKIP init: enemy={enemy != null} spawnView={spawnView != null}");
 			}
 
-			// Находим тег по префабу и сохраняем его вместе с инстансом
 			EnemyTag tag = GetTagForPrefab(prefab);
 			_spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy, Tag = tag });
 		}
 
 		public void DespawnEnemies()
 		{
-			// Immediate despawn for all tracked enemies on this segment
 			for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
 			{
 				var data = _spawnedEnemies[i];
@@ -173,9 +230,10 @@ namespace Game.Level.Runtime
 					continue;
 				}
 
-				// Instant deactivation stops FixedUpdate immediately
 				var ctrl = data.Instance.GetComponent<EnemyController>();
-				if (ctrl != null) ctrl.Despawn(); // Despawn does SetActive(false) + Destroy
+				var vehicleCtrl = data.Instance.GetComponent<EnemyVehicleController>();
+				if (ctrl != null) ctrl.Despawn();
+				else if (vehicleCtrl != null) vehicleCtrl.Despawn();
 				else data.Instance.SetActive(false);
 				
 				_spawnedEnemies.RemoveAt(i);
@@ -187,7 +245,6 @@ namespace Game.Level.Runtime
 			_hasSpawned = false;
 		}
 
-		// Деспавн всех отслеживаемых (fallback)
 		private void DespawnAllTracked()
 		{
 			for (int i = _spawnedEnemies.Count - 1; i >= 0; i--)
@@ -196,21 +253,21 @@ namespace Game.Level.Runtime
 				if (data.Instance != null)
 				{
 					var ctrl = data.Instance.GetComponent<EnemyController>();
+					var vehicleCtrl = data.Instance.GetComponent<EnemyVehicleController>();
 					if (ctrl != null) ctrl.Despawn();
+					else if (vehicleCtrl != null) vehicleCtrl.Despawn();
 					else data.Instance.SetActive(false);
 				}
 				_spawnedEnemies.RemoveAt(i);
 			}
 		}
 
-		// Регистрация врага, переехавшего с другого сегмента
 		public void RegisterEnemy(EnemyController enemy)
 		{
 			if (enemy == null) return;
 			_spawnedEnemies.Add(new SpawnedEnemyData { Instance = enemy.gameObject, Tag = GetTagForPrefab(enemy.gameObject) });
 		}
 
-		// Удаление врага, уехавшего на другой сегмент
 		public void UnregisterEnemy(EnemyController enemy)
 		{
 			if (enemy == null) return;
@@ -224,7 +281,6 @@ namespace Game.Level.Runtime
 			}
 		}
 
-		// Grid frame из RoadSegment
 		private void GetGridFrame(out Vector3 origin, out Vector3 fwd, out Vector3 right)
 		{
 			fwd = Flat(_roadSegment.entryPoint.transform.forward);

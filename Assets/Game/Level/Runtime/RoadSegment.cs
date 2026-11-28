@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Enemies.Vehicle;
 using NaughtyAttributes;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -10,11 +11,7 @@ namespace Game.Level.Runtime
 	public struct SegmentExit
 	{
 		public ConnectionPoint point;
-
-		[Tooltip("Клетка сразу за выходом (в сетке сегмента: вход — клетка 0,0, смотрит в +Y)")]
 		public Vector2Int nextCell;
-
-		[Tooltip("0 = прямо, 1 = вправо, 3 = влево")]
 		public int turn;
 	}
 
@@ -22,6 +19,7 @@ namespace Game.Level.Runtime
 	{
 		public RoadSegmentView roadView;
 		private TrackEnemySpawner _spawner;
+		public readonly List<EnemyVehicleController> ResidentEnemies = new();
 
 		public TrackEnemySpawner Spawner
 		{
@@ -35,10 +33,20 @@ namespace Game.Level.Runtime
 			}
 		}
 
+		public void RegisterEnemy(EnemyVehicleController enemy)
+		{
+			if (enemy != null && !ResidentEnemies.Contains(enemy))
+				ResidentEnemies.Add(enemy);
+		}
+
+		public void UnregisterEnemy(EnemyVehicleController enemy)
+		{
+			if (enemy != null)
+				ResidentEnemies.Remove(enemy);
+		}
+
 		[Header("Точки стыковки")]
 		public ConnectionPoint entryPoint;
-
-		[Tooltip("1 выход — обычный сегмент, 2+ — развилка. Максимум один выход на сторону, назад нельзя.")]
 		public ConnectionPoint[] exitPoints;
 
 		[SerializeField, HideInInspector, FormerlySerializedAs("exitPoint")]
@@ -48,14 +56,12 @@ namespace Game.Level.Runtime
 		public SegmentType segmentType = SegmentType.Straight;
 
 		[Header("Сетка — заполняется через контекстное меню Bake grid")]
-		[Tooltip("Одинаковый у всех префабов и у RoadGenerator"), ReadOnly]
+		[ReadOnly]
 		public float cellSize = 40f;
 		
 		[Header("Runtime Geometry (Baked)")]
-		[Tooltip("Задаётся при Bake из RoadSettingsSO.laneWidth или вручную")]
 		public float laneWidth = 3.5f;
 
-		[Tooltip("Если включено, Bake не перезаписывает cells (для сегментов нестандартной формы)")]
 		public bool manualCells;
 
 		public Vector2Int[] cells;
@@ -103,7 +109,6 @@ namespace Game.Level.Runtime
 				return false;
 			}
 
-			// === FORCE REBAKE: Fix firstEntryLane on fork exits before validation ===
 			if (forceRebake && exits.Length > 1)
 			{
 				FixForkFirstEntryLanes();
@@ -185,7 +190,6 @@ namespace Game.Level.Runtime
 			if (exits.Length > 1)
 				ValidateForkLanes();
 
-			// Set laneCount on all RoadSegmentViews (handles forks with multiple views)
 			SetLaneCountOnViews(forceRebake);
 
 			return ok;
@@ -193,19 +197,15 @@ namespace Game.Level.Runtime
 
 		void SetLaneCountOnViews(bool forceRebake = false)
 		{
-			// Get all RoadSegmentViews on this prefab
 			var views = GetComponentsInChildren<RoadSegmentView>();
 			if (views == null || views.Length == 0) return;
 
-			// Sync laneWidth from RoadSegment to all views
 			foreach (var v in views)
 				v.laneWidth = laneWidth;
 
-			// Determine entry lanes from entryPoint
 			int entryLanes = entryPoint != null ? entryPoint.NumLanes : 0;
 			if (entryLanes <= 0) return;
 
-			// Find ForkEntry (isForkEntry=true) or the main view
 			RoadSegmentView entryView = null;
 			foreach (var v in views)
 			{
@@ -221,14 +221,8 @@ namespace Game.Level.Runtime
 			if (entryView != null)
 				entryView.laneCount = entryLanes;
 
-			// === GRAPH-BASED APPROACH ===
-			// Use the explicit graph connections (childViews, exitFirstLane, exitLaneCount)
-			// which are set up by Fork Creator / Runtime Generator
-			
 			if (entryView != null && entryView.isForkEntry && entryView.childViews != null)
 			{
-				// ForkEntry has explicit childViews array - use it directly!
-				// exitFirstLane[i] / exitLaneCount[i] correspond to childViews[i]
 				for (int i = 0; i < entryView.childViews.Length; i++)
 				{
 					var cv = entryView.childViews[i];
@@ -239,19 +233,16 @@ namespace Game.Level.Runtime
 					}
 					else if (i < exits.Length && exits[i].point != null)
 					{
-						// Fallback to exitPoints order
 						cv.laneCount = exits[i].point.NumLanes;
 					}
 				}
 			}
 			else if (views.Length == 1)
 			{
-				// Normal linear segment: use max of entry and exit lanes (for expanding/narrowing roads)
 				int exitLanes = exits.Length > 0 && exits[0].point != null ? exits[0].point.NumLanes : entryLanes;
 				views[0].laneCount = Mathf.Max(entryLanes, exitLanes);
 			}
 
-			// Force rebuild serializedTopology on all views to match laneCount
 			if (forceRebake)
 			{
 				RebuildViewTopology(views);
@@ -260,8 +251,6 @@ namespace Game.Level.Runtime
 
 		void FixForkFirstEntryLanes()
 		{
-			// Only for forks: assign sequential firstEntryLane to each exit
-			// Use exitPoints since exits is not populated yet at this point in BakeGrid
 			int cumulative = 0;
 			for (int i = 0; i < exitPoints.Length; i++)
 			{
@@ -271,7 +260,6 @@ namespace Game.Level.Runtime
 				var cp = ep.GetComponent<ConnectionPoint>();
 				if (cp != null)
 				{
-					// Use SerializedObject to modify private field
 #if UNITY_EDITOR
 					var so = new UnityEditor.SerializedObject(cp);
 					var prop = so.FindProperty("firstEntryLane");
@@ -293,11 +281,9 @@ namespace Game.Level.Runtime
 			{
 				if (view == null) continue;
 				
-				// Update roadLength from spline (editor-time rebake)
 				if (view.spline != null)
 					view.roadLength = view.spline.CalculateLength();
 				
-				// Rebuild serializedTopology from edge profiles and laneCount
 				view.RebuildTopologyFromProfiles();
 			}
 		}

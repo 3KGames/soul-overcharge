@@ -29,24 +29,21 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
 
     [Header("Connections")]
     public RoadSegmentView previousRoad;
-    [Tooltip("Следующий сегмент (для Normal / Exit View)")]
     public RoadSegmentView nextRoad;
-    [Tooltip("Для ForkEntry: первая полоса входа -> childViews[i]")]
     public int[] exitFirstLane = Array.Empty<int>();
-    [Tooltip("Для ForkEntry: кол-во полос на childViews[i]")]
     public int[] exitLaneCount = Array.Empty<int>();
 
     [Header("Fork Structure (Variant B)")]
-    [Tooltip("Для ForkEntry: дочерние Views (ветви вилки)")]
     public RoadSegmentView[] childViews = Array.Empty<RoadSegmentView>();
-    [Tooltip("true = это вход вилки (имеет childViews)")]
     public bool isForkEntry = false;
+
+    public RoadSegment Segment { get; private set; }
 
     public void Awake()
     {
         if (spline == null) spline = GetComponent<SplineComputer>();
-        var seg = GetComponent<RoadSegment>();
-        if (seg != null) laneWidth = seg.laneWidth;
+        Segment = GetComponentInParent<RoadSegment>();
+        if (Segment != null) laneWidth = Segment.laneWidth;
         roadLength = spline != null ? spline.CalculateLength() : 0f;
     }
 
@@ -56,7 +53,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         exitLaneCount = laneCounts ?? Array.Empty<int>();
     }
 
-    // ===== IRoadPath Implementation =====
 
     public SplineSample SampleAtDistance(float distance, Spline.Direction dir = Spline.Direction.Forward)
     {
@@ -66,8 +62,9 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
     }
 
     public float Length => roadLength;
+	public float LaneWidth => laneWidth;
 
-    public (float left, float right) GetRoadWidthAt(float distance)
+	public (float left, float right) GetRoadWidthAt(float distance)
     {
         float halfLane = laneWidth * 0.5f;
         if (leftEdgeProfile == null || rightEdgeProfile == null || leftEdgeProfile.Length == 0)
@@ -82,13 +79,10 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         int leftmostActive = Mathf.Clamp(leftEdgeProfile[tile], 0, laneCount - 1);
         int rightmostActive = Mathf.Clamp(rightEdgeProfile[tile], 0, laneCount - 1);
 
-        // Use the SAME center as GetLaneOffset so edges line up with lane-center gizmos.
-        // (Earlier this used (leftmost+rightmost)/2 + Mathf.Abs, a different frame -> shifted edges.)
         float centerLane = (laneCount - 1) * 0.5f;
-        float leftEdge = (leftmostActive - centerLane) * laneWidth - halfLane;  // negative offset from spline
-        float rightEdge = (rightmostActive - centerLane) * laneWidth + halfLane; // positive offset
+        float leftEdge = (leftmostActive - centerLane) * laneWidth - halfLane;
+        float rightEdge = (rightmostActive - centerLane) * laneWidth + halfLane;
 
-        // Callers use (position - right * left) and (position + right * right), so return positive distances.
         return (-leftEdge, rightEdge);
     }
 
@@ -124,7 +118,44 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         }
     }
 
-    public IRoadPath PreviousPath => previousRoad;
+	public bool TryGetNextPath(int laneIndex, out IRoadPath nextPath)
+	{
+		if (isForkEntry && childViews != null && exitFirstLane != null && exitLaneCount != null)
+		{
+			// TODO: Clean after refactoring
+			int count = Mathf.Min(childViews.Length, Mathf.Min(exitFirstLane.Length, exitLaneCount.Length));
+
+			for (int i = 0; i < count; i++)
+			{
+				if (laneIndex >= exitFirstLane[i] && laneIndex < exitFirstLane[i] + exitLaneCount[i])
+				{
+					if (childViews[i] != null)
+					{
+						nextPath = childViews[i];
+						return true;
+					}
+				}
+			}
+
+			nextPath = null;
+			return false;
+		}
+
+		if (nextRoad != null)
+		{
+			nextPath = nextRoad;
+			return true;
+		}
+
+#if UNITY_EDITOR
+		Debug.LogError("Next road isn't assigned for: " + this.name);
+#endif
+		
+		nextPath = null;
+		return false;
+	}
+
+	public IRoadPath PreviousPath => previousRoad;
 
     public SplineSample GetClosestSample(Vector3 worldPosition)
     {
@@ -169,8 +200,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         return laneIndex >= leftEdgeProfile[tile] && laneIndex <= rightEdgeProfile[tile];
     }
 
-    // ===== Helpers for RoadGenerator =====
-
     public void SetupForkEntry(RoadSegmentView[] children, int[] firstLanes, int[] laneCounts)
     {
         childViews = children;
@@ -192,23 +221,19 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         childViews = Array.Empty<RoadSegmentView>();
     }
 
-    // ===== DEBUG GIZMOS =====
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
         if (spline == null || laneCount <= 0) return;
 
-        // Use Handles for thicker lines (Gizmos.DrawLine doesn't support thickness)
-        float thick = 5f;  // line thickness
+        float thick = 5f;
         float thin = 2.5f;
 
-        // 1. Center line (spline) - cyan/green, thick
         using (new Handles.DrawingScope(isForkEntry ? new Color(0f, 0.8f, 1f, 0.8f) : new Color(0.3f, 1f, 0.3f, 0.8f)))
         {
             DrawSplineWireHandles(spline, 30, thick);
         }
 
-        // 2. Road edges (orange) - visual road boundaries, thick
         if (leftEdgeProfile != null && rightEdgeProfile != null && leftEdgeProfile.Length > 0)
         {
             using (new Handles.DrawingScope(new Color(1f, 0.5f, 0f, 0.9f)))
@@ -233,7 +258,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         }
         else
         {
-            // Fallback: simple constant width
             using (new Handles.DrawingScope(new Color(1f, 0.5f, 0f, 0.7f)))
             {
                 float halfWidth = laneWidth * (laneCount - 1) / 2f + laneWidth * 0.5f;
@@ -242,7 +266,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
             }
         }
 
-        // 3. ACTIVE Lane centers (green) - only lanes that exist at segment start, medium
         using (new Handles.DrawingScope(new Color(0f, 1f, 0f, 0.9f)))
         {
             float gizmoTileLen = (leftEdgeProfile != null && leftEdgeProfile.Length > 0)
@@ -251,8 +274,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
 
             for (int lane = 0; lane < laneCount; lane++)
             {
-                // Draw every lane that is active anywhere along the segment.
-                // Break the line when a lane becomes inactive (narrowing/expanding).
                 var run = new List<Vector3>();
                 for (float d = 0; d <= Length; d += gizmoTileLen)
                 {
@@ -270,7 +291,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
             }
         }
 
-        // 4. Fork connections (magenta/cyan) - thick
         if (isForkEntry && childViews != null)
         {
             using (new Handles.DrawingScope(Color.magenta))
@@ -333,10 +353,6 @@ public class RoadSegmentView : MonoBehaviour, IRoadPath
         }
     }
 
-    /// <summary>
-    /// Rebuild serializedTopology from leftEdgeProfile/rightEdgeProfile and laneCount.
-    /// Called during force-rebake to fix mismatched topology (e.g., 5 lanes instead of 4).
-    /// </summary>
     public void RebuildTopologyFromProfiles()
     {
         if (leftEdgeProfile == null || rightEdgeProfile == null || leftEdgeProfile.Length == 0)

@@ -20,9 +20,11 @@ namespace Game.Common.Runtime
         
         /// <summary>Количество полос на этом сегменте.</summary>
         int LaneCount { get; }
-        
-        /// <summary>Следующие сегменты для данной полосы (0..N для развилок).</summary>
-        IEnumerable<IRoadPath> GetNextPaths(int laneIndex);
+		float LaneWidth { get; }
+
+		/// <summary>Следующие сегменты для данной полосы (0..N для развилок).</summary>
+		bool TryGetNextPath(int laneIndex, out IRoadPath nextPath);
+		IEnumerable<IRoadPath> GetNextPaths(int laneIndex);
         
         /// <summary>Предыдущий сегмент (для задней навигации).</summary>
         IRoadPath PreviousPath { get; }

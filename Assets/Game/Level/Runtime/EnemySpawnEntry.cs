@@ -30,5 +30,8 @@ namespace Game.Level.Runtime
 		[Tooltip("Шанс что этот тип врага появится на сегменте (0–1)")]
 		[Range(0f, 1f)]
 		public float spawnChance = 1f;
+
+		[Tooltip("Профиль поведения для нового EnemyVehicleController (опционально, переопределяет профиль префаба)")]
+		public Game.Enemies.Behavior.EnemyBehaviorProfileSO behaviorProfile;
 	}
 }
