@@ -835,10 +835,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roadGenerator: {fileID: 1488523653}
-  player: {fileID: 0}
+  player: {fileID: 52702740}
   biomes:
   - {fileID: 11400000, guid: a40bfc168044e2646b28375dca4164de, type: 2}
-  fallbackBiome: {fileID: 0}
+  fallbackBiome: {fileID: 11400000, guid: a40bfc168044e2646b28375dca4164de, type: 2}
   defaultMaterial: {fileID: 2100000, guid: 04b008b3ad645374cb86fcd4672ba1eb, type: 2}
   resolution: 50
   seed: 0
@@ -1948,6 +1948,7 @@ MonoBehaviour:
   - {fileID: 83612264}
   - {fileID: 1873864656}
   - {fileID: 1664715273}
+  - {fileID: 128210116}
   roadMask:
     serializedVersion: 2
     m_Bits: 32768
